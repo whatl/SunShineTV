@@ -604,20 +604,25 @@ export async function savePlayRecord(
         detail: cachedRecords,
       })
     );
-
+    // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
+    
     // 异步同步到数据库
-    try {
-      await fetchWithAuth('/api/playrecords', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ key, record }),
-      });
-    } catch (err) {
-      await handleDatabaseOperationFailure('playRecords', err);
-      triggerGlobalError('保存播放记录失败');
-      throw err;
+    if (isLoggedIn) {
+        try {
+          await fetchWithAuth('/api/playrecords', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ key, record }),
+          });
+        } catch (err) {
+          await handleDatabaseOperationFailure('playRecords', err);
+          triggerGlobalError('保存播放记录失败');
+          throw err;
+        }
     }
     return;
   }
@@ -668,15 +673,21 @@ export async function deletePlayRecord(
       })
     );
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth(`/api/playrecords?key=${encodeURIComponent(key)}`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      await handleDatabaseOperationFailure('playRecords', err);
-      triggerGlobalError('删除播放记录失败');
-      throw err;
+    // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
+
+    if(isLoggedIn){
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth(`/api/playrecords?key=${encodeURIComponent(key)}`, {
+            method: 'DELETE',
+          });
+        } catch (err) {
+          await handleDatabaseOperationFailure('playRecords', err);
+          triggerGlobalError('删除播放记录失败');
+          throw err;
+        }
     }
     return;
   }
@@ -814,18 +825,23 @@ export async function addSearchHistory(keyword: string): Promise<void> {
         detail: newHistory,
       })
     );
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth('/api/searchhistory', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ keyword: trimmed }),
-      });
-    } catch (err) {
-      await handleDatabaseOperationFailure('searchHistory', err);
+    if (isLoggedIn) {
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth('/api/searchhistory', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ keyword: trimmed }),
+          });
+        } catch (err) {
+          await handleDatabaseOperationFailure('searchHistory', err);
+        }
     }
     return;
   }
@@ -869,13 +885,19 @@ export async function clearSearchHistory(): Promise<void> {
       })
     );
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth(`/api/searchhistory`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      await handleDatabaseOperationFailure('searchHistory', err);
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
+
+    if (isLoggedIn) {
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth(`/api/searchhistory`, {
+            method: 'DELETE',
+          });
+        } catch (err) {
+          await handleDatabaseOperationFailure('searchHistory', err);
+        }
     }
     return;
   }
@@ -911,17 +933,22 @@ export async function deleteSearchHistory(keyword: string): Promise<void> {
         detail: newHistory,
       })
     );
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth(
-        `/api/searchhistory?keyword=${encodeURIComponent(trimmed)}`,
-        {
-          method: 'DELETE',
+    if(isLoggedIn){
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth(
+            `/api/searchhistory?keyword=${encodeURIComponent(trimmed)}`,
+            {
+              method: 'DELETE',
+            }
+          );
+        } catch (err) {
+          await handleDatabaseOperationFailure('searchHistory', err);
         }
-      );
-    } catch (err) {
-      await handleDatabaseOperationFailure('searchHistory', err);
     }
     return;
   }
@@ -1052,20 +1079,25 @@ export async function saveFavorite(
         detail: cachedFavorites,
       })
     );
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth('/api/favorites', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ key, favorite }),
-      });
-    } catch (err) {
-      await handleDatabaseOperationFailure('favorites', err);
-      triggerGlobalError('保存收藏失败');
-      throw err;
+    if (isLoggedIn) {
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth('/api/favorites', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ key, favorite }),
+          });
+        } catch (err) {
+          await handleDatabaseOperationFailure('favorites', err);
+          triggerGlobalError('保存收藏失败');
+          throw err;
+        }
     }
     return;
   }
@@ -1116,15 +1148,21 @@ export async function deleteFavorite(
       })
     );
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth(`/api/favorites?key=${encodeURIComponent(key)}`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      await handleDatabaseOperationFailure('favorites', err);
-      triggerGlobalError('删除收藏失败');
-      throw err;
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
+
+    if (isLoggedIn) {
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth(`/api/favorites?key=${encodeURIComponent(key)}`, {
+            method: 'DELETE',
+          });
+        } catch (err) {
+          await handleDatabaseOperationFailure('favorites', err);
+          triggerGlobalError('删除收藏失败');
+          throw err;
+        }
     }
     return;
   }
@@ -1234,17 +1272,22 @@ export async function clearAllPlayRecords(): Promise<void> {
         detail: {},
       })
     );
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth(`/api/playrecords`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (err) {
-      await handleDatabaseOperationFailure('playRecords', err);
-      triggerGlobalError('清空播放记录失败');
-      throw err;
+    if (isLoggedIn) {
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth(`/api/playrecords`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } catch (err) {
+          await handleDatabaseOperationFailure('playRecords', err);
+          triggerGlobalError('清空播放记录失败');
+          throw err;
+        }
     }
     return;
   }
@@ -1275,17 +1318,22 @@ export async function clearAllFavorites(): Promise<void> {
         detail: {},
       })
     );
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth(`/api/favorites`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-      });
-    } catch (err) {
-      await handleDatabaseOperationFailure('favorites', err);
-      triggerGlobalError('清空收藏失败');
-      throw err;
+    if (isLoggedIn) {
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth(`/api/favorites`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } catch (err) {
+          await handleDatabaseOperationFailure('favorites', err);
+          triggerGlobalError('清空收藏失败');
+          throw err;
+        }
     }
     return;
   }
@@ -1320,49 +1368,54 @@ export async function refreshAllCache(): Promise<void> {
   if (STORAGE_TYPE === 'localstorage') return;
 
   try {
-    // 并行刷新所有数据
-    const [playRecords, favorites, searchHistory, skipConfigs] =
-      await Promise.allSettled([
-        fetchFromApi<Record<string, PlayRecord>>(`/api/playrecords`),
-        fetchFromApi<Record<string, Favorite>>(`/api/favorites`),
-        fetchFromApi<string[]>(`/api/searchhistory`),
-        fetchFromApi<Record<string, SkipConfig>>(`/api/skipconfigs`),
-      ]);
-
-    if (playRecords.status === 'fulfilled') {
-      cacheManager.cachePlayRecords(playRecords.value);
-      window.dispatchEvent(
-        new CustomEvent('playRecordsUpdated', {
-          detail: playRecords.value,
-        })
-      );
-    }
-
-    if (favorites.status === 'fulfilled') {
-      cacheManager.cacheFavorites(favorites.value);
-      window.dispatchEvent(
-        new CustomEvent('favoritesUpdated', {
-          detail: favorites.value,
-        })
-      );
-    }
-
-    if (searchHistory.status === 'fulfilled') {
-      cacheManager.cacheSearchHistory(searchHistory.value);
-      window.dispatchEvent(
-        new CustomEvent('searchHistoryUpdated', {
-          detail: searchHistory.value,
-        })
-      );
-    }
-
-    if (skipConfigs.status === 'fulfilled') {
-      cacheManager.cacheSkipConfigs(skipConfigs.value);
-      window.dispatchEvent(
-        new CustomEvent('skipConfigsUpdated', {
-          detail: skipConfigs.value,
-        })
-      );
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
+    if (isLoggedIn) {
+        // 并行刷新所有数据
+        const [playRecords, favorites, searchHistory, skipConfigs] =
+          await Promise.allSettled([
+            fetchFromApi<Record<string, PlayRecord>>(`/api/playrecords`),
+            fetchFromApi<Record<string, Favorite>>(`/api/favorites`),
+            fetchFromApi<string[]>(`/api/searchhistory`),
+            fetchFromApi<Record<string, SkipConfig>>(`/api/skipconfigs`),
+          ]);
+        
+        if (playRecords.status === 'fulfilled') {
+          cacheManager.cachePlayRecords(playRecords.value);
+          window.dispatchEvent(
+            new CustomEvent('playRecordsUpdated', {
+              detail: playRecords.value,
+            })
+          );
+        }
+      
+        if (favorites.status === 'fulfilled') {
+          cacheManager.cacheFavorites(favorites.value);
+          window.dispatchEvent(
+            new CustomEvent('favoritesUpdated', {
+              detail: favorites.value,
+            })
+          );
+        }
+      
+        if (searchHistory.status === 'fulfilled') {
+          cacheManager.cacheSearchHistory(searchHistory.value);
+          window.dispatchEvent(
+            new CustomEvent('searchHistoryUpdated', {
+              detail: searchHistory.value,
+            })
+          );
+        }
+      
+        if (skipConfigs.status === 'fulfilled') {
+          cacheManager.cacheSkipConfigs(skipConfigs.value);
+          window.dispatchEvent(
+            new CustomEvent('skipConfigsUpdated', {
+              detail: skipConfigs.value,
+            })
+          );
+        }
     }
   } catch (err) {
     console.error('刷新缓存失败:', err);
@@ -1483,42 +1536,50 @@ export async function getSkipConfig(
 
   // 数据库存储模式：使用混合缓存策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
+     // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
     // 优先从缓存获取数据
     const cachedData = cacheManager.getCachedSkipConfigs();
 
     if (cachedData) {
-      // 返回缓存数据，同时后台异步更新
-      fetchFromApi<Record<string, SkipConfig>>(`/api/skipconfigs`)
-        .then((freshData) => {
-          // 只有数据真正不同时才更新缓存
-          if (JSON.stringify(cachedData) !== JSON.stringify(freshData)) {
-            cacheManager.cacheSkipConfigs(freshData);
-            // 触发数据更新事件
-            window.dispatchEvent(
-              new CustomEvent('skipConfigsUpdated', {
-                detail: freshData,
-              })
-            );
-          }
-        })
-        .catch((err) => {
-          console.warn('后台同步跳过片头片尾配置失败:', err);
-        });
+      if (isLoggedIn) {
+          // 返回缓存数据，同时后台异步更新
+          fetchFromApi<Record<string, SkipConfig>>(`/api/skipconfigs`)
+            .then((freshData) => {
+              // 只有数据真正不同时才更新缓存
+              if (JSON.stringify(cachedData) !== JSON.stringify(freshData)) {
+                cacheManager.cacheSkipConfigs(freshData);
+                // 触发数据更新事件
+                window.dispatchEvent(
+                  new CustomEvent('skipConfigsUpdated', {
+                    detail: freshData,
+                  })
+                );
+              }
+            })
+            .catch((err) => {
+              console.warn('后台同步跳过片头片尾配置失败:', err);
+            });
+      }
 
       return cachedData[key] || null;
     } else {
-      // 缓存为空，直接从 API 获取并缓存
-      try {
-        const freshData = await fetchFromApi<Record<string, SkipConfig>>(
-          `/api/skipconfigs`
-        );
-        cacheManager.cacheSkipConfigs(freshData);
-        return freshData[key] || null;
-      } catch (err) {
-        console.error('获取跳过片头片尾配置失败:', err);
-        triggerGlobalError('获取跳过片头片尾配置失败');
-        return null;
+      if (isLoggedIn) {
+          // 缓存为空，直接从 API 获取并缓存
+          try {
+            const freshData = await fetchFromApi<Record<string, SkipConfig>>(
+              `/api/skipconfigs`
+            );
+            cacheManager.cacheSkipConfigs(freshData);
+            return freshData[key] || null;
+          } catch (err) {
+            console.error('获取跳过片头片尾配置失败:', err);
+            triggerGlobalError('获取跳过片头片尾配置失败');
+            return null;
+          }
       }
+      return null
     }
   }
 
@@ -1560,18 +1621,23 @@ export async function saveSkipConfig(
       })
     );
 
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth('/api/skipconfigs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ key, config }),
-      });
-    } catch (err) {
-      console.error('保存跳过片头片尾配置失败:', err);
-      triggerGlobalError('保存跳过片头片尾配置失败');
+    // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
+    if (isLoggedIn) {
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth('/api/skipconfigs', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ key, config }),
+          });
+        } catch (err) {
+          console.error('保存跳过片头片尾配置失败:', err);
+          triggerGlobalError('保存跳过片头片尾配置失败');
+        }
     }
     return;
   }
@@ -1704,15 +1770,19 @@ export async function deleteSkipConfig(
         detail: cachedConfigs,
       })
     );
-
-    // 异步同步到数据库
-    try {
-      await fetchWithAuth(`/api/skipconfigs?key=${encodeURIComponent(key)}`, {
-        method: 'DELETE',
-      });
-    } catch (err) {
-      console.error('删除跳过片头片尾配置失败:', err);
-      triggerGlobalError('删除跳过片头片尾配置失败');
+    // 检查登录状态
+    const authInfo = getAuthInfoFromBrowserCookie();
+    const isLoggedIn = !!authInfo;
+    if (isLoggedIn) {
+        // 异步同步到数据库
+        try {
+          await fetchWithAuth(`/api/skipconfigs?key=${encodeURIComponent(key)}`, {
+            method: 'DELETE',
+          });
+        } catch (err) {
+          console.error('删除跳过片头片尾配置失败:', err);
+          triggerGlobalError('删除跳过片头片尾配置失败');
+        }
     }
     return;
   }
