@@ -11,9 +11,11 @@ export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   const authInfo = getAuthInfoFromCookie(request);
-  if (!authInfo || !authInfo.username) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  // 允许未登录使用(By Faker)
+  // if (!authInfo || !authInfo.username) {
+  //  return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  // }
+  // const username = authInfo?.username;
 
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q');
@@ -34,7 +36,7 @@ export async function GET(request: NextRequest) {
   }
 
   const config = await getConfig();
-  const apiSites = await getAvailableApiSites(authInfo.username);
+  const apiSites = await getAvailableApiSites(authInfo?.username);
 
   // 添加超时控制和错误处理，避免慢接口拖累整体响应
   const searchPromises = apiSites.map((site) =>
