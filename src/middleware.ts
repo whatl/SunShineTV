@@ -4,61 +4,69 @@ import { NextRequest, NextResponse } from 'next/server';
 
 import { getAuthInfoFromCookie } from '@/lib/auth';
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // 跳过不需要认证的路径
-  if (shouldSkipAuth(pathname)) {
-    return NextResponse.next();
+// 辅助函数：将所有验证逻辑封装起来，返回用户是否通过身份验证（By AI）
+async function isAuthenticated(authInfo: any): Promise<boolean> {
+  if (!authInfo) {
+    return false; // 没有认证信息，未登录
   }
 
   const storageType = process.env.NEXT_PUBLIC_STORAGE_TYPE || 'localstorage';
 
-  if (!process.env.PASSWORD) {
-    // 如果没有设置密码，重定向到警告页面
-    const warningUrl = new URL('/warning', request.url);
-    return NextResponse.redirect(warningUrl);
-  }
-
-  // 从cookie获取认证信息
-  const authInfo = getAuthInfoFromCookie(request);
-
-  if (!authInfo) {
-    // return handleAuthFailure(request, pathname);
-    // 允许不授权使用 (By Faker)
-     return NextResponse.next();
-  }
-
-  // localstorage模式：在middleware中完成验证
+  // localstorage 模式验证
   if (storageType === 'localstorage') {
-    if (!authInfo.password || authInfo.password !== process.env.PASSWORD) {
-      return handleAuthFailure(request, pathname);
+    if (authInfo.password && authInfo.password === process.env.PASSWORD) {
+      return true;
     }
-    return NextResponse.next();
+    return false;
   }
 
-  // 其他模式：只验证签名
-  // 检查是否有用户名（非localStorage模式下密码不存储在cookie中）
-  if (!authInfo.username || !authInfo.signature) {
-    return handleAuthFailure(request, pathname);
-  }
-
-  // 验证签名（如果存在）
-  if (authInfo.signature) {
-    const isValidSignature = await verifySignature(
+  // 其他模式：验证签名
+  if (authInfo.username && authInfo.signature) {
+    const isValid = await verifySignature(
       authInfo.username,
       authInfo.signature,
       process.env.PASSWORD || ''
     );
-
-    // 签名验证通过即可
-    if (isValidSignature) {
-      return NextResponse.next();
-    }
+    return isValid;
   }
 
-  // 签名验证失败或不存在签名
-  return handleAuthFailure(request, pathname);
+  return false;
+}
+
+
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // 1. 跳过不需要认证的静态资源路径
+  if (shouldSkipAuth(pathname)) {
+    return NextResponse.next();
+  }
+
+  // 2. 如果未设置密码，强制跳转到警告页
+  if (!process.env.PASSWORD) {
+    const warningUrl = new URL('/warning', request.url);
+    return NextResponse.redirect(warningUrl);
+  }
+
+  // 3. 获取并验证用户身份
+  const authInfo = getAuthInfoFromCookie(request);
+  const userIsAuthenticated = await isAuthenticated(authInfo);
+
+  // 4. 如果用户已通过身份验证，允许访问
+  if (userIsAuthenticated) {
+    return NextResponse.next();
+  }
+
+  // 5. 如果用户未通过身份验证（无Cookie或Cookie无效）
+  //    - 如果是受保护的API路由，则拒绝访问
+  //    - 如果是普通页面，则允许匿名访问
+  if (pathname.startsWith('/api')) {
+    // 这里的API路由已经被matcher排除了公共部分，因此都是需要保护的
+    return handleAuthFailure(request, pathname);
+  }
+
+  // 对于所有其他页面，允许匿名访问
+  return NextResponse.next();
 }
 
 // 验证签名
