@@ -508,8 +508,26 @@ export async function getAllPlayRecords(): Promise<Record<string, PlayRecord>> {
     return {};
   }
 
+  // 检查登录状态
+  const authInfo = getAuthInfoFromBrowserCookie();
+  const isLoggedIn = !!authInfo;
+
   // 数据库存储模式：使用混合缓存策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
+    // 如果未登录，则降级为从 localStorage 读取
+    if (!isLoggedIn) {
+      try {
+        const raw = localStorage.getItem(PLAY_RECORDS_KEY);
+        if (!raw) return {};
+        return JSON.parse(raw) as Record<string, PlayRecord>;
+      } catch (err) {
+        console.error('读取播放记录失败:', err);
+        triggerGlobalError('读取播放记录失败');
+        return {};
+      }
+    }
+
+    // --- 以下是已登录用户的逻辑 ---
     // 优先从缓存获取数据
     const cachedData = cacheManager.getCachedPlayRecords();
 
@@ -697,8 +715,28 @@ export async function getSearchHistory(): Promise<string[]> {
     return [];
   }
 
+  // 检查登录状态
+  const authInfo = getAuthInfoFromBrowserCookie();
+  const isLoggedIn = !!authInfo;
+
   // 数据库存储模式：使用混合缓存策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
+    // 如果未登录，则降级为从 localStorage 读取
+    if (!isLoggedIn) {
+      try {
+        const raw = localStorage.getItem(SEARCH_HISTORY_KEY);
+        if (!raw) return [];
+        const arr = JSON.parse(raw) as string[];
+        // 仅返回字符串数组
+        return Array.isArray(arr) ? arr : [];
+      } catch (err) {
+        console.error('读取搜索历史失败:', err);
+        triggerGlobalError('读取搜索历史失败');
+        return [];
+      }
+    }
+
+    // --- 以下是已登录用户的逻辑 ---
     // 优先从缓存获取数据
     const cachedData = cacheManager.getCachedSearchHistory();
 
@@ -918,8 +956,26 @@ export async function getAllFavorites(): Promise<Record<string, Favorite>> {
     return {};
   }
 
+  // 检查登录状态
+  const authInfo = getAuthInfoFromBrowserCookie();
+  const isLoggedIn = !!authInfo;
+
   // 数据库存储模式：使用混合缓存策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
+    // 如果未登录，则降级为从 localStorage 读取
+    if (!isLoggedIn) {
+      try {
+        const raw = localStorage.getItem(FAVORITES_KEY);
+        if (!raw) return {};
+        return JSON.parse(raw) as Record<string, Favorite>;
+      } catch (err) {
+        console.error('读取收藏失败:', err);
+        triggerGlobalError('读取收藏失败');
+        return {};
+      }
+    }
+
+    // --- 以下是已登录用户的逻辑 ---
     // 优先从缓存获取数据
     const cachedData = cacheManager.getCachedFavorites();
 
@@ -1105,8 +1161,19 @@ export async function isFavorited(
 ): Promise<boolean> {
   const key = generateStorageKey(source, id);
 
+  // 检查登录状态
+  const authInfo = getAuthInfoFromBrowserCookie();
+  const isLoggedIn = !!authInfo;
+
   // 数据库存储模式：使用混合缓存策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
+    // 如果未登录，则降级为从 localStorage 读取
+    if (!isLoggedIn) {
+      const allFavorites = await getAllFavorites();
+      return !!allFavorites[key];
+    }
+
+    // --- 以下是已登录用户的逻辑 ---
     const cachedFavorites = cacheManager.getCachedFavorites();
 
     if (cachedFavorites) {
@@ -1542,8 +1609,26 @@ export async function getAllSkipConfigs(): Promise<Record<string, SkipConfig>> {
     return {};
   }
 
+  // 检查登录状态
+  const authInfo = getAuthInfoFromBrowserCookie();
+  const isLoggedIn = !!authInfo;
+
   // 数据库存储模式：使用混合缓存策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
+    // 如果未登录，则降级为从 localStorage 读取
+    if (!isLoggedIn) {
+      try {
+        const raw = localStorage.getItem('moontv_skip_configs');
+        if (!raw) return {};
+        return JSON.parse(raw) as Record<string, SkipConfig>;
+      } catch (err) {
+        console.error('读取跳过片头片尾配置失败:', err);
+        triggerGlobalError('读取跳过片头片尾配置失败');
+        return {};
+      }
+    }
+
+    // --- 以下是已登录用户的逻辑 ---
     // 优先从缓存获取数据
     const cachedData = cacheManager.getCachedSkipConfigs();
 
