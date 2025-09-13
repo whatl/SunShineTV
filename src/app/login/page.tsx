@@ -105,7 +105,9 @@ function LoginPageClient() {
 
       if (res.ok) {
         const redirect = searchParams.get('redirect') || '/';
-        router.replace(redirect);
+        // 使用标准跳转 by AI
+        // 解决进入首页不显示Author信息
+        window.location.href = redirect;
       } else if (res.status === 401) {
         setError('密码错误');
       } else {

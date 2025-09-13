@@ -24,7 +24,9 @@ export async function middleware(request: NextRequest) {
   const authInfo = getAuthInfoFromCookie(request);
 
   if (!authInfo) {
-    return handleAuthFailure(request, pathname);
+    // return handleAuthFailure(request, pathname);
+    // 允许不授权使用 (By Faker)
+     return NextResponse.next();
   }
 
   // localstorage模式：在middleware中完成验证

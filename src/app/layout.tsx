@@ -2,9 +2,11 @@
 
 import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
+import { cookies } from 'next/headers';
 
 import './globals.css';
 
+import { AuthProvider } from '@/components/AuthProvider';
 import { getConfig } from '@/lib/config';
 
 import { GlobalErrorIndicator } from '../components/GlobalErrorIndicator';
@@ -91,6 +93,19 @@ export default async function RootLayout({
     FLUID_SEARCH: fluidSearch,
   };
 
+  // 在服务端获取认证信息
+  let authInfo = null;
+  const authCookie = cookies().get('auth');
+  if (authCookie) {
+    try {
+      const decoded = decodeURIComponent(authCookie.value);
+      authInfo = JSON.parse(decoded);
+    } catch (error) {
+      // 解析失败则视为未登录
+      authInfo = null;
+    }
+  }
+
   return (
     <html lang='zh-CN' suppressHydrationWarning>
       <head>
@@ -116,10 +131,12 @@ export default async function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SiteProvider siteName={siteName} announcement={announcement}>
-            {children}
-            <GlobalErrorIndicator />
-          </SiteProvider>
+          <AuthProvider value={authInfo}>
+            <SiteProvider siteName={siteName} announcement={announcement}>
+              {children}
+              <GlobalErrorIndicator />
+            </SiteProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

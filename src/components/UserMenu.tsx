@@ -17,10 +17,10 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
-import { getAuthInfoFromBrowserCookie } from '@/lib/auth';
 import { CURRENT_VERSION } from '@/lib/version';
 import { checkForUpdates, UpdateStatus } from '@/lib/version_check';
 
+import { useAuth } from './AuthProvider';
 import { VersionPanel } from './VersionPanel';
 
 interface AuthInfo {
@@ -34,7 +34,7 @@ export const UserMenu: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
   const [isVersionPanelOpen, setIsVersionPanelOpen] = useState(false);
-  const [authInfo, setAuthInfo] = useState<AuthInfo | null>(null);
+  const authInfo = useAuth(); // 从 Context 获取认证信息 (By AI) 更安全
   const [storageType, setStorageType] = useState<string>('localstorage');
   const [mounted, setMounted] = useState(false);
 
@@ -114,12 +114,9 @@ export const UserMenu: React.FC = () => {
     setMounted(true);
   }, []);
 
-  // 获取认证信息和存储类型
+  // 获取存储类型
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const auth = getAuthInfoFromBrowserCookie();
-      setAuthInfo(auth);
-
       const type =
         (window as any).RUNTIME_CONFIG?.STORAGE_TYPE || 'localstorage';
       setStorageType(type);
@@ -266,7 +263,7 @@ export const UserMenu: React.FC = () => {
     } catch (error) {
       console.error('注销请求失败:', error);
     }
-    window.location.href = '/';
+    window.location.href = '/'; // 使用标准跳转
   };
 
   const handleAdminPanel = () => {
@@ -471,6 +468,11 @@ export const UserMenu: React.FC = () => {
         return '';
     }
   };
+
+  // 没有登录信息就不显示usermenu菜单，By Faker
+  if (!authInfo) {
+    return null; // null 就不渲染任何东西
+  }
 
   // 菜单面板内容
   const menuPanel = (
