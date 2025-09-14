@@ -57,6 +57,16 @@ export const useLongPress = ({
 
         // 触发长按事件
         onLongPress();
+
+        // 关键修复：在长按触发后，临时设置一个全局的点击捕获器
+        // 来“吞掉”touchend后浏览器合成的那个“幽灵点击”事件。
+        const swallowPhantomClick = (e: MouseEvent) => {
+          e.stopPropagation();
+          e.preventDefault();
+          window.removeEventListener('click', swallowPhantomClick, true);
+        };
+        window.addEventListener('click', swallowPhantomClick, { capture: true, once: true });
+
       }, longPressDelay);
     },
     [onLongPress, longPressDelay]
