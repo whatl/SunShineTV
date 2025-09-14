@@ -13,7 +13,7 @@ export enum UpdateStatus {
 
 // 远程版本检查URL配置
 const VERSION_CHECK_URLS = [
-  'https://raw.githubusercontent.com/MoonTechLab/LunaTV/main/VERSION.txt',
+  'https://raw.githubusercontent.com/<Repository>/<ProjectName>/main/VERSION.txt',
 ];
 
 /**
@@ -22,6 +22,11 @@ const VERSION_CHECK_URLS = [
  */
 export async function checkForUpdates(): Promise<UpdateStatus> {
   try {
+    const fromConstantValue = true; // 不需要从服务器获取 （By Faker）
+    if (fromConstantValue) {
+      return UpdateStatus.NO_UPDATE;
+    }
+
     // 尝试从主要URL获取版本信息
     const primaryVersion = await fetchVersionFromUrl(VERSION_CHECK_URLS[0]);
     if (primaryVersion) {

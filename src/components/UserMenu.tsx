@@ -566,10 +566,13 @@ export const UserMenu: React.FC = () => {
           {/* 版本信息 */}
           <button
             onClick={() => {
-              setIsVersionPanelOpen(true);
-              handleCloseMenu();
+              if (authInfo?.role === 'admin' || authInfo?.role === 'owner') {
+                setIsVersionPanelOpen(true);
+                handleCloseMenu();
+              }
             }}
-            className='w-full px-3 py-2 text-center flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-xs'
+            disabled={!(authInfo?.role === 'admin' || authInfo?.role === 'owner')}
+            className='w-full px-3 py-2 text-center flex items-center justify-center text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors text-xs disabled:cursor-not-allowed disabled:opacity-60'
           >
             <div className='flex items-center gap-1'>
               <span className='font-mono'>v{CURRENT_VERSION}</span>
