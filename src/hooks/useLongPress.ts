@@ -26,7 +26,6 @@ export const useLongPress = ({
 
   const clearTimer = useCallback(() => {
     if (pressTimer.current) {
-      console.log('[LongPress] Timer cleared.');
       clearTimeout(pressTimer.current);
       pressTimer.current = null;
     }
@@ -34,9 +33,7 @@ export const useLongPress = ({
 
   const handleStart = useCallback(
     (clientX: number, clientY: number, isButton = false) => {
-      console.log(`[LongPress] handleStart triggered. isActive was: ${isActive.current}`);
       if (isActive.current) {
-        console.log('[LongPress] handleStart ignored: gesture already active.');
         return;
       }
 
@@ -44,20 +41,25 @@ export const useLongPress = ({
       isLongPress.current = false;
       startPosition.current = { x: clientX, y: clientY };
       wasButton.current = isButton;
-      console.log(`[LongPress] New gesture started. isButton: ${isButton}`);
 
       pressTimer.current = setTimeout(() => {
-        console.log(`[LongPress] setTimeout triggered. isActive is: ${isActive.current}`);
         if (!isActive.current) return;
 
         isLongPress.current = true;
-        console.log('[LongPress] Long press SUCCESSFUL.');
 
         if (navigator.vibrate) {
           navigator.vibrate(50);
         }
 
         onLongPress();
+        // 关键修复：在长按触发后，临时设置一个全局的点击捕获器
+        // 来“吞掉”touchend后浏览器合成的那个“幽灵点击”事件。
+        const swallowPhantomClick = (e: MouseEvent) => {
+          e.stopPropagation();
+          e.preventDefault();
+          window.removeEventListener('click', swallowPhantomClick, true);
+        };
+        window.addEventListener('click', swallowPhantomClick, { capture: true, once: true });
       }, longPressDelay);
     },
     [onLongPress, longPressDelay]
@@ -73,7 +75,6 @@ export const useLongPress = ({
       );
 
       if (distance > moveThreshold) {
-        console.log('[LongPress] Gesture cancelled due to movement.');
         clearTimer();
         isActive.current = false;
       }
@@ -82,28 +83,22 @@ export const useLongPress = ({
   );
 
   const handleEnd = useCallback(() => {
-    console.log(`[LongPress] handleEnd triggered. isLongPress: ${isLongPress.current}, isActive: ${isActive.current}`);
     clearTimer();
 
     const shouldClick = !isLongPress.current && !wasButton.current && onClick && isActive.current;
-    console.log(`[LongPress] shouldClick determined to be: ${shouldClick}`);
 
     if (shouldClick) {
-      console.log('[LongPress] onClick triggered.');
       onClick();
     }
 
-    console.log('[LongPress] Resetting state.');
     isLongPress.current = false;
     startPosition.current = null;
     isActive.current = false;
     wasButton.current = false;
   }, [clearTimer, onClick]);
 
-  // 触摸事件处理器
   const onTouchStart = useCallback(
     (e: React.TouchEvent) => {
-      console.log(`[LongPress] onTouchStart event. Touches: ${e.touches.length}`);
       const target = e.target as HTMLElement;
       const buttonElement = target.closest('[data-button]');
 
@@ -126,7 +121,6 @@ export const useLongPress = ({
 
   const onTouchEnd = useCallback(
     (e: React.TouchEvent) => {
-      console.log(`[LongPress] onTouchEnd event. Touches: ${e.touches.length}`);
       e.preventDefault();
       e.stopPropagation();
       handleEnd();
