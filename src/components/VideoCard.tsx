@@ -508,22 +508,21 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           // 禁用右键菜单和长按菜单
           pointerEvents: 'auto',
         } as React.CSSProperties}
-        // 为了解决pwa 抬起消失弹窗问题（By AI）
-        // onContextMenu={(e) => {
-        //   // 阻止默认右键菜单
-        //   e.preventDefault();
-        //   e.stopPropagation();
+        onContextMenu={(e) => {
+          // 阻止默认右键菜单
+          e.preventDefault();
+          e.stopPropagation();
 
-        //   // 右键弹出操作菜单
-        //   setShowMobileActions(true);
+          // 右键弹出操作菜单
+          setShowMobileActions(true);
 
-        //   // 异步检查收藏状态，不阻塞菜单显示
-        //   if (from === 'search' && !isAggregate && actualSource && actualId && searchFavorited === null) {
-        //     checkSearchFavoriteStatus();
-        //   }
+          // 异步检查收藏状态，不阻塞菜单显示
+          if (from === 'search' && !isAggregate && actualSource && actualId && searchFavorited === null) {
+            checkSearchFavoriteStatus();
+          }
 
-        //   return false;
-        // }}
+          return false;
+        }}
 
         onDragStart={(e) => {
           // 阻止拖拽
