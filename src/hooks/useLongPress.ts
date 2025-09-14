@@ -71,7 +71,7 @@ export const useLongPress = ({
           // 如果监听器仍然存在（即幻影点击未发生），则将其移除。
           // 多次调用 removeEventListener 是安全的。
           window.removeEventListener('click', swallowPhantomClick, true);
-        }, 100);
+        }, 300);
       }, longPressDelay);
     },
     [onLongPress, longPressDelay]
