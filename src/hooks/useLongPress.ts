@@ -52,14 +52,26 @@ export const useLongPress = ({
         }
 
         onLongPress();
+        // 解决Iphone PWA抬起弹出框消失问题（By AI）
         // 关键修复：在长按触发后，临时设置一个全局的点击捕获器
         // 来“吞掉”touchend后浏览器合成的那个“幽灵点击”事件。
         const swallowPhantomClick = (e: MouseEvent) => {
           e.stopPropagation();
           e.preventDefault();
+          // 监听到点击后，立即自我移除
           window.removeEventListener('click', swallowPhantomClick, true);
         };
-        window.addEventListener('click', swallowPhantomClick, { capture: true, once: true });
+        // 使用捕获模式确保尽早拦截
+        window.addEventListener('click', swallowPhantomClick, { capture: true });
+
+        // 安全网：设置一个短暂的超时，以防“幻影点击”从未发生。
+        // 这可以防止监听器永久存在，从而干扰后续的真实用户点击。
+        // 100毫秒的延迟足以捕获大多数幻影点击，同时又足够短，不会影响用户体验。
+        setTimeout(() => {
+          // 如果监听器仍然存在（即幻影点击未发生），则将其移除。
+          // 多次调用 removeEventListener 是安全的。
+          window.removeEventListener('click', swallowPhantomClick, true);
+        }, 100);
       }, longPressDelay);
     },
     [onLongPress, longPressDelay]
