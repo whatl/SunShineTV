@@ -52,26 +52,7 @@ export const useLongPress = ({
         }
 
         onLongPress();
-        // 解决Iphone PWA抬起弹出框消失问题（By AI）
-        // 关键修复：在长按触发后，临时设置一个全局的点击捕获器
-        // 来“吞掉”touchend后浏览器合成的那个“幽灵点击”事件。
-        const swallowPhantomClick = (e: MouseEvent) => {
-          e.stopPropagation();
-          e.preventDefault();
-          // 监听到点击后，立即自我移除
-          window.removeEventListener('click', swallowPhantomClick, true);
-        };
-        // 使用捕获模式确保尽早拦截
-        window.addEventListener('click', swallowPhantomClick, { capture: true });
-
-        // 安全网：设置一个短暂的超时，以防“幻影点击”从未发生。
-        // 这可以防止监听器永久存在，从而干扰后续的真实用户点击。
-        // 100毫秒的延迟足以捕获大多数幻影点击，同时又足够短，不会影响用户体验。
-        setTimeout(() => {
-          // 如果监听器仍然存在（即幻影点击未发生），则将其移除。
-          // 多次调用 removeEventListener 是安全的。
-          window.removeEventListener('click', swallowPhantomClick, true);
-        }, 300);
+        
       }, longPressDelay);
     },
     [onLongPress, longPressDelay]
@@ -97,10 +78,27 @@ export const useLongPress = ({
   const handleEnd = useCallback(() => {
     clearTimer();
 
-    const shouldClick = !isLongPress.current && !wasButton.current && onClick && isActive.current;
+    const wasLongPress = isLongPress.current;
+    const shouldClick = !wasLongPress && !wasButton.current && onClick && isActive.current;
 
     if (shouldClick) {
       onClick();
+    }
+
+    // 如果这是一次长按的结束，我们需要精确地捕获并阻止那一次“幻影点击”。
+    if (wasLongPress) {
+      const swallowPhantomClick = (e: MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+      };
+      window.addEventListener('click', swallowPhantomClick, { capture: true, once: true });
+
+      // 双保险安全网：设置一个极短的超时。
+      // 如果幻影点击从未发生，这个超时会负责清理掉监听器，
+      // 防止它意外地“吞掉”用户后续的真实点击。
+      setTimeout(() => {
+        window.removeEventListener('click', swallowPhantomClick, true);
+      }, 150); // 150ms 足够捕获绝大多数幻影点击，同时足够短以避免干扰真实操作。
     }
 
     isLongPress.current = false;
