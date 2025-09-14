@@ -15,9 +15,10 @@ import VideoCard from '@/components/VideoCard';
 
 interface ContinueWatchingProps {
   className?: string;
+  onLoadFinished?: () => void; // 新增的回调函数
 }
 
-export default function ContinueWatching({ className }: ContinueWatchingProps) {
+export default function ContinueWatching({ className, onLoadFinished }: ContinueWatchingProps) {
   const [playRecords, setPlayRecords] = useState<
     (PlayRecord & { key: string })[]
   >([]);
@@ -41,17 +42,25 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
 
   useEffect(() => {
     const fetchPlayRecords = async () => {
+      console.log(`%c[${new Date().toISOString()}] CW.1. ContinueWatching useEffect start.`, 'color: brown');
       try {
         setLoading(true);
+        console.log(`%c[${new Date().toISOString()}] CW.2. setLoading(true) called.`, 'color: brown');
 
         // 从缓存或API获取所有播放记录
         const allRecords = await getAllPlayRecords();
+        console.log(`%c[${new Date().toISOString()}] CW.3. getAllPlayRecords resolved.`, 'color: brown');
         updatePlayRecords(allRecords);
+        console.log(`%c[${new Date().toISOString()}] CW.4. updatePlayRecords called.`, 'color: brown');
+
       } catch (error) {
         console.error('获取播放记录失败:', error);
         setPlayRecords([]);
       } finally {
         setLoading(false);
+        // 调用回调，通知父组件加载已完成
+        onLoadFinished?.();
+        console.log(`%c[${new Date().toISOString()}] CW.5. setLoading(false) called.`, 'color: brown');
       }
     };
 

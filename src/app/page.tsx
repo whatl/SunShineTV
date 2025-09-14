@@ -4,12 +4,12 @@
 
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 
 import {
   BangumiCalendarData,
-  GetBangumiCalendarData,
 } from '@/lib/bangumi.client';
+import { getHomePageData } from '@/lib/dataProvider';
 // 客户端收藏 API
 import {
   clearAllFavorites,
@@ -17,7 +17,6 @@ import {
   getAllPlayRecords,
   subscribeToDataUpdates,
 } from '@/lib/db.client';
-import { getDoubanCategories } from '@/lib/douban.client';
 import { DoubanItem } from '@/lib/types';
 
 import CapsuleSwitch from '@/components/CapsuleSwitch';
@@ -36,6 +35,7 @@ function HomeClient() {
     BangumiCalendarData[]
   >([]);
   const [loading, setLoading] = useState(true);
+  const loadingTasks = useRef({ main: false, continueWatching: false });
   const { announcement } = useSite();
 
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -68,44 +68,42 @@ function HomeClient() {
   const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
 
   useEffect(() => {
+    // 使用一个函数来检查是否所有任务都已完成
+    const checkAllTasksFinished = () => {
+      if (loadingTasks.current.main && loadingTasks.current.continueWatching) {
+        setLoading(false);
+        console.log(`%c[${new Date().toISOString()}] All loading tasks finished. setLoading(false) called.`, 'color: green');
+      }
+    };
+
     const fetchRecommendData = async () => {
       try {
-        setLoading(true);
-
-        // 并行获取热门电影、热门剧集和热门综艺
-        const [moviesData, tvShowsData, varietyShowsData, bangumiCalendarData] =
-          await Promise.all([
-            getDoubanCategories({
-              kind: 'movie',
-              category: '热门',
-              type: '全部',
-            }),
-            getDoubanCategories({ kind: 'tv', category: 'tv', type: 'tv' }),
-            getDoubanCategories({ kind: 'tv', category: 'show', type: 'show' }),
-            GetBangumiCalendarData(),
-          ]);
-
-        if (moviesData.code === 200) {
-          setHotMovies(moviesData.list);
-        }
-
-        if (tvShowsData.code === 200) {
-          setHotTvShows(tvShowsData.list);
-        }
-
-        if (varietyShowsData.code === 200) {
-          setHotVarietyShows(varietyShowsData.list);
-        }
-
-        setBangumiCalendarData(bangumiCalendarData);
+        const data = await getHomePageData();
+        setHotMovies(data.movies.list);
+        setHotTvShows(data.tvShows.list);
+        setHotVarietyShows(data.varietyShows.list);
+        setBangumiCalendarData(data.animes);
       } catch (error) {
-        console.error('获取推荐数据失败:', error);
+        console.error('获取首页数据失败:', error);
       } finally {
-        setLoading(false);
+        loadingTasks.current.main = true;
+        checkAllTasksFinished();
       }
     };
 
     fetchRecommendData();
+
+    // ContinueWatching 的加载状态由其自身的回调来通知
+    // 我们在这里只定义回调函数
+    const handleContinueWatchingLoad = () => {
+      loadingTasks.current.continueWatching = true;
+      checkAllTasksFinished();
+    };
+
+    // 将回调函数附加到 window 或其他可以跨组件通信的方式，或者直接传递 prop
+    // 在这个场景下，直接传递 prop 是最清晰的
+    (window as any).handleContinueWatchingLoad = handleContinueWatchingLoad;
+
   }, []);
 
   // 处理收藏数据更新的函数
@@ -224,7 +222,12 @@ function HomeClient() {
             // 首页视图
             <>
               {/* 继续观看 */}
-              <ContinueWatching />
+              <ContinueWatching onLoadFinished={() => {
+                loadingTasks.current.continueWatching = true;
+                if (loadingTasks.current.main) {
+                  setLoading(false);
+                }
+              }} />
 
               {/* 热门电影 */}
               <section className='mb-8'>
@@ -367,7 +370,7 @@ function HomeClient() {
                       // 找到当前星期对应的番剧数据
                       const todayAnimes =
                         bangumiCalendarData.find(
-                          (item) => item.weekday.en === currentWeekday
+                          (item) => item.weekday.en.toLowerCase() === currentWeekday.toLowerCase()
                         )?.items || [];
 
                       return todayAnimes.map((anime, index) => (
