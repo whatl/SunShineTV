@@ -623,6 +623,16 @@ export async function savePlayRecord(
           triggerGlobalError('保存播放记录失败');
           throw err;
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      try {
+        const allRecords = await getAllPlayRecords();
+        allRecords[key] = record;
+        localStorage.setItem(PLAY_RECORDS_KEY, JSON.stringify(allRecords));
+      } catch (err) {
+        console.error('保存播放记录到 localStorage 失败:', err);
+        triggerGlobalError('保存播放记录失败');
+      }
     }
     return;
   }
@@ -688,6 +698,16 @@ export async function deletePlayRecord(
           triggerGlobalError('删除播放记录失败');
           throw err;
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      try {
+        const allRecords = await getAllPlayRecords();
+        delete allRecords[key];
+        localStorage.setItem(PLAY_RECORDS_KEY, JSON.stringify(allRecords));
+      } catch (err) {
+        console.error('删除播放记录到 localStorage 失败:', err);
+        triggerGlobalError('删除播放记录失败');
+      }
     }
     return;
   }
@@ -842,6 +862,14 @@ export async function addSearchHistory(keyword: string): Promise<void> {
         } catch (err) {
           await handleDatabaseOperationFailure('searchHistory', err);
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      try {
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(newHistory));
+      } catch (err) {
+        console.error('保存搜索历史到 localStorage 失败:', err);
+        triggerGlobalError('保存搜索历史失败');
+      }
     }
     return;
   }
@@ -898,6 +926,9 @@ export async function clearSearchHistory(): Promise<void> {
         } catch (err) {
           await handleDatabaseOperationFailure('searchHistory', err);
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      localStorage.removeItem(SEARCH_HISTORY_KEY);
     }
     return;
   }
@@ -949,6 +980,14 @@ export async function deleteSearchHistory(keyword: string): Promise<void> {
         } catch (err) {
           await handleDatabaseOperationFailure('searchHistory', err);
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      try {
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(newHistory));
+      } catch (err) {
+        console.error('删除搜索历史到 localStorage 失败:', err);
+        triggerGlobalError('删除搜索历史失败');
+      }
     }
     return;
   }
@@ -1098,6 +1137,16 @@ export async function saveFavorite(
           triggerGlobalError('保存收藏失败');
           throw err;
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      try {
+        const allFavorites = await getAllFavorites();
+        allFavorites[key] = favorite;
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(allFavorites));
+      } catch (err) {
+        console.error('保存收藏到 localStorage 失败:', err);
+        triggerGlobalError('保存收藏失败');
+      }
     }
     return;
   }
@@ -1163,6 +1212,16 @@ export async function deleteFavorite(
           triggerGlobalError('删除收藏失败');
           throw err;
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      try {
+        const allFavorites = await getAllFavorites();
+        delete allFavorites[key];
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(allFavorites));
+      } catch (err) {
+        console.error('删除收藏到 localStorage 失败:', err);
+        triggerGlobalError('删除收藏失败');
+      }
     }
     return;
   }
@@ -1288,6 +1347,9 @@ export async function clearAllPlayRecords(): Promise<void> {
           triggerGlobalError('清空播放记录失败');
           throw err;
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      localStorage.removeItem(PLAY_RECORDS_KEY);
     }
     return;
   }
@@ -1334,6 +1396,9 @@ export async function clearAllFavorites(): Promise<void> {
           triggerGlobalError('清空收藏失败');
           throw err;
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      localStorage.removeItem(FAVORITES_KEY);
     }
     return;
   }
@@ -1638,6 +1703,17 @@ export async function saveSkipConfig(
           console.error('保存跳过片头片尾配置失败:', err);
           triggerGlobalError('保存跳过片头片尾配置失败');
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      try {
+        const raw = localStorage.getItem('moontv_skip_configs');
+        const configs = raw ? (JSON.parse(raw) as Record<string, SkipConfig>) : {};
+        configs[key] = config;
+        localStorage.setItem('moontv_skip_configs', JSON.stringify(configs));
+      } catch (err) {
+        console.error('保存跳过片头片尾配置到 localStorage 失败:', err);
+        triggerGlobalError('保存跳过片头片尾配置失败');
+      }
     }
     return;
   }
@@ -1783,6 +1859,19 @@ export async function deleteSkipConfig(
           console.error('删除跳过片头片尾配置失败:', err);
           triggerGlobalError('删除跳过片头片尾配置失败');
         }
+    } else {
+      // 未登录，降级操作 localStorage
+      try {
+        const raw = localStorage.getItem('moontv_skip_configs');
+        if (raw) {
+          const configs = JSON.parse(raw) as Record<string, SkipConfig>;
+          delete configs[key];
+          localStorage.setItem('moontv_skip_configs', JSON.stringify(configs));
+        }
+      } catch (err) {
+        console.error('删除跳过片头片尾配置到 localStorage 失败:', err);
+        triggerGlobalError('删除跳过片头片尾配置失败');
+      }
     }
     return;
   }
