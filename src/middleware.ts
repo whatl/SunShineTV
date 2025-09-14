@@ -134,7 +134,7 @@ function shouldSkipAuth(pathname: string): boolean {
     '/manifest.json',
     '/icons/',
     '/logo.png',
-    '/screenshot.png',
+    '/version/CHANGELOG',
     // API白名单
     '/api/search',
     '/api/detail',
