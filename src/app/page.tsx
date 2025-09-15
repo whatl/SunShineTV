@@ -4,7 +4,7 @@
 
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 
 import {
   BangumiCalendarData,
@@ -35,7 +35,6 @@ function HomeClient() {
     BangumiCalendarData[]
   >([]);
   const [loading, setLoading] = useState(true);
-  const loadingTasks = useRef({ main: false, continueWatching: false });
   const { announcement } = useSite();
 
   const [showAnnouncement, setShowAnnouncement] = useState(false);
@@ -68,16 +67,9 @@ function HomeClient() {
   const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
 
   useEffect(() => {
-    // 使用一个函数来检查是否所有任务都已完成
-    const checkAllTasksFinished = () => {
-      if (loadingTasks.current.main && loadingTasks.current.continueWatching) {
-        setLoading(false);
-        console.log(`%c[${new Date().toISOString()}] All loading tasks finished. setLoading(false) called.`, 'color: green');
-      }
-    };
-
     const fetchRecommendData = async () => {
       try {
+	setLoading(true);
         const data = await getHomePageData();
         setHotMovies(data.movies.list);
         setHotTvShows(data.tvShows.list);
@@ -86,24 +78,11 @@ function HomeClient() {
       } catch (error) {
         console.error('获取首页数据失败:', error);
       } finally {
-        loadingTasks.current.main = true;
-        checkAllTasksFinished();
+        setLoading(false);
       }
     };
 
     fetchRecommendData();
-
-    // ContinueWatching 的加载状态由其自身的回调来通知
-    // 我们在这里只定义回调函数
-    const handleContinueWatchingLoad = () => {
-      loadingTasks.current.continueWatching = true;
-      checkAllTasksFinished();
-    };
-
-    // 将回调函数附加到 window 或其他可以跨组件通信的方式，或者直接传递 prop
-    // 在这个场景下，直接传递 prop 是最清晰的
-    (window as any).handleContinueWatchingLoad = handleContinueWatchingLoad;
-
   }, []);
 
   // 处理收藏数据更新的函数
@@ -222,12 +201,7 @@ function HomeClient() {
             // 首页视图
             <>
               {/* 继续观看 */}
-              <ContinueWatching onLoadFinished={() => {
-                loadingTasks.current.continueWatching = true;
-                if (loadingTasks.current.main) {
-                  setLoading(false);
-                }
-              }} />
+              <ContinueWatching />
 
               {/* 热门电影 */}
               <section className='mb-8'>
