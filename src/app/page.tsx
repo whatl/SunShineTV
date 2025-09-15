@@ -6,9 +6,7 @@ import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 import { Suspense, useEffect, useState } from 'react';
 
-import {
-  BangumiCalendarData,
-} from '@/lib/bangumi.client';
+import { BangumiCalendarData } from '@/lib/bangumi.client';
 import { getHomePageData } from '@/lib/dataProvider';
 // 客户端收藏 API
 import {
@@ -67,14 +65,23 @@ function HomeClient() {
   const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
 
   useEffect(() => {
-    const fetchRecommendData = async () => {
+    const fetchAllHomePageData = async () => {
       try {
-	setLoading(true);
-        const data = await getHomePageData();
-        setHotMovies(data.movies.list);
-        setHotTvShows(data.tvShows.list);
-        setHotVarietyShows(data.varietyShows.list);
-        setBangumiCalendarData(data.animes);
+        setLoading(true);
+        const homeData = await getHomePageData();
+
+        if (homeData.movies.code === 200) {
+          setHotMovies(homeData.movies.list);
+        }
+        if (homeData.tvShows.code === 200) {
+          setHotTvShows(homeData.tvShows.list);
+        }
+        if (homeData.varietyShows.code === 200) {
+          setHotVarietyShows(homeData.varietyShows.list);
+        }
+        // Bangumi data has a different structure
+        setBangumiCalendarData(homeData.animes);
+
       } catch (error) {
         console.error('获取首页数据失败:', error);
       } finally {
@@ -82,7 +89,7 @@ function HomeClient() {
       }
     };
 
-    fetchRecommendData();
+    fetchAllHomePageData();
   }, []);
 
   // 处理收藏数据更新的函数

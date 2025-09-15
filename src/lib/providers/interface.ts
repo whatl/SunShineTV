@@ -1,40 +1,50 @@
 
 // lib/providers/interface.ts
 
-import { BangumiCalendarData } from '../bangumi.client';
-import { DoubanItem } from '../types';
-
 /**
- * 统一的分类或板块的数据返回结构
+ * @file Defines the universal interfaces for data fetching across the entire application.
+ * This file establishes a contract that all data source providers must adhere to.
  */
-export interface CategoryResult {
-  code: number;
-  message: string;
-  list: DoubanItem[]; // 复用现有的 DoubanItem 类型，它足够通用
-}
+
+import { BangumiCalendarData } from '../bangumi.client';
+import { DoubanResult, SearchResult } from '../types';
+
+// Parameter types for provider methods
+export interface CategoriesParams { kind: 'tv' | 'movie'; category: string; type: string; pageLimit?: number; pageStart?: number; }
+export interface ListByTagParams { tag: string; type: string; pageLimit?: number; pageStart?: number; }
+export interface RecommendationsParams { kind: 'tv' | 'movie'; pageLimit?: number; pageStart?: number; category?: string; format?: string; label?: string; region?: string; year?: string; platform?: string; sort?: string; }
 
 /**
- * 统一的首页批量数据的返回结构
+ * Represents the standardized structure for a batch of homepage data.
  */
 export interface HomePageData {
-  movies: CategoryResult;
-  tvShows: CategoryResult;
-  varietyShows: CategoryResult;
-  animes: BangumiCalendarData[]; // <-- 这里使用正确的、未经破坏的番剧数据类型
-  shortVideos: CategoryResult;
+  movies: DoubanResult;
+  tvShows: DoubanResult;
+  varietyShows: DoubanResult;
+  animes: BangumiCalendarData[];
+  shortVideos: DoubanResult;
 }
 
 /**
- * 数据提供者必须实现的接口契约
+ * This is the core contract for any data source provider.
+ * To add a new data source, one must create an object that implements this interface.
  */
 export interface DataProvider {
-  // 优先使用的批量接口，如果提供者不支持，可以不实现
+  // Optional batch fetch for homepage, for performance optimization.
   getHomePageData?: () => Promise<HomePageData>;
 
-  // 独立的、必须实现的接口
-  getMovies: () => Promise<CategoryResult>;
-  getTvShows: () => Promise<CategoryResult>;
-  getVarietyShows: () => Promise<CategoryResult>;
-  getAnimes: () => Promise<BangumiCalendarData[]>; // <-- 这里使用正确的、未经破坏的番剧数据类型
-  getShortVideos: () => Promise<CategoryResult>;
+  // Individual methods for homepage sections
+  getMovies: () => Promise<DoubanResult>;
+  getTvShows: () => Promise<DoubanResult>;
+  getVarietyShows: () => Promise<DoubanResult>;
+  getAnimes: () => Promise<BangumiCalendarData[]>;
+  getShortVideos: () => Promise<DoubanResult>;
+
+  // Search method
+  search: (query: string, useStream?: boolean) => Promise<SearchResult[] | EventSource>;
+
+  // Methods for category/details pages
+  getCategories: (params: CategoriesParams) => Promise<DoubanResult>;
+  getListByTag: (params: ListByTagParams) => Promise<DoubanResult>;
+  getRecommendations: (params: RecommendationsParams) => Promise<DoubanResult>;
 }

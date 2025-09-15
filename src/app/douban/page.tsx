@@ -6,12 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { GetBangumiCalendarData } from '@/lib/bangumi.client';
-import {
-  getDoubanCategories,
-  getDoubanList,
-  getDoubanRecommends,
-} from '@/lib/douban.client';
+import { getAnimes, getCategories, getListByTag, getRecommendations } from '@/lib/dataProvider';
 import { DoubanItem, DoubanResult } from '@/lib/types';
 
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
@@ -276,7 +271,7 @@ function DoubanPageClient() {
         );
 
         if (selectedCategory) {
-          data = await getDoubanList({
+          data = await getListByTag({
             tag: selectedCategory.query,
             type: selectedCategory.type,
             pageLimit: 25,
@@ -286,7 +281,7 @@ function DoubanPageClient() {
           throw new Error('没有找到对应的分类');
         }
       } else if (type === 'anime' && primarySelection === '每日放送') {
-        const calendarData = await GetBangumiCalendarData();
+        const calendarData = await getAnimes();
         const weekdayData = calendarData.find(
           (item) => item.weekday.en === selectedWeekday
         );
@@ -311,7 +306,7 @@ function DoubanPageClient() {
           throw new Error('没有找到对应的日期');
         }
       } else if (type === 'anime') {
-        data = await getDoubanRecommends({
+        data = await getRecommendations({
           kind: primarySelection === '番剧' ? 'tv' : 'movie',
           pageLimit: 25,
           pageStart: 0,
@@ -330,7 +325,7 @@ function DoubanPageClient() {
             : '',
         });
       } else if (primarySelection === '全部') {
-        data = await getDoubanRecommends({
+        data = await getRecommendations({
           kind: type === 'show' ? 'tv' : (type as 'tv' | 'movie'),
           pageLimit: 25,
           pageStart: 0, // 初始数据加载始终从第一页开始
@@ -351,7 +346,7 @@ function DoubanPageClient() {
             : '',
         });
       } else {
-        data = await getDoubanCategories(getRequestParams(0));
+        data = await getCategories(getRequestParams(0));
       }
 
       if (data.code === 200) {
@@ -444,7 +439,7 @@ function DoubanPageClient() {
             );
 
             if (selectedCategory) {
-              data = await getDoubanList({
+              data = await getListByTag({
                 tag: selectedCategory.query,
                 type: selectedCategory.type,
                 pageLimit: 25,
@@ -461,7 +456,7 @@ function DoubanPageClient() {
               list: [],
             };
           } else if (type === 'anime') {
-            data = await getDoubanRecommends({
+            data = await getRecommendations({
               kind: primarySelection === '番剧' ? 'tv' : 'movie',
               pageLimit: 25,
               pageStart: currentPage * 25,
@@ -484,7 +479,7 @@ function DoubanPageClient() {
                 : '',
             });
           } else if (primarySelection === '全部') {
-            data = await getDoubanRecommends({
+            data = await getRecommendations({
               kind: type === 'show' ? 'tv' : (type as 'tv' | 'movie'),
               pageLimit: 25,
               pageStart: currentPage * 25,
@@ -509,7 +504,7 @@ function DoubanPageClient() {
                 : '',
             });
           } else {
-            data = await getDoubanCategories(
+            data = await getCategories(
               getRequestParams(currentPage * 25)
             );
           }
