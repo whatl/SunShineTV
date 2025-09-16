@@ -79,7 +79,6 @@ function HomeClient() {
         if (homeData.varietyShows.code === 200) {
           setHotVarietyShows(homeData.varietyShows.list);
         }
-        // Bangumi data has a different structure
         setBangumiCalendarData(homeData.animes);
 
       } catch (error) {
@@ -351,7 +350,7 @@ function HomeClient() {
                       // 找到当前星期对应的番剧数据
                       const todayAnimes =
                         bangumiCalendarData.find(
-                          (item) => item.weekday.en.toLowerCase() === currentWeekday.toLowerCase()
+                          (item) => item.weekday?.id === -1 || item.weekday?.en.toLowerCase() === currentWeekday.toLowerCase()
                         )?.items || [];
 
                       return todayAnimes.map((anime, index) => (

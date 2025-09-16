@@ -283,7 +283,7 @@ function DoubanPageClient() {
       } else if (type === 'anime' && primarySelection === '每日放送') {
         const calendarData = await getAnimes();
         const weekdayData = calendarData.find(
-          (item) => item.weekday.en === selectedWeekday
+          (item) => item.weekday?.id === -1 || item.weekday?.en === selectedWeekday
         );
         if (weekdayData) {
           data = {
@@ -307,6 +307,7 @@ function DoubanPageClient() {
         }
       } else if (type === 'anime') {
         data = await getRecommendations({
+          type: type,
           kind: primarySelection === '番剧' ? 'tv' : 'movie',
           pageLimit: 25,
           pageStart: 0,
@@ -326,6 +327,7 @@ function DoubanPageClient() {
         });
       } else if (primarySelection === '全部') {
         data = await getRecommendations({
+          type: type,
           kind: type === 'show' ? 'tv' : (type as 'tv' | 'movie'),
           pageLimit: 25,
           pageStart: 0, // 初始数据加载始终从第一页开始
@@ -457,6 +459,7 @@ function DoubanPageClient() {
             };
           } else if (type === 'anime') {
             data = await getRecommendations({
+              type: type,
               kind: primarySelection === '番剧' ? 'tv' : 'movie',
               pageLimit: 25,
               pageStart: currentPage * 25,
@@ -480,6 +483,7 @@ function DoubanPageClient() {
             });
           } else if (primarySelection === '全部') {
             data = await getRecommendations({
+              type: type,
               kind: type === 'show' ? 'tv' : (type as 'tv' | 'movie'),
               pageLimit: 25,
               pageStart: currentPage * 25,

@@ -9,7 +9,7 @@ import { doubanProvider } from './providers/douban.provider';
 import { DataProvider, HomePageData } from './providers/interface';
 import { maccmsProvider } from './providers/maccms.provider';
 
-const useCms = process.env.DATA_SOURCE === 'maccms';
+const useCms = process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms';
 const provider: DataProvider = useCms ? maccmsProvider : doubanProvider;
 
 console.log(`[DataProvider] Initialized with ${useCms ? 'Maccms' : 'Douban'} provider.`);

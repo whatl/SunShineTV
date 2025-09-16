@@ -1,0 +1,73 @@
+
+// src/app/api/cms/page/route.ts
+
+import { NextRequest, NextResponse } from 'next/server';
+import { queryCmsDB } from '@/lib/maccms.db';
+import { TABLE_PREFIX } from '@/lib/maccms.config';
+import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
+import { DoubanResult } from '@/lib/types';
+
+const PAGE_SIZE = 25;
+
+function mapToDoubanItem(rows: any[]): DoubanResult {
+  if (!Array.isArray(rows)) {
+    return { code: 200, message: 'Success', list: [] };
+  }
+  const list = rows.map(row => ({
+    id: row.vod_id.toString(),
+    title: row.vod_name,
+    poster: row.vod_pic,
+    rate: row.vod_douban_score ? row.vod_douban_score.toString() : (row.vod_score || '0'),
+    year: row.vod_year,
+    remarks: row.vod_remarks,
+  }));
+  return { code: 200, message: 'Success', list };
+}
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const categoryShortName = searchParams.get('category');
+  const page = parseInt(searchParams.get('page') || '1');
+
+  if (!categoryShortName) {
+    return new NextResponse('Category parameter is required', { status: 400 });
+  }
+
+  try {
+    const typeEn = translateCategory(categoryShortName);
+    if (!typeEn) {
+      return new NextResponse(`Invalid category: ${categoryShortName}`, { status: 400 });
+    }
+
+    const categoryIds = await getChildCategoryIds(typeEn);
+    if (categoryIds.length === 0) {
+      return NextResponse.json({ code: 200, message: `Category '${typeEn}' not found`, list: [] });
+    }
+
+    const offset = (page - 1) * PAGE_SIZE;
+    const commonFields = 'vod_id, vod_name, vod_pic, vod_year, vod_remarks, vod_douban_score, vod_score';
+
+    const placeholders = categoryIds.map(() => '?').join(',');
+
+    const sql = `
+      SELECT ${commonFields}
+      FROM ${TABLE_PREFIX}vod
+      WHERE vod_status = 1 AND type_id IN (${placeholders})
+      ORDER BY vod_time DESC
+      LIMIT ?
+      OFFSET ?
+    `;
+
+    const params: any[] = [...categoryIds, PAGE_SIZE, offset];
+
+    const results = await queryCmsDB<any[]>(sql, params);
+
+    const responseData = mapToDoubanItem(results);
+
+    return NextResponse.json(responseData);
+
+  } catch (error) {
+    console.error(`[API_CMS_PAGE_ERROR] Category: ${categoryShortName}`, error);
+    return new NextResponse('Internal Server Error', { status: 500 });
+  }
+}

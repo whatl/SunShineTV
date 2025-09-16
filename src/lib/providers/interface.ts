@@ -12,7 +12,8 @@ import { DoubanResult, SearchResult } from '../types';
 // Parameter types for provider methods
 export interface CategoriesParams { kind: 'tv' | 'movie'; category: string; type: string; pageLimit?: number; pageStart?: number; }
 export interface ListByTagParams { tag: string; type: string; pageLimit?: number; pageStart?: number; }
-export interface RecommendationsParams { kind: 'tv' | 'movie'; pageLimit?: number; pageStart?: number; category?: string; format?: string; label?: string; region?: string; year?: string; platform?: string; sort?: string; }
+// type 就是来自于哪些大类
+export interface RecommendationsParams {type?: string; kind: 'tv' | 'movie'; pageLimit?: number; pageStart?: number; category?: string; format?: string; label?: string; region?: string; year?: string; platform?: string; sort?: string; }
 
 /**
  * Represents the standardized structure for a batch of homepage data.
