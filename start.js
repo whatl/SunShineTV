@@ -23,6 +23,21 @@ function generateManifest() {
 
 generateManifest();
 
+// 输出当前使用的数据源
+const dataSource = process.env.NEXT_PUBLIC_DATA_SOURCE || 'douban'; // 默认为 douban
+console.log(`✅ Current data source: ${dataSource}`);
+
+// 如果数据源是 maccms，则严格检查数据库配置
+if (dataSource === 'maccms') {
+  const { MAC_DB_HOST, MAC_DB_USER, MAC_DB_PASSWORD, MAC_DB_DATABASE } = process.env;
+  if (!MAC_DB_HOST || !MAC_DB_USER || !MAC_DB_PASSWORD || !MAC_DB_DATABASE) {
+    console.error('❌ Fatal: Maccms is selected, but required database environment variables are missing.');
+    console.error('Please provide: MAC_DB_HOST, MAC_DB_USER, MAC_DB_PASSWORD, MAC_DB_DATABASE');
+    console.error('Application will now exit.');
+    process.exit(1); // 以错误码退出
+  }
+}
+
 // 直接在当前进程中启动 standalone Server（`server.js`）
 require('./server.js');
 

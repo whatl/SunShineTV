@@ -6,12 +6,12 @@ let pool: mysql.Pool | null = null;
 // 初始化连接池的函数
 function initializePool() {
   // 仅当数据源是 maccms 并且尚未初始化时才创建连接池
-  if (process.env.DATA_SOURCE === 'maccms' && !pool) {
+  if (process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms' && !pool) {
     const { MAC_DB_HOST, MAC_DB_PORT, MAC_DB_USER, MAC_DB_PASSWORD, MAC_DB_DATABASE } = process.env;
 
     // 检查所有必要的环境变量是否都已提供
     if (!MAC_DB_HOST || !MAC_DB_USER || !MAC_DB_PASSWORD || !MAC_DB_DATABASE) {
-      
+      console.error('❌ Maccms is selected as the data source, but the required database environment variables (MAC_DB_HOST, MAC_DB_USER, MAC_DB_PASSWORD, MAC_DB_DATABASE) are not fully configured. Please check your .env file or Docker environment variables.');
       return; // 不创建连接池，防止崩溃
     }
 
