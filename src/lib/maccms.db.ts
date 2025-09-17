@@ -7,7 +7,7 @@ let pool: mysql.Pool | null = null;
 function initializePool() {
   // 仅当数据源是 maccms 并且尚未初始化时才创建连接池
   if (process.env.DATA_SOURCE === 'maccms' && !pool) {
-    const { MAC_DB_HOST, MAC_DB_USER, MAC_DB_PASSWORD, MAC_DB_DATABASE } = process.env;
+    const { MAC_DB_HOST, MAC_DB_PORT, MAC_DB_USER, MAC_DB_PASSWORD, MAC_DB_DATABASE } = process.env;
 
     // 检查所有必要的环境变量是否都已提供
     if (!MAC_DB_HOST || !MAC_DB_USER || !MAC_DB_PASSWORD || !MAC_DB_DATABASE) {
@@ -18,6 +18,7 @@ function initializePool() {
     
     pool = mysql.createPool({
       host: MAC_DB_HOST,
+      port: MAC_DB_PORT ? parseInt(MAC_DB_PORT, 10) : 3306,
       user: MAC_DB_USER,
       password: MAC_DB_PASSWORD,
       database: MAC_DB_DATABASE,
