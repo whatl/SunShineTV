@@ -350,7 +350,7 @@ function HomeClient() {
                       // 找到当前星期对应的番剧数据
                       const todayAnimes =
                         bangumiCalendarData.find(
-                          (item) => item.weekday?.id === -1 || item.weekday?.en.toLowerCase() === currentWeekday.toLowerCase()
+                          (item) => item.weekday?.en === 'CMS' || item.weekday?.en.toLowerCase() === currentWeekday.toLowerCase()
                         )?.items || [];
 
                       return todayAnimes.map((anime, index) => (
