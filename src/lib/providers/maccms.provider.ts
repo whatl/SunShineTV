@@ -109,7 +109,7 @@ async function search(extra: Record<string, string>): Promise<SearchResult[] | E
   if (!query) {
     return Promise.resolve([]);
   }
-  return fetchFromCmsApi('/api/cms/shine/search', { query });
+  return fetchFromCmsApi('/api/cms/shine/search', { q: query });
 }
 
 
