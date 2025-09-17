@@ -49,7 +49,7 @@ const FilterToolbar: React.FC<FilterToolbarProps> = ({ onFilterChange }) => {
   useEffect(() => {
     const handler = setTimeout(() => {
       // Path is now only two levels: type/primary
-      const pathSegments = [type];
+      const pathSegments: string[] = [type];
       if (primarySelection) {
         pathSegments.push(primarySelection);
       }
