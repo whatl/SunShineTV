@@ -112,7 +112,7 @@ async function getList(path: string, extra: Record<string, string>, page = 1): P
   if ('special' in params && params.special === 'bangumi_daily') {
     const calendarData = await GetBangumiCalendarData();
     const weekdayData = calendarData.find(
-      (item) => item.weekday?.id === -1 || item.weekday?.en === params.weekday
+      (item) => item.weekday?.en === params.weekday
     );
     if (weekdayData) {
       return {

@@ -73,7 +73,7 @@ async function getHomePageData(): Promise<HomePageData> {
   if (homeData.animes && homeData.animes.list) {
     const animeResult: DoubanResult = homeData.animes;
     const specialCalendarEntry: BangumiCalendarData = {
-      weekday: { id: -1, en: 'CMS', cn: 'CMS', ja: 'CMS' },
+      weekday: {  en: 'CMS' },
       items: animeResult.list.map((item: DoubanItem) => ({
         id: parseInt(item.id, 10),
         name: item.title,
@@ -134,7 +134,7 @@ async function getAnimes(): Promise<BangumiCalendarData[]> {
   }
 
   const specialCalendarEntry: BangumiCalendarData = {
-    weekday: { id: -1, en: 'CMS', cn: 'CMS', ja: 'CMS' },
+    weekday: {  en: 'CMS'},
     items: result.list.map((item: DoubanItem) => ({
       id: parseInt(item.id, 10),
       name: item.title,
