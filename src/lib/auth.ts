@@ -1,12 +1,15 @@
 import { NextRequest } from 'next/server';
 
-// 从cookie获取认证信息 (服务端使用)
-export function getAuthInfoFromCookie(request: NextRequest): {
+export interface AuthInfo {
   password?: string;
   username?: string;
   signature?: string;
   timestamp?: number;
-} | null {
+  role?: 'owner' | 'admin' | 'user';
+}
+
+// 从cookie获取认证信息 (服务端使用)
+export function getAuthInfoFromCookie(request: NextRequest): AuthInfo | null {
   const authCookie = request.cookies.get('auth');
 
   if (!authCookie) {
