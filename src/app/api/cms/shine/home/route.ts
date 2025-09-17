@@ -5,12 +5,29 @@ import { NextResponse } from 'next/server';
 import { TABLE_PREFIX } from '@/lib/maccms.config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
-import { HomePageData } from '@/lib/providers/interface';
-import { DoubanResult } from '@/lib/types';
 
-const HOME_PAGE_SIZE = 20;
+// This is the actual shape of the data returned by this specific API route.
+// The provider layer will then transform this into the final HomePageData shape.
+interface CmsHomePageApiResponse {
+  movies: DoubanResult;
+  tvShows: DoubanResult;
+  varietyShows: DoubanResult;
+  animes: DoubanResult; // This API returns a DoubanResult for animes
+  shortVideos: DoubanResult;
+}
 
-function mapToDoubanItem(rows: any[]): DoubanResult {
+interface VodRow {
+  vod_id: number;
+  vod_name: string;
+  vod_pic: string;
+  vod_year: string;
+  vod_remarks: string;
+  vod_douban_score: number | null;
+  vod_score: string | null;
+  section?: string; // This field is added by our UNION query
+}
+
+function mapToDoubanItem(rows: VodRow[]): DoubanResult {
   if (!Array.isArray(rows)) {
     return { code: 200, message: 'Success', list: [] };
   }
@@ -74,14 +91,14 @@ export async function GET() {
         ...animeIds, HOME_PAGE_SIZE,
     ].filter(p => p !== undefined); // Filter out undefined params from empty categories
 
-    const allResults = await queryCmsDB<any[]>(sql, params);
+    const allResults = await queryCmsDB<VodRow[]>(sql, params);
 
     // Group the flat results back into sections in application code
-    const responseData: HomePageData = {
+    const responseData: CmsHomePageApiResponse = {
       movies: mapToDoubanItem(allResults.filter(r => r.section === 'movies')),
       tvShows: mapToDoubanItem(allResults.filter(r => r.section === 'tvShows')),
       varietyShows: mapToDoubanItem(allResults.filter(r => r.section === 'varietyShows')),
-      animes: mapToDoubanItem(allResults.filter(r => r.section === 'animes')) as any,
+      animes: mapToDoubanItem(allResults.filter(r => r.section === 'animes')),
       shortVideos: { code: 200, message: 'Success', list: [] },
     };
 
