@@ -1,17 +1,25 @@
-
 // lib/providers/maccms.provider.ts
 
 /**
  * @file Implements the DataProvider interface for the Maccms (Apple CMS) data source.
  */
 
-import { CategoriesParams, DataProvider, ListByTagParams, RecommendationsParams } from './interface';
+import { CategoriesParams, DataProvider, HomePageData, ListByTagParams, RecommendationsParams } from './interface';
 import { BangumiCalendarData } from '../bangumi.client';
-import { DoubanResult, SearchResult } from '../types';
+import { DoubanItem, DoubanResult, SearchResult } from '../types';
 
 const NOT_IMPLEMENTED_ERROR = 'Maccms provider API endpoint is not yet implemented for this method.';
 
-async function fetchFromCmsApi(endpoint: string, params?: Record<string, string>): Promise<any> {
+// This is the actual shape of the data returned by the CMS home API.
+interface CmsHomePageApiResponse {
+  movies: DoubanResult;
+  tvShows: DoubanResult;
+  varietyShows: DoubanResult;
+  animes: DoubanResult;
+  shortVideos: DoubanResult;
+}
+
+async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
   let url = endpoint;
   if (params) {
     const searchParams = new URLSearchParams();
@@ -29,7 +37,7 @@ async function fetchFromCmsApi(endpoint: string, params?: Record<string, string>
   if (!response.ok) {
     throw new Error(`Failed to fetch from CMS API: ${response.statusText}`);
   }
-  return response.json();
+  return response.json() as Promise<T>;
 }
 
 // --- New Generic Method Implementations ---
@@ -37,7 +45,7 @@ async function fetchFromCmsApi(endpoint: string, params?: Record<string, string>
 // Helper to ensure all items have a consistent, top-level 'rate' property as a string.
 const normalizeRateInResult = (result: DoubanResult): DoubanResult => {
   if (result && result.list) {
-    result.list = result.list.map(item => ({
+    result.list = result.list.map((item: DoubanItem) => ({
       ...item,
       rate: (item.rate || '0').toString(),
     }));
@@ -47,7 +55,7 @@ const normalizeRateInResult = (result: DoubanResult): DoubanResult => {
 
 async function getHomePageData(): Promise<HomePageData> {
   console.log('[MaccmsProvider] getHomePageData called');
-  const homeData = await fetchFromCmsApi('/api/cms/shine/home');
+  const homeData = await fetchFromCmsApi<CmsHomePageApiResponse>('/api/cms/shine/home');
 
   // Normalize rate for all categories that use the standard VideoCard
   if (homeData.movies) {
@@ -62,11 +70,12 @@ async function getHomePageData(): Promise<HomePageData> {
 
   // The API returns a DoubanResult for animes, but the UI expects BangumiCalendarData[].
   // We must transform it, just like the old getAnimes() function did.
+  let transformedAnimes: BangumiCalendarData[] = [];
   if (homeData.animes && homeData.animes.list) {
     const animeResult: DoubanResult = homeData.animes;
     const specialCalendarEntry: BangumiCalendarData = {
       weekday: { id: -1, en: 'CMS', cn: 'CMS', ja: 'CMS' },
-      items: animeResult.list.map((item: any) => ({
+      items: animeResult.list.map((item: DoubanItem) => ({
         id: parseInt(item.id, 10),
         name: item.title,
         name_cn: item.title,
@@ -81,22 +90,19 @@ async function getHomePageData(): Promise<HomePageData> {
         },
       })),
     };
-    homeData.animes = [specialCalendarEntry];
+    transformedAnimes = [specialCalendarEntry];
   }
 
-  return homeData;
+  return { ...homeData, animes: transformedAnimes };
 }
 
 async function getList(path: string, extra: Record<string, string>, page: number = 1): Promise<DoubanResult> {
   console.log('[MaccmsProvider] getList called with:', { path, extra, page });
-  // Maccms is simple: the main category is the first part of the path.
   const category = path.split('/')[0];
-  // It doesn't support complex filtering from `extra` yet, so we only pass category and page.
-  const result = await fetchFromCmsApi('/api/cms/shine/page', { 
+  const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', { 
     category: category, 
     page: page.toString()
   });
-
   return normalizeRateInResult(result);
 }
 
@@ -105,8 +111,6 @@ async function search(extra: Record<string, string>, useStream = false): Promise
   if (!query) {
     return Promise.resolve([]);
   }
-  // Assuming a search endpoint exists for maccms.
-  // This is a placeholder and might need adjustment based on the actual CMS API.
   return fetchFromCmsApi('/api/cms/shine/search', { query });
 }
 
@@ -133,7 +137,7 @@ async function getAnimes(): Promise<BangumiCalendarData[]> {
 
   const specialCalendarEntry: BangumiCalendarData = {
     weekday: { id: -1, en: 'CMS', cn: 'CMS', ja: 'CMS' },
-    items: result.list.map((item: any) => ({
+    items: result.list.map((item: DoubanItem) => ({
       id: parseInt(item.id, 10),
       name: item.title,
       name_cn: item.title,
