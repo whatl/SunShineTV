@@ -356,7 +356,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         showYear: false,
       },
     };
-    return configs[from] || configs.search;
+    // If a specific config exists for the source, use it. Otherwise, default to the 'douban' (browsing) style.
+    return configs[from] || configs.douban;
   }, [from, isAggregate, douban_id, rate]);
 
   // 移动端操作菜单配置
@@ -699,7 +700,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           )}
 
           {/* 徽章 */}
-          {config.showRating && rate && (
+          {config.showRating && rate && parseFloat(rate) > 0 && (
             <div
               className='absolute top-2 right-2 bg-pink-500 text-white text-xs font-bold w-7 h-7 rounded-full flex items-center justify-center shadow-md transition-all duration-300 ease-out group-hover:scale-110'
               style={{

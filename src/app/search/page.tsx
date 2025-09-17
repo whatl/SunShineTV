@@ -448,7 +448,7 @@ function SearchPageClient() {
       const performSearch = async () => {
         if (currentFluidSearch) {
           // 流式搜索：打开新的流式连接
-          const es = await search(trimmed, true) as EventSource;
+          const es = await search({ search: trimmed }, true) as EventSource;
           eventSourceRef.current = es;
 
           es.onmessage = (event) => {
@@ -532,7 +532,7 @@ function SearchPageClient() {
           };
         } else {
           // 传统搜索：使用普通接口
-                    search(trimmed)
+                    search({ search: trimmed })
             .then(results => {
               if (currentQueryRef.current !== trimmed) return;
 

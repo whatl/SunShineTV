@@ -9,10 +9,15 @@
 import { BangumiCalendarData } from '../bangumi.client';
 import { DoubanResult, SearchResult } from '../types';
 
-// Parameter types for provider methods
+// =================================================================================
+// DEPRECATED AND EXISTING TYPES
+// =================================================================================
+
+/** @deprecated Will be replaced by the new generic `getList` method. */
 export interface CategoriesParams { kind: 'tv' | 'movie'; category: string; type: string; pageLimit?: number; pageStart?: number; }
+/** @deprecated Will be replaced by the new generic `getList` method. */
 export interface ListByTagParams { tag: string; type: string; pageLimit?: number; pageStart?: number; }
-// type 就是来自于哪些大类
+/** @deprecated Will be replaced by the new generic `getList` method. */
 export interface RecommendationsParams {type?: string; kind: 'tv' | 'movie'; pageLimit?: number; pageStart?: number; category?: string; format?: string; label?: string; region?: string; year?: string; platform?: string; sort?: string; }
 
 /**
@@ -31,6 +36,12 @@ export interface HomePageData {
  * To add a new data source, one must create an object that implements this interface.
  */
 export interface DataProvider {
+  /**
+   * A list of top-level category keys that this provider supports.
+   * E.g., ['movie', 'tv', 'anime', 'show']
+   */
+  supportedCategories: string[];
+
   // Optional batch fetch for homepage, for performance optimization.
   getHomePageData?: () => Promise<HomePageData>;
 
@@ -41,11 +52,38 @@ export interface DataProvider {
   getAnimes: () => Promise<BangumiCalendarData[]>;
   getShortVideos: () => Promise<DoubanResult>;
 
-  // Search method
-  search: (query: string, useStream?: boolean) => Promise<SearchResult[] | EventSource>;
+  /**
+   * Fetches a list of items based on a generic path and extra filters.
+   * @param path The hierarchical path for the request (e.g., "tv/all" or "anime/fanju").
+   * @param extra A map of additional key-value filters (e.g., { region: "US", year: "2023" }).
+   * @param page The page number for pagination (default is 1).
+   * @returns A promise that resolves to a list of results.
+   */
+  getList: (path: string, extra: Record<string, string>, page?: number) => Promise<DoubanResult>;
 
-  // Methods for category/details pages
+  /**
+   * Performs a search using a set of filters.
+   * @param extra A map of search filters. Must include a `search` key for the query string.
+   * @param useStream Optional flag to enable streaming results.
+   * @returns A promise that resolves to search results or an EventSource for streaming.
+   */
+  search: (extra: Record<string, string>, useStream?: boolean) => Promise<SearchResult[] | EventSource>;
+
+
+  // =================================================================================
+  // DEPRECATED METHODS - Will be removed in a future version
+  // =================================================================================
+
+  /**
+   * @deprecated Please use `getList` instead.
+   */
   getCategories: (params: CategoriesParams) => Promise<DoubanResult>;
+  /**
+   * @deprecated Please use `getList` instead.
+   */
   getListByTag: (params: ListByTagParams) => Promise<DoubanResult>;
+  /**
+   * @deprecated Please use `getList` instead.
+   */
   getRecommendations: (params: RecommendationsParams) => Promise<DoubanResult>;
 }

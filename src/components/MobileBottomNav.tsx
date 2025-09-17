@@ -25,22 +25,22 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
     {
       icon: Film,
       label: '电影',
-      href: '/douban?type=movie',
+      href: '/category/movie',
     },
     {
       icon: Tv,
       label: '剧集',
-      href: '/douban?type=tv',
+      href: '/category/tv',
     },
     {
       icon: Cat,
       label: '动漫',
-      href: '/douban?type=anime',
+      href: '/category/anime',
     },
     {
       icon: Clover,
       label: '综艺',
-      href: '/douban?type=show',
+      href: '/category/show',
     },
     {
       icon: Radio,
@@ -57,24 +57,19 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
         {
           icon: Star,
           label: '自定义',
-          href: '/douban?type=custom',
+          href: '/douban?type=custom', // This will redirect
         },
       ]);
     }
   }, []);
 
   const isActive = (href: string) => {
-    const typeMatch = href.match(/type=([^&]+)/)?.[1];
-
-    // 解码URL以进行正确的比较
-    const decodedActive = decodeURIComponent(currentActive);
-    const decodedItemHref = decodeURIComponent(href);
-
-    return (
-      decodedActive === decodedItemHref ||
-      (decodedActive.startsWith('/douban') &&
-        decodedActive.includes(`type=${typeMatch}`))
-    );
+    // For the homepage, we need an exact match.
+    if (href === '/') {
+      return currentActive === '/';
+    }
+    // For other pages, a prefix match is sufficient.
+    return currentActive.startsWith(href);
   };
 
   return (

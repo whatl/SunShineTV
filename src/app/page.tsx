@@ -216,7 +216,7 @@ function HomeClient() {
                     热门电影
                   </h2>
                   <Link
-                    href='/douban?type=movie'
+                    href='/category/movie'
                     className='flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                   >
                     查看更多
@@ -264,7 +264,7 @@ function HomeClient() {
                     热门剧集
                   </h2>
                   <Link
-                    href='/douban?type=tv'
+                    href='/category/tv'
                     className='flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                   >
                     查看更多
@@ -311,7 +311,7 @@ function HomeClient() {
                     新番放送
                   </h2>
                   <Link
-                    href='/douban?type=anime'
+                    href='/category/anime'
                     className='flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                   >
                     查看更多
@@ -386,7 +386,7 @@ function HomeClient() {
                     热门综艺
                   </h2>
                   <Link
-                    href='/douban?type=show'
+                    href='/category/show'
                     className='flex items-center text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
                   >
                     查看更多

@@ -1,3 +1,4 @@
+
 // lib/dataProvider.ts
 
 /**
@@ -15,16 +16,27 @@ const provider: DataProvider = useCms ? maccmsProvider : doubanProvider;
 console.log(`[DataProvider] Initialized with ${useCms ? 'Maccms' : 'Douban'} provider.`);
 
 // --- Re-export all methods from the selected provider ---
-// This ensures that UI components can import them directly from this file.
+
+// New generic methods
+export const getList = provider.getList;
+export const search = provider.search;
+export const supportedCategories = provider.supportedCategories;
+
+// Legacy methods (for homepage, etc.)
 export const getMovies = provider.getMovies;
 export const getTvShows = provider.getTvShows;
 export const getVarietyShows = provider.getVarietyShows;
 export const getAnimes = provider.getAnimes;
 export const getShortVideos = provider.getShortVideos;
-export const search = provider.search;
+
+// Deprecated methods (to be phased out)
+/** @deprecated */
 export const getCategories = provider.getCategories;
+/** @deprecated */
 export const getListByTag = provider.getListByTag;
+/** @deprecated */
 export const getRecommendations = provider.getRecommendations;
+
 
 /**
  * Facade function for fetching all homepage data.
