@@ -100,6 +100,8 @@ function CategoryPageClient() {
 
   const skeletonData = Array.from({ length: 25 }, (_, index) => index);
 
+  const cardFrom = (process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms' ? 'douban' : process.env.NEXT_PUBLIC_DATA_SOURCE) || 'douban';
+
   return (
     <PageLayout activePath={`/category/${type}`}>
       <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible'>
@@ -125,7 +127,7 @@ function CategoryPageClient() {
               : data.map((item, index) => (
                   <div key={`${item.id}-${index}`} className='w-full'>
                     <VideoCard
-                      from={process.env.NEXT_PUBLIC_DATA_SOURCE || 'douban'}
+                      from={cardFrom as 'douban'}
                       title={item.title}
                       poster={item.poster}
                       douban_id={Number(item.id)}
