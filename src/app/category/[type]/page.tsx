@@ -9,9 +9,8 @@ import { DoubanItem } from '@/lib/types';
 
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import FilterToolbar from '@/components/FilterToolbar';
-import VideoCard from '@/components/VideoCard';
-
 import PageLayout from '@/components/PageLayout';
+import VideoCard from '@/components/VideoCard';
 
 function CategoryPageClient() {
   const params = useParams();
@@ -49,7 +48,7 @@ function CategoryPageClient() {
         throw new Error(result.message || 'Failed to fetch data');
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      
     } finally {
       setLoading(false);
       setIsLoadingMore(false);

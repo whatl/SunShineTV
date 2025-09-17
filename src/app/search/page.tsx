@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import React, { startTransition, Suspense, useEffect, useMemo, useRef, useState } from 'react';
 
 import { search } from '@/lib/dataProvider';
-
 import {
   addSearchHistory,
   clearSearchHistory,

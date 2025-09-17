@@ -68,7 +68,7 @@ function VersionDisplay() {
 }
 
 function LoginPageClient() {
-  const router = useRouter();
+  
   const searchParams = useSearchParams();
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');

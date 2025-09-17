@@ -13,7 +13,7 @@ import { maccmsProvider } from './providers/maccms.provider';
 const useCms = process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms';
 const provider: DataProvider = useCms ? maccmsProvider : doubanProvider;
 
-console.log(`[DataProvider] Initialized with ${useCms ? 'Maccms' : 'Douban'} provider.`);
+
 
 // --- Re-export all methods from the selected provider ---
 
@@ -62,9 +62,10 @@ export async function getHomePageData(): Promise<HomePageData> {
   return { movies, tvShows, varietyShows, animes, shortVideos };
 }
 
-function handleProviderError(categoryName: string, fallbackData: any) {
-  return (error: any) => {
-    console.error(`[DataProvider] Failed to fetch ${categoryName}:`, error);
+
+function handleProviderError<T>(categoryName: string, fallbackData: T) {
+  return (error: Error): T => {
+    // console.error(`[DataProvider] Failed to fetch ${categoryName}:`, error);
     return fallbackData;
   };
 }

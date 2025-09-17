@@ -5,14 +5,14 @@
  * @file Implements the DataProvider interface for the Douban data source.
  */
 
+import { CategoriesParams, DataProvider, ListByTagParams, RecommendationsParams } from './interface';
 import { BangumiCalendarData, GetBangumiCalendarData } from '../bangumi.client';
 import { getDoubanCategories, getDoubanList, getDoubanRecommends } from '../douban.client';
 import { DoubanResult, SearchResult } from '../types';
-import { CategoriesParams, DataProvider, ListByTagParams, RecommendationsParams } from './interface';
 
 // --- Helper function to map path and extra to legacy params ---
 
-const mapToLegacyParams = (path: string, extra: Record<string, string>, page: number = 1) => {
+const mapToLegacyParams = (path: string, extra: Record<string, string>, page = 1) => {
   const [type, primaryFromUi] = path.split('/');
   const secondaryFromUi = extra.category as string || 'all';
   const pageLimit = 25;
@@ -106,8 +106,7 @@ const mapToLegacyParams = (path: string, extra: Record<string, string>, page: nu
 
 // --- New Generic Method Implementations ---
 
-async function getList(path: string, extra: Record<string, string>, page: number = 1): Promise<DoubanResult> {
-  console.log('[DoubanProvider] getList called with:', { path, extra, page });
+async function getList(path: string, extra: Record<string, string>, page = 1): Promise<DoubanResult> {
   const params = mapToLegacyParams(path, extra, page);
 
   if ('special' in params && params.special === 'bangumi_daily') {

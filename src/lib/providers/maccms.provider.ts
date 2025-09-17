@@ -54,7 +54,6 @@ const normalizeRateInResult = (result: DoubanResult): DoubanResult => {
 };
 
 async function getHomePageData(): Promise<HomePageData> {
-  console.log('[MaccmsProvider] getHomePageData called');
   const homeData = await fetchFromCmsApi<CmsHomePageApiResponse>('/api/cms/shine/home');
 
   // Normalize rate for all categories that use the standard VideoCard
@@ -96,8 +95,7 @@ async function getHomePageData(): Promise<HomePageData> {
   return { ...homeData, animes: transformedAnimes };
 }
 
-async function getList(path: string, extra: Record<string, string>, page: number = 1): Promise<DoubanResult> {
-  console.log('[MaccmsProvider] getList called with:', { path, extra, page });
+async function getList(path: string, extra: Record<string, string>, page = 1): Promise<DoubanResult> {
   const category = path.split('/')[0];
   const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', { 
     category: category, 
@@ -106,7 +104,7 @@ async function getList(path: string, extra: Record<string, string>, page: number
   return normalizeRateInResult(result);
 }
 
-async function search(extra: Record<string, string>, useStream = false): Promise<SearchResult[] | EventSource> {
+async function search(extra: Record<string, string>): Promise<SearchResult[] | EventSource> {
   const query = extra.search || '';
   if (!query) {
     return Promise.resolve([]);
@@ -159,14 +157,11 @@ async function getShortVideos(): Promise<DoubanResult> {
   return fetchFromCmsApi('/api/cms/shine/page', { category: 'drama' });
 }
 
-/** @deprecated */
-async function legacySearch(query: string, useStream = false): Promise<SearchResult[] | EventSource> { 
-  return search({ search: query }, useStream);
-}
+
 
 /** @deprecated */
-async function getCategories(params: CategoriesParams): Promise<DoubanResult> { 
-  return getList(params.type, {}, params.pageStart ? params.pageStart / 25 + 1 : 1);
+async function getCategories({ type, pageStart }: CategoriesParams): Promise<DoubanResult> { 
+  return getList(type, {}, pageStart ? pageStart / 25 + 1 : 1);
 }
 
 /** @deprecated */
@@ -175,9 +170,9 @@ async function getListByTag(params: ListByTagParams): Promise<DoubanResult> {
 }
 
 /** @deprecated */
-async function getRecommendations(params: RecommendationsParams): Promise<DoubanResult> {
-  const category = params.type || '';
-  const page = params.pageStart ? (params.pageStart / 25 + 1) : 1;
+async function getRecommendations({ type, pageStart }: RecommendationsParams): Promise<DoubanResult> {
+  const category = type || '';
+  const page = pageStart ? (pageStart / 25 + 1) : 1;
   return getList(category, {}, page);
 }
 

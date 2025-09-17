@@ -2,14 +2,26 @@
 // src/app/api/cms/page/route.ts
 
 import { NextRequest, NextResponse } from 'next/server';
-import { queryCmsDB } from '@/lib/maccms.db';
+
 import { TABLE_PREFIX } from '@/lib/maccms.config';
+import { queryCmsDB } from '@/lib/maccms.db';
 import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
 import { DoubanResult } from '@/lib/types';
 
 const PAGE_SIZE = 25;
 
-function mapToDoubanItem(rows: any[]): DoubanResult {
+
+interface VodRow {
+  vod_id: number;
+  vod_name: string;
+  vod_pic: string;
+  vod_year: string;
+  vod_remarks: string;
+  vod_douban_score: number | null;
+  vod_score: string | null;
+}
+
+function mapToDoubanItem(rows: VodRow[]): DoubanResult {
   if (!Array.isArray(rows)) {
     return { code: 200, message: 'Success', list: [] };
   }
@@ -58,16 +70,16 @@ export async function GET(request: NextRequest) {
       OFFSET ?
     `;
 
-    const params: any[] = [...categoryIds, PAGE_SIZE, offset];
+    const params: (string | number)[] = [...categoryIds, PAGE_SIZE, offset];
 
-    const results = await queryCmsDB<any[]>(sql, params);
+    const results = await queryCmsDB<VodRow[]>(sql, params);
 
     const responseData = mapToDoubanItem(results);
 
     return NextResponse.json(responseData);
 
   } catch (error) {
-    console.error(`[API_CMS_PAGE_ERROR] Category: ${categoryShortName}`, error);
+    
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

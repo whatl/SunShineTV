@@ -6,8 +6,9 @@ import { cookies } from 'next/headers';
 
 import './globals.css';
 
-import { AuthProvider } from '@/components/AuthProvider';
 import { getConfig } from '@/lib/config';
+
+import { AuthProvider } from '@/components/AuthProvider';
 
 import { GlobalErrorIndicator } from '../components/GlobalErrorIndicator';
 import { SiteProvider } from '../components/SiteProvider';

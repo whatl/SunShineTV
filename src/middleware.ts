@@ -2,10 +2,10 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 
-import { getAuthInfoFromCookie } from '@/lib/auth';
+import { AuthInfo, getAuthInfoFromCookie } from '@/lib/auth';
 
 // 辅助函数：将所有验证逻辑封装起来，返回用户是否通过身份验证（By AI）
-async function isAuthenticated(authInfo: any): Promise<boolean> {
+async function isAuthenticated(authInfo: AuthInfo | null): Promise<boolean> {
   if (!authInfo) {
     return false; // 没有认证信息，未登录
   }

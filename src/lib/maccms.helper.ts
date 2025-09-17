@@ -29,7 +29,7 @@ const CACHE_DURATION = 60 * 60 * 1000 * 5; // 5小时
 async function getCategoryTree(): Promise<MacType[]> {
   const now = Date.now();
   if (categoryTreeCache && (now - cacheTimestamp < CACHE_DURATION)) {
-    console.log('[MACCMS_HELPER] Returning category tree from cache.');
+    
     return categoryTreeCache;
   }
 
@@ -63,7 +63,8 @@ export async function getChildCategoryIds(typeEn: string): Promise<number[]> {
 
   // Use a breadth-first search (BFS) to find all descendants.
   while (queue.length > 0) {
-    const currentParentId = queue.shift()!;
+    const currentParentId = queue.shift();
+    if (currentParentId === undefined) continue;
     const children = allCategories.filter(cat => cat.type_pid === currentParentId);
     for (const child of children) {
       allIds.push(child.type_id);

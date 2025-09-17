@@ -11,7 +11,7 @@ function initializePool() {
 
     // 检查所有必要的环境变量是否都已提供
     if (!MAC_DB_HOST || !MAC_DB_USER || !MAC_DB_PASSWORD || !MAC_DB_DATABASE) {
-      console.error('[MACCMS_DB_CONFIG_ERROR] CMS数据源已启用，但数据库连接信息不完整。请检查 .env.local 文件中的 MAC_DB_* 变量。');
+      
       return; // 不创建连接池，防止崩溃
     }
 
@@ -37,7 +37,7 @@ initializePool();
  * @param params - 查询参数，用于防止SQL注入。
  * @returns 返回查询结果。
  */
-export async function queryCmsDB<T>(sql: string, params: any[] = []): Promise<T> {
+export async function queryCmsDB<T>(sql: string, params: (string | number)[] = []): Promise<T> {
   if (!pool) {
     // 如果连接池不存在（因为未配置或配置错误），则直接抛出错误
     // dataProvider 将会捕获这个错误并回退到默认数据源

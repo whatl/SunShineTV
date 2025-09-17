@@ -23,10 +23,7 @@ import { checkForUpdates, UpdateStatus } from '@/lib/version_check';
 import { useAuth } from './AuthProvider';
 import { VersionPanel } from './VersionPanel';
 
-interface AuthInfo {
-  username?: string;
-  role?: 'owner' | 'admin' | 'user';
-}
+
 
 export const UserMenu: React.FC = () => {
   const router = useRouter();
