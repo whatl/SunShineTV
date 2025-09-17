@@ -47,7 +47,8 @@ export async function getHomePageData(): Promise<HomePageData> {
     try {
       return await provider.getHomePageData();
     } catch (error) {
-      console.warn('[DataProvider] Provider-level batch API failed, falling back.', error);
+      // The error is handled by the individual .catch() handlers on each promise.
+      // This outer catch is for any other unexpected errors during Promise.all itself.
     }
   }
 
@@ -64,7 +65,7 @@ export async function getHomePageData(): Promise<HomePageData> {
 
 
 function handleProviderError<T>(categoryName: string, fallbackData: T) {
-  return (error: Error): T => {
+  return (_error: Error): T => {
     // console.error(`[DataProvider] Failed to fetch ${categoryName}:`, error);
     return fallbackData;
   };

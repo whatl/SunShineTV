@@ -33,7 +33,7 @@ async function getCategoryTree(): Promise<MacType[]> {
     return categoryTreeCache;
   }
 
-  console.log('[MACCMS_HELPER] Fetching and caching new category tree from DB.');
+  
   const sql = `SELECT type_id, type_name, type_en, type_pid FROM ${TABLE_PREFIX}type WHERE type_status = 1`;
   const categories = await queryCmsDB<MacType[]>(sql);
   

@@ -5,6 +5,7 @@ import { NextResponse } from 'next/server';
 import { TABLE_PREFIX } from '@/lib/maccms.config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
+import { DoubanResult } from '@/lib/types';
 
 // This is the actual shape of the data returned by this specific API route.
 // The provider layer will then transform this into the final HomePageData shape.

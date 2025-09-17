@@ -48,7 +48,8 @@ function CategoryPageClient() {
         throw new Error(result.message || 'Failed to fetch data');
       }
     } catch (error) {
-      
+      // console.error('Error fetching data:', error);
+      // setErrorState or other error handling can be added here.
     } finally {
       setLoading(false);
       setIsLoadingMore(false);

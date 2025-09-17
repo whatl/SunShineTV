@@ -165,7 +165,7 @@ async function getCategories({ type, pageStart }: CategoriesParams): Promise<Dou
 }
 
 /** @deprecated */
-async function getListByTag(params: ListByTagParams): Promise<DoubanResult> { 
+async function getListByTag(_params: ListByTagParams): Promise<DoubanResult> { 
   throw new Error(NOT_IMPLEMENTED_ERROR); 
 }
 

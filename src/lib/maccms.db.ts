@@ -15,7 +15,7 @@ function initializePool() {
       return; // 不创建连接池，防止崩溃
     }
 
-    console.log('[MACCMS_DB] 正在初始化苹果CMS数据库连接池...');
+    
     pool = mysql.createPool({
       host: MAC_DB_HOST,
       user: MAC_DB_USER,
@@ -37,6 +37,7 @@ initializePool();
  * @param params - 查询参数，用于防止SQL注入。
  * @returns 返回查询结果。
  */
+
 export async function queryCmsDB<T>(sql: string, params: (string | number)[] = []): Promise<T> {
   if (!pool) {
     // 如果连接池不存在（因为未配置或配置错误），则直接抛出错误
@@ -44,14 +45,8 @@ export async function queryCmsDB<T>(sql: string, params: (string | number)[] = [
     throw new Error('CMS数据库连接池未初始化，请检查配置。');
   }
 
-  try {
-    const [rows] = await pool.execute(sql, params);
-    return rows as T;
-  } catch (error) {
-    console.error('[MACCMS_DB_QUERY_ERROR]', error);
-    // 将原始错误向上抛出，以便 dataProvider 可以捕获它
-    throw error;
-  }
+  const [rows] = await pool.execute(sql, params);
+  return rows as T;
 }
 
 // ... (后续可以添加更多具体的查询函数，比如 getVodById, searchVod 等)
