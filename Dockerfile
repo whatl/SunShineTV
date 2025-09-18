@@ -25,6 +25,9 @@ COPY . .
 # 在构建阶段也显式设置 DOCKER_ENV，
 ENV DOCKER_ENV=true
 
+# --- Maccms Database Configuration ---
+ENV NEXT_PUBLIC_DATA_SOURCE='maccms'
+
 # 生成生产构建
 RUN pnpm run build
 
@@ -39,15 +42,6 @@ ENV NODE_ENV=production
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 ENV DOCKER_ENV=true
-
-# --- Maccms Database Configuration ---
-ENV NEXT_PUBLIC_DATA_SOURCE='maccms'
-ENV MAC_DB_HOST='203.91.76.74'
-ENV MAC_DB_PORT='3306'
-ENV MAC_DB_DATABASE='tst'
-ENV MAC_DB_USER='root'
-ENV MAC_DB_PASSWORD='maccms_db_password'
-ENV NEXT_PUBLIC_SHOW_FILTER_TOOLBAR=false
 
 
 # 从构建器中复制 standalone 输出
