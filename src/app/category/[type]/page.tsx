@@ -12,7 +12,7 @@ import FilterToolbar from '@/components/FilterToolbar';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
 
-function CategoryPageClient() {
+function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
   const params = useParams();
   const type = params.type as string;
 
@@ -68,6 +68,22 @@ function CategoryPageClient() {
   }, [loadData]);
 
   useEffect(() => {
+    // When the filter is hidden, we manually trigger the initial data load
+    // with a default path, as the toolbar is not present to do so.
+    if (showFilter === false) {
+      const defaultPath = `${type}`;
+      
+      // Set the refs for pagination to work correctly
+      currentFilterPath.current = defaultPath;
+      currentFilterExtra.current = {};
+
+      loadData(defaultPath, {}, 1);
+    }
+    // This effect should only run once on mount when the filter is hidden.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showFilter, type]);
+
+  useEffect(() => {
     if (loading || isLoadingMore || !hasMore) return;
     const observer = new IntersectionObserver(
       (entries) => {
@@ -115,9 +131,11 @@ function CategoryPageClient() {
             </p>
           </div>
           {/* The missing container with background and rounding */}
-          <div className='bg-white/60 dark:bg-gray-800/40 rounded-2xl p-4 sm:p-6 border border-gray-200/30 dark:border-gray-700/30 backdrop-blur-sm'>
-            <FilterToolbar onFilterChange={handleFilterChange} />
-          </div>
+          {showFilter && (
+            <div className='bg-white/60 dark:bg-gray-800/40 rounded-2xl p-4 sm:p-6 border border-gray-200/30 dark:border-gray-700/30 backdrop-blur-sm'>
+              <FilterToolbar onFilterChange={handleFilterChange} />
+            </div>
+          )}
         </div>
 
         <div className='max-w-[95%] mx-auto mt-8 overflow-visible'>
@@ -167,9 +185,11 @@ function CategoryPageClient() {
 }
 
 export default function CategoryPage() {
+  const showFilter = process.env.NEXT_PUBLIC_SHOW_FILTER_TOOLBAR !== 'false';
+
   return (
     <Suspense>
-      <CategoryPageClient />
+      <CategoryPageClient showFilter={showFilter} />
     </Suspense>
   );
 }
