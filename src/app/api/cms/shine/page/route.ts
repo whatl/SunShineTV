@@ -1,8 +1,9 @@
 
-// src/app/api/cms/page/route.ts
-
 import { NextRequest, NextResponse } from 'next/server';
+import protobuf from 'protobufjs';
+import path from 'path';
 
+import { getConfig } from '@/lib/config';
 import { TABLE_PREFIX } from '@/lib/maccms.config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
@@ -46,6 +47,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const config = await getConfig();
     const typeEn = translateCategory(categoryShortName);
     if (!typeEn) {
       return new NextResponse(`Invalid category: ${categoryShortName}`, { status: 400 });
@@ -75,6 +77,17 @@ export async function GET(request: NextRequest) {
     const results = await queryCmsDB<VodRow[]>(sql, params);
 
     const responseData = mapToDoubanItem(results);
+
+    if (config.SiteConfig.API_PROTOCOL === 'proto') {
+      const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
+      const root = await protobuf.load(protoPath);
+      const DoubanResult = root.lookupType('maccms.DoubanResult');
+      const message = DoubanResult.create(responseData);
+      const buffer = DoubanResult.encode(message).finish();
+      return new NextResponse(buffer, {
+        headers: { 'Content-Type': 'application/x-protobuf' },
+      });
+    }
 
     return NextResponse.json(responseData);
 

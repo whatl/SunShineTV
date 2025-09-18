@@ -1,4 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import protobuf from 'protobufjs';
+import path from 'path';
+
+import { getConfig } from '@/lib/config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { SearchResult } from '@/lib/types';
 
@@ -11,14 +15,14 @@ function parseEpisodes(playUrl: string): { episodes: string[], episodes_titles: 
   const episodes: string[] = [];
   const episodes_titles: string[] = [];
 
-  // 首先按 `$$$` 分割不同来源
-  const sources = playUrl.split('$$$');
+  // 首先按 `$ 分割不同来源
+  const sources = playUrl.split('$);
 
   // 我们只处理第一个来源
   if (sources.length > 0) {
     const episodeEntries = sources[0].split('#');
     episodeEntries.forEach(entry => {
-      const parts = entry.split('$');
+      const parts = entry.split(');
       if (parts.length >= 2) {
         episodes_titles.push(parts[0]);
         episodes.push(parts[1]);
@@ -56,6 +60,7 @@ export async function GET(request: NextRequest) {
   const params = [`%${query}%`];
 
   try {
+    const config = await getConfig();
     const results = await queryCmsDB<any[]>(sql, params);
     const searchResults: SearchResult[] = results.map(item => {
       const { episodes, episodes_titles } = parseEpisodes(item.vod_play_url);
@@ -72,6 +77,18 @@ export async function GET(request: NextRequest) {
         source_name: 'MacCMS',
       };
     });
+
+    if (config.SiteConfig.API_PROTOCOL === 'proto') {
+      const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
+      const root = await protobuf.load(protoPath);
+      const SearchResultList = root.lookupType('maccms.SearchResultList');
+      const message = SearchResultList.create({ results: searchResults });
+      const buffer = SearchResultList.encode(message).finish();
+      return new NextResponse(buffer, {
+        headers: { 'Content-Type': 'application/x-protobuf' },
+      });
+    }
+
     return NextResponse.json(searchResults);
   } catch (error) {
     console.error('Maccms search error:', error);

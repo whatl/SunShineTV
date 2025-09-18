@@ -138,6 +138,9 @@ function shouldSkipAuth(pathname: string): boolean {
     // API白名单
     '/api/search',
     '/api/detail',
+    '/api/cms/shine/home',
+    '/api/cms/shine/page',
+    '/api/cms/shine/search',
   ];
 
   return skipPaths.some((path) => pathname.startsWith(path));

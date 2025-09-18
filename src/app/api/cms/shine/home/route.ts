@@ -1,7 +1,9 @@
-// src/app/api/cms/shine/home/route.ts
 
 import { NextResponse } from 'next/server';
+import protobuf from 'protobufjs';
+import path from 'path';
 
+import { getConfig } from '@/lib/config';
 import { TABLE_PREFIX } from '@/lib/maccms.config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
@@ -50,6 +52,7 @@ function mapToDoubanItem(rows: VodRow[]): DoubanResult {
  */
 export async function GET() {
   try {
+    const config = await getConfig();
     const commonFields = 'v.vod_id, v.vod_name, v.vod_pic, v.vod_year, v.vod_remarks, v.vod_douban_score, v.vod_score';
 
     // Get category IDs for all sections in parallel first
@@ -104,6 +107,17 @@ export async function GET() {
       animes: mapToDoubanItem(allResults.filter(r => r.section === 'animes')),
       shortVideos: { code: 200, message: 'Success', list: [] },
     };
+
+    if (config.SiteConfig.API_PROTOCOL === 'proto') {
+      const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
+      const root = await protobuf.load(protoPath);
+      const CmsHomePageApiResponse = root.lookupType('maccms.CmsHomePageApiResponse');
+      const message = CmsHomePageApiResponse.create(responseData);
+      const buffer = CmsHomePageApiResponse.encode(message).finish();
+      return new NextResponse(buffer, {
+        headers: { 'Content-Type': 'application/x-protobuf' },
+      });
+    }
 
     return NextResponse.json(responseData);
 
