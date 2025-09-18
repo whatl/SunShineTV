@@ -217,7 +217,7 @@ async function getInitConfig(configFile: string, subConfig: {
       DisableYellowFilter:
         process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true',
       FluidSearch:
-        process.env.NEXT_PUBLIC_FLUID_SEARCH !== 'false',
+        process.env.NEXT_PUBLIC_FLUID_SEARCH === 'true',
       API_PROTOCOL: process.env.API_PROTOCOL || 'json',
     },
     UserConfig: {

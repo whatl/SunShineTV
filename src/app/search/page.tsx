@@ -39,7 +39,7 @@ function SearchPageClient() {
   const [completedSources, setCompletedSources] = useState(0);
   const pendingResultsRef = useRef<SearchResult[]>([]);
   const flushTimerRef = useRef<number | null>(null);
-  const [useFluidSearch, setUseFluidSearch] = useState(true);
+  const [useFluidSearch, setUseFluidSearch] = useState(false); // 默认关闭流搜索
   // 聚合卡片 refs 与聚合统计缓存
   const groupRefs = useRef<Map<string, React.RefObject<VideoCardHandle>>>(new Map());
   const groupStatsRef = useRef<Map<string, { douban_id?: number; episodes?: number; source_names: string[] }>>(new Map());
@@ -346,13 +346,17 @@ function SearchPageClient() {
     // 读取流式搜索设置
     if (typeof window !== 'undefined') {
       const savedFluidSearch = localStorage.getItem('fluidSearch');
-      const defaultFluidSearch =
-        (window as any).RUNTIME_CONFIG?.FLUID_SEARCH !== false;
+      // 仅当全局配置明确设置为 true 时，才默认启用
+      const defaultFluidSearch = (window as any).RUNTIME_CONFIG?.FLUID_SEARCH === true;
       if (savedFluidSearch !== null) {
         setUseFluidSearch(JSON.parse(savedFluidSearch));
       } else if (defaultFluidSearch !== undefined) {
         setUseFluidSearch(defaultFluidSearch);
+      } else {
+        // 若没有任何配置，默认关闭
+        setUseFluidSearch(false);
       }
+
     }
 
     // 监听搜索历史更新事件
@@ -434,7 +438,7 @@ function SearchPageClient() {
         if (savedFluidSearch !== null) {
           currentFluidSearch = JSON.parse(savedFluidSearch);
         } else {
-          const defaultFluidSearch = (window as any).RUNTIME_CONFIG?.FLUID_SEARCH !== false;
+          const defaultFluidSearch = (window as any).RUNTIME_CONFIG?.FLUID_SEARCH === true;
           currentFluidSearch = defaultFluidSearch;
         }
       }
@@ -531,7 +535,7 @@ function SearchPageClient() {
           };
         } else {
           // 传统搜索：使用普通接口
-                    search({ search: trimmed })
+          search({ search: trimmed })
             .then(results => {
               if (currentQueryRef.current !== trimmed) return;
 

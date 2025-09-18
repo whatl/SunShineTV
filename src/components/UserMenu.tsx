@@ -62,7 +62,7 @@ export const UserMenu: React.FC = () => {
   const [defaultAggregateSearch, setDefaultAggregateSearch] = useState(true);
   const [doubanProxyUrl, setDoubanProxyUrl] = useState('');
   const [enableOptimization, setEnableOptimization] = useState(true);
-  const [fluidSearch, setFluidSearch] = useState(true);
+  const [fluidSearch, setFluidSearch] = useState(false);
   const [liveDirectConnect, setLiveDirectConnect] = useState(false);
   const [doubanDataSource, setDoubanDataSource] = useState('cmliussss-cdn-tencent');
   const [doubanImageProxyType, setDoubanImageProxyType] = useState('cmliussss-cdn-tencent');
@@ -178,11 +178,13 @@ export const UserMenu: React.FC = () => {
 
       const savedFluidSearch = localStorage.getItem('fluidSearch');
       const defaultFluidSearch =
-        (window as any).RUNTIME_CONFIG?.FLUID_SEARCH !== false;
+        (window as any).RUNTIME_CONFIG?.FLUID_SEARCH === true;
       if (savedFluidSearch !== null) {
         setFluidSearch(JSON.parse(savedFluidSearch));
       } else if (defaultFluidSearch !== undefined) {
         setFluidSearch(defaultFluidSearch);
+      } else {
+        setFluidSearch(false);
       }
 
       const savedLiveDirectConnect = localStorage.getItem('liveDirectConnect');
@@ -421,7 +423,7 @@ export const UserMenu: React.FC = () => {
     const defaultDoubanImageProxyUrl =
       (window as any).RUNTIME_CONFIG?.DOUBAN_IMAGE_PROXY || '';
     const defaultFluidSearch =
-      (window as any).RUNTIME_CONFIG?.FLUID_SEARCH !== false;
+      (window as any).RUNTIME_CONFIG?.FLUID_SEARCH === true;
 
     setDefaultAggregateSearch(true);
     setEnableOptimization(true);

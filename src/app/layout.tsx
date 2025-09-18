@@ -56,7 +56,7 @@ export default async function RootLayout({
   let doubanImageProxy = process.env.NEXT_PUBLIC_DOUBAN_IMAGE_PROXY || '';
   let disableYellowFilter =
     process.env.NEXT_PUBLIC_DISABLE_YELLOW_FILTER === 'true';
-  let fluidSearch = process.env.NEXT_PUBLIC_FLUID_SEARCH !== 'false';
+  let fluidSearch = process.env.NEXT_PUBLIC_FLUID_SEARCH === 'true';
   let customCategories = [] as {
     name: string;
     type: 'movie' | 'tv';

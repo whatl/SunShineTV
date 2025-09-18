@@ -15,14 +15,14 @@ function parseEpisodes(playUrl: string): { episodes: string[], episodes_titles: 
   const episodes: string[] = [];
   const episodes_titles: string[] = [];
 
-  // 首先按 `$ 分割不同来源
-  const sources = playUrl.split('$);
+  // 首先按 `$$$` 分割不同来源
+  const sources = playUrl.split('$$$');
 
   // 我们只处理第一个来源
   if (sources.length > 0) {
     const episodeEntries = sources[0].split('#');
     episodeEntries.forEach(entry => {
-      const parts = entry.split(');
+      const parts = entry.split('$');
       if (parts.length >= 2) {
         episodes_titles.push(parts[0]);
         episodes.push(parts[1]);
