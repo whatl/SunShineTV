@@ -15,7 +15,8 @@ export interface AdminConfig {
     DoubanImageProxyType: string;
     DoubanImageProxy: string;
     DisableYellowFilter: boolean;
-    FluidSearch: boolean;
+    FluidSearch: boolean; // 是否流搜
+    ApiProtocol: string; // api传输协议 json|proto
   };
   UserConfig: {
     Users: {

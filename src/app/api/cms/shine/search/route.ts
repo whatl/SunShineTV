@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    if (config.SiteConfig.API_PROTOCOL === 'proto') {
+    if (config.SiteConfig.ApiProtocol === 'proto') {
       const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
       const root = await protobuf.load(protoPath);
       const SearchResultList = root.lookupType('maccms.SearchResultList');

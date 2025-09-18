@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
 
     const responseData = mapToDoubanItem(results);
 
-    if (config.SiteConfig.API_PROTOCOL === 'proto') {
+    if (config.SiteConfig.ApiProtocol === 'proto') {
       const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
       const root = await protobuf.load(protoPath);
       const DoubanResult = root.lookupType('maccms.DoubanResult');
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(responseData);
 
   } catch (error) {
-    
+
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

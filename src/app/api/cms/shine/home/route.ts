@@ -84,17 +84,17 @@ export async function GET() {
     ].filter(Boolean); // Filter out empty queries
 
     if (queries.length === 0) {
-        return NextResponse.json({ movies: [], tvShows: [], varietyShows: [], animes: [], shortVideos: [] });
+      return NextResponse.json({ movies: [], tvShows: [], varietyShows: [], animes: [], shortVideos: [] });
     }
 
     const sql = queries.join(' UNION ALL ');
-    
+
     // Flatten all parameters into a single array
     const params = [
-        ...movieIds, HOME_PAGE_SIZE,
-        ...tvIds, HOME_PAGE_SIZE,
-        ...showIds, HOME_PAGE_SIZE,
-        ...animeIds, HOME_PAGE_SIZE,
+      ...movieIds, HOME_PAGE_SIZE,
+      ...tvIds, HOME_PAGE_SIZE,
+      ...showIds, HOME_PAGE_SIZE,
+      ...animeIds, HOME_PAGE_SIZE,
     ].filter(p => p !== undefined); // Filter out undefined params from empty categories
 
     const allResults = await queryCmsDB<VodRow[]>(sql, params);
@@ -108,7 +108,7 @@ export async function GET() {
       shortVideos: { code: 200, message: 'Success', list: [] },
     };
 
-    if (config.SiteConfig.API_PROTOCOL === 'proto') {
+    if (config.SiteConfig.ApiProtocol === 'proto') {
       const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
       const root = await protobuf.load(protoPath);
       const CmsHomePageApiResponse = root.lookupType('maccms.CmsHomePageApiResponse');
@@ -122,7 +122,7 @@ export async function GET() {
     return NextResponse.json(responseData);
 
   } catch (error) {
-    
+
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
