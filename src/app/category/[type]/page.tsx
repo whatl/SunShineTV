@@ -184,7 +184,15 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
   );
 }
 
-export default function CategoryPage() {
+import { notFound } from 'next/navigation';
+import { supportedCategories } from '@/lib/dataProvider';
+
+export default function CategoryPage({ params }: { params: { type: string } }) {
+  // Server-side validation: If the type is not in the supported list, show a 404 page.
+  if (!supportedCategories.includes(params.type)) {
+    notFound();
+  }
+
   const showFilter = process.env.NEXT_PUBLIC_SHOW_FILTER_TOOLBAR !== 'false';
 
   return (
