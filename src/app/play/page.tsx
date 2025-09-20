@@ -21,6 +21,7 @@ import {
   saveSkipConfig,
   subscribeToDataUpdates,
 } from '@/lib/db.client';
+import { focusedSearch, detail as fetchDetail } from '@/lib/dataProvider';
 import { SearchResult } from '@/lib/types';
 import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
 
@@ -657,13 +658,10 @@ function PlayPageClient() {
       id: string
     ): Promise<SearchResult[]> => {
       try {
-        const detailResponse = await fetch(
-          `/api/detail?source=${source}&id=${id}`
-        );
-        if (!detailResponse.ok) {
+        const detailData = await fetchDetail({ source, id });
+        if (!detailData) {
           throw new Error('获取视频详情失败');
         }
-        const detailData = (await detailResponse.json()) as SearchResult;
         setAvailableSources([detailData]);
         return [detailData];
       } catch (err) {
@@ -673,19 +671,17 @@ function PlayPageClient() {
         setSourceSearchLoading(false);
       }
     };
-    const fetchSourcesData = async (query: string): Promise<SearchResult[]> => {
+    const fetchSourcesData = async (
+      query: string,
+      source?: string,
+      id?: string
+    ): Promise<SearchResult[]> => {
       // 根据搜索词获取全部源信息
       try {
-        const response = await fetch(
-          `/api/search?q=${encodeURIComponent(query.trim())}`
-        );
-        if (!response.ok) {
-          throw new Error('搜索失败');
-        }
-        const data = await response.json();
+        const data = await focusedSearch({ q: query.trim(), source, id });
 
         // 处理搜索结果，根据规则过滤
-        const results = data.results.filter(
+        const results = data.filter(
           (result: SearchResult) =>
             result.title.replaceAll(' ', '').toLowerCase() ===
             videoTitleRef.current.replaceAll(' ', '').toLowerCase() &&
@@ -694,7 +690,7 @@ function PlayPageClient() {
               : true) &&
             (searchType
               ? (searchType === 'tv' && result.episodes.length > 1) ||
-              (searchType === 'movie' && result.episodes.length === 1)
+                (searchType === 'movie' && result.episodes.length === 1)
               : true)
         );
         setAvailableSources(results);
@@ -722,7 +718,11 @@ function PlayPageClient() {
           : '🔍 正在搜索播放源...'
       );
 
-      let sourcesInfo = await fetchSourcesData(searchTitle || videoTitle);
+      let sourcesInfo = await fetchSourcesData(
+        searchTitle || videoTitle,
+        currentSource,
+        currentId
+      );
       if (
         currentSource &&
         currentId &&

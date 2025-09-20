@@ -69,6 +69,20 @@ export interface DataProvider {
    */
   search: (extra: Record<string, string>, useStream?: boolean) => Promise<SearchResult[] | EventSource>;
 
+  /**
+   * Performs a broad search for a resource, potentially using context like source and id to refine.
+   * @param params An object containing the search query and optional context.
+   * @returns A promise that resolves to a list of search results.
+   */
+  focusedSearch: (params: { q: string; source?: string; id?: string; }) => Promise<SearchResult[]>;
+
+  /**
+   * Fetches a single, specific resource by its source and ID.
+   * @param params An object containing the unique identifiers for the resource.
+   * @returns A promise that resolves to the detailed search result, or null if not found.
+   */
+  detail: (params: { id: string; source: string; }) => Promise<SearchResult | null>;
+
 
   // =================================================================================
   // DEPRECATED METHODS - Will be removed in a future version

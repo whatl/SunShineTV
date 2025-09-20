@@ -155,6 +155,31 @@ async function search(extra: Record<string, string>, useStream = false): Promise
   }
 }
 
+async function focusedSearch(params: { q: string; source?: string; id?: string; }): Promise<SearchResult[]> {
+  const { q } = params;
+  if (!q) {
+    return Promise.resolve([]);
+  }
+  const response = await fetch(`/api/search?q=${encodeURIComponent(q.trim())}`);
+  if (!response.ok) {
+    return [];
+  }
+  const data = await response.json();
+  return data.results || [];
+}
+
+async function detail(params: { id: string; source: string; }): Promise<SearchResult | null> {
+  const { id, source } = params;
+  if (!id || !source) {
+    return Promise.resolve(null);
+  }
+  const response = await fetch(`/api/detail?source=${source}&id=${id}`);
+  if (!response.ok) {
+    return null;
+  }
+  return response.json();
+}
+
 
 // --- Legacy Method Implementations (kept for compatibility) ---
 
@@ -198,6 +223,8 @@ export const doubanProvider: DataProvider = {
   // New methods
   getList,
   search,
+  focusedSearch,
+  detail,
 
   // Legacy methods for homepage and direct calls
   getMovies,

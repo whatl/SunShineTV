@@ -20,6 +20,8 @@ const provider: DataProvider = useCms ? maccmsProvider : doubanProvider;
 // New generic methods
 export const getList = provider.getList;
 export const search = provider.search;
+export const focusedSearch = provider.focusedSearch;
+export const detail = provider.detail;
 export const supportedCategories = provider.supportedCategories;
 
 // Legacy methods (for homepage, etc.)

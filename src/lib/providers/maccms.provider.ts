@@ -192,6 +192,16 @@ async function search(extra: Record<string, string>): Promise<SearchResult[] | E
   return [];
 }
 
+async function focusedSearch(params: { q: string; source?: string; id?: string; }): Promise<SearchResult[]> {
+  console.error(NOT_IMPLEMENTED_ERROR, 'focusedSearch');
+  return Promise.resolve([]);
+}
+
+async function detail(params: { id: string; source: string; }): Promise<SearchResult | null> {
+  console.error(NOT_IMPLEMENTED_ERROR, 'detail');
+  return Promise.resolve(null);
+}
+
 
 // --- Legacy Method Implementations (kept for compatibility) ---
 
@@ -263,6 +273,8 @@ export const maccmsProvider: DataProvider = {
   getHomePageData,
   getList,
   search,
+  focusedSearch,
+  detail,
 
   // Legacy methods
   getMovies,
