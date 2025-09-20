@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 /* eslint-disable @typescript-eslint/no-var-requires */
-const WebpackObfuscator = require('webpack-obfuscator');
-const obfuscationConfig = require('./obfuscation.config.js');
+
+// 使用webpackObFuscator进行混淆
+// const WebpackObfuscator = require('webpack-obfuscator');
+// const obfuscationConfig = require('./obfuscation.config.js');
 
 const nextConfig = {
   output: 'standalone',
@@ -10,7 +12,7 @@ const nextConfig = {
   },
 
   reactStrictMode: false,
-  swcMinify: false,
+  swcMinify: true, // Enabled SWC for minification （By AI）
 
   experimental: {
     instrumentationHook: process.env.NODE_ENV === 'production',
@@ -31,18 +33,20 @@ const nextConfig = {
     ],
   },
 
-  webpack(config, { dev, isServer }) {
-    // 只在生产环境启用混淆
-    if (!dev && process.env.NODE_ENV === 'production') {
-      // 服务端代码混淆配置
-      if (isServer) {
-        console.log(`代码混淆执行`)
-        config.plugins.push(
-          new WebpackObfuscator(obfuscationConfig.obfuscator)
-        );
-      }
-    }
+  // 使用WebpackObfuscator混淆，但是他只混淆后端不对前端混淆所以不使用这套方案，使用swcMinify混淆够用 （By Faker）
+  // webpack(config, { dev, isServer }) {
+  //   // 只在生产环境启用混淆
+  //   if (!dev && process.env.NODE_ENV === 'production') {
+  //     // 服务端代码混淆配置
+  //     if (isServer) {
+  //       console.log(`代码混淆执行`)
+  //       config.plugins.push(
+  //         new WebpackObfuscator(obfuscationConfig.obfuscator)
+  //       );
+  //     }
+  //   }
 
+  webpack(config) {
     // Grab the existing rule that handles SVG imports
     const fileLoaderRule = config.module.rules.find((rule) =>
       rule.test?.test?.('.svg')

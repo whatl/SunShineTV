@@ -1,3 +1,4 @@
+// 没使用这套混淆，用的默认混淆（By Faker）
 // 代码混淆配置文件 - 专门针对 Next.js 项目优化
 module.exports = {
   // Webpack Obfuscator 配置（包含压缩功能）
