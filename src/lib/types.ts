@@ -93,7 +93,7 @@ export interface SearchResult {
   episodes: string[];
   episodes_titles: string[];
   source: string;
-  source_name: string;
+  source_name?: string;
   class?: string;
   year: string;
   desc?: string;

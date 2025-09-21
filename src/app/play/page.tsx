@@ -678,11 +678,11 @@ function PlayPageClient() {
     ): Promise<SearchResult[]> => {
       // 根据搜索词获取全部源信息
       try {
-        console.log(`source${source} id ${id}`)
         const data = await focusedSearch({ q: query.trim(), source, id });
 
-        // 处理搜索结果，根据规则过滤
-        const results = data.filter(
+        const isDouban = process.env.NEXT_PUBLIC_DATA_SOURCE === 'douban';
+        // 处理搜索结果，根据规则过滤,对豆瓣特殊处理
+        const results = isDouban ? data.filter(
           (result: SearchResult) =>
             result.title.replaceAll(' ', '').toLowerCase() ===
             videoTitleRef.current.replaceAll(' ', '').toLowerCase() &&
@@ -693,7 +693,7 @@ function PlayPageClient() {
               ? (searchType === 'tv' && result.episodes.length > 1) ||
                 (searchType === 'movie' && result.episodes.length === 1)
               : true)
-        );
+        ) : data;
         setAvailableSources(results);
         return results;
       } catch (err) {
