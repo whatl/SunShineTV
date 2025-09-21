@@ -244,7 +244,8 @@ function HomeClient() {
                         className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                       >
                         <VideoCard
-                          from='douban'
+                          from='base'
+                          id={movie.vodid}
                           title={movie.title}
                           poster={movie.poster}
                           douban_id={Number(movie.id)}
@@ -292,7 +293,7 @@ function HomeClient() {
                         className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                       >
                         <VideoCard
-                          from='douban'
+                          from='base'
                           title={show.title}
                           poster={show.poster}
                           douban_id={Number(show.id)}
@@ -359,7 +360,7 @@ function HomeClient() {
                           className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                         >
                           <VideoCard
-                            from='douban'
+                            from='base'
                             title={anime.name_cn || anime.name}
                             poster={
                               anime.images.large ||
@@ -368,6 +369,7 @@ function HomeClient() {
                               anime.images.small ||
                               anime.images.grid
                             }
+                            id={anime.vodid}
                             douban_id={anime.id}
                             rate={anime.rating?.score?.toFixed(1) || ''}
                             year={anime.air_date?.split('-')?.[0] || ''}
@@ -414,7 +416,8 @@ function HomeClient() {
                         className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                       >
                         <VideoCard
-                          from='douban'
+                          from='base'
+                          id={show.vodid}
                           title={show.title}
                           poster={show.poster}
                           douban_id={Number(show.id)}

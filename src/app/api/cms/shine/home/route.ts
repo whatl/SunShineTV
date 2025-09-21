@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
-import protobuf from 'protobufjs';
 import path from 'path';
+import protobuf from 'protobufjs';
 
 import { getConfig } from '@/lib/config';
 import { TABLE_PREFIX } from '@/lib/maccms.config';
@@ -23,6 +23,7 @@ interface CmsHomePageApiResponse {
 
 interface VodRow {
   vod_id: number;
+  vod_douban_id:string;
   vod_name: string;
   vod_pic: string;
   vod_year: string;
@@ -37,7 +38,8 @@ function mapToDoubanItem(rows: VodRow[]): DoubanResult {
     return { code: 200, message: 'Success', list: [] };
   }
   const list = rows.map(row => ({
-    id: row.vod_id.toString(),
+    vodid: row.vod_id.toString(),
+    id: row.vod_douban_id,
     title: row.vod_name,
     poster: row.vod_pic,
     rate: row.vod_douban_score ? row.vod_douban_score.toString() : (row.vod_score || '0'),
@@ -53,7 +55,7 @@ function mapToDoubanItem(rows: VodRow[]): DoubanResult {
 export async function GET() {
   try {
     const config = await getConfig();
-    const commonFields = 'v.vod_id, v.vod_name, v.vod_pic, v.vod_year, v.vod_remarks, v.vod_douban_score, v.vod_score';
+    const commonFields = 'v.vod_id,v.vod_douban_id, v.vod_name, v.vod_pic, v.vod_year, v.vod_remarks, v.vod_douban_score, v.vod_score';
 
     // Get category IDs for all sections in parallel first
     const [movieIds, tvIds, showIds, animeIds] = await Promise.all([

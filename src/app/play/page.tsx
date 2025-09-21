@@ -8,6 +8,7 @@ import { Heart } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
+import { detail as fetchDetail,focusedSearch } from '@/lib/dataProvider';
 import {
   deleteFavorite,
   deletePlayRecord,
@@ -21,7 +22,6 @@ import {
   saveSkipConfig,
   subscribeToDataUpdates,
 } from '@/lib/db.client';
-import { focusedSearch, detail as fetchDetail } from '@/lib/dataProvider';
 import { SearchResult } from '@/lib/types';
 import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
 
@@ -678,6 +678,7 @@ function PlayPageClient() {
     ): Promise<SearchResult[]> => {
       // 根据搜索词获取全部源信息
       try {
+        console.log(`source${source} id ${id}`)
         const data = await focusedSearch({ q: query.trim(), source, id });
 
         // 处理搜索结果，根据规则过滤

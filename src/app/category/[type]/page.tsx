@@ -116,7 +116,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
 
   const skeletonData = Array.from({ length: 25 }, (_, index) => index);
 
-  const cardFrom = (process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms' ? 'douban' : process.env.NEXT_PUBLIC_DATA_SOURCE) || 'douban';
+  // const cardFrom = (process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms' ? 'douban' : process.env.NEXT_PUBLIC_DATA_SOURCE) || 'douban';
 
   return (
     <PageLayout activePath={`/category/${type}`}>
@@ -145,7 +145,8 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
               : data.map((item, index) => (
                   <div key={`${item.id}-${index}`} className='w-full'>
                     <VideoCard
-                      from={cardFrom as 'douban'}
+                      from="base"
+                      id={item.vodid}
                       title={item.title}
                       poster={item.poster}
                       douban_id={Number(item.id)}
@@ -185,6 +186,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
 }
 
 import { notFound } from 'next/navigation';
+
 import { supportedCategories } from '@/lib/dataProvider';
 
 export default function CategoryPage({ params }: { params: { type: string } }) {

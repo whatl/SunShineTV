@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import protobuf from 'protobufjs';
 import path from 'path';
+import protobuf from 'protobufjs';
 
 import { getConfig } from '@/lib/config';
 import { queryCmsDB } from '@/lib/maccms.db';
@@ -44,6 +44,7 @@ export async function GET(request: NextRequest) {
   const sql = `
     SELECT 
       v.vod_id, 
+      v.vod_douban_id,
       v.vod_name, 
       v.vod_pic, 
       v.vod_year, 
@@ -61,11 +62,14 @@ export async function GET(request: NextRequest) {
 
   try {
     const config = await getConfig();
+    const protocol = config.SiteConfig.ApiProtocol === 'proto'
+    
     const results = await queryCmsDB<any[]>(sql, params);
     const searchResults: SearchResult[] = results.map(item => {
       const { episodes, episodes_titles } = parseEpisodes(item.vod_play_url);
       return {
         id: item.vod_id.toString(),
+        douban_id: item.vod_douban_id,
         title: item.vod_name,
         poster: item.vod_pic,
         year: item.vod_year,
@@ -78,7 +82,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    if (config.SiteConfig.ApiProtocol === 'proto') {
+    if (protocol) {
       const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
       const root = await protobuf.load(protoPath);
       const SearchResultList = root.lookupType('maccms.SearchResultList');

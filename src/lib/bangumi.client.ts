@@ -5,7 +5,8 @@ export interface BangumiCalendarData {
     en: string;
   };
   items: {
-    id: number;
+    id: number; // 豆瓣id
+    vodid: string; // vodid
     name: string;
     name_cn: string;
     rating: {

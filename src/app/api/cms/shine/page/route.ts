@@ -1,7 +1,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import protobuf from 'protobufjs';
 import path from 'path';
+import protobuf from 'protobufjs';
 
 import { getConfig } from '@/lib/config';
 import { TABLE_PREFIX } from '@/lib/maccms.config';
@@ -14,6 +14,7 @@ const PAGE_SIZE = 25;
 
 interface VodRow {
   vod_id: number;
+  vod_douban_id: string;
   vod_name: string;
   vod_pic: string;
   vod_year: string;
@@ -27,7 +28,8 @@ function mapToDoubanItem(rows: VodRow[]): DoubanResult {
     return { code: 200, message: 'Success', list: [] };
   }
   const list = rows.map(row => ({
-    id: row.vod_id.toString(),
+    id: row.vod_douban_id,
+    vodid: row.vod_id.toString(),
     title: row.vod_name,
     poster: row.vod_pic,
     rate: row.vod_douban_score ? row.vod_douban_score.toString() : (row.vod_score || '0'),
@@ -59,7 +61,7 @@ export async function GET(request: NextRequest) {
     }
 
     const offset = (page - 1) * PAGE_SIZE;
-    const commonFields = 'vod_id, vod_name, vod_pic, vod_year, vod_remarks, vod_douban_score, vod_score';
+    const commonFields = 'vod_id,vod_douban_id, vod_name, vod_pic, vod_year, vod_remarks, vod_douban_score, vod_score';
 
     const placeholders = categoryIds.map(() => '?').join(',');
 

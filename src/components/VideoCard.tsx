@@ -28,8 +28,8 @@ import { ImagePlaceholder } from '@/components/ImagePlaceholder';
 import MobileActionSheet from '@/components/MobileActionSheet';
 
 export interface VideoCardProps {
-  id?: string;
-  source?: string;
+  id?: string; // 对应的是vodid，如果有这个值肯定能从后台服务器找到
+  source?: string; // 对应的数据源资源提供者，比如如意，电影天堂 豆瓣 Maccms
   title?: string;
   query?: string;
   poster?: string;
@@ -38,15 +38,15 @@ export interface VideoCardProps {
   source_names?: string[];
   progress?: number;
   year?: string;
-  from: 'playrecord' | 'favorite' | 'search' | 'douban';
+  from: 'playrecord' | 'favorite' | 'search' | 'base'; // 来自于那个页面，base就代表none
   currentEpisode?: number;
-  douban_id?: number;
+  douban_id?: number; // 对应豆瓣id
   onDelete?: () => void;
   rate?: string;
   type?: string;
-  isBangumi?: boolean;
-  isAggregate?: boolean;
-  origin?: 'vod' | 'live';
+  isBangumi?: boolean; // 是否是来自于特定网站的动漫
+  isAggregate?: boolean; // 是否是聚合
+  origin?: 'vod' | 'live'; // 大的分类
 }
 
 export type VideoCardHandle = {
@@ -227,11 +227,12 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       // 直播内容跳转到直播页面
       const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
       router.push(url);
-    } else if (from === 'douban' || (isAggregate && !actualSource && !actualId)) {
+    } else if (from === 'base' || (isAggregate && !actualSource && !actualId)) { // 豆瓣 或者 聚合没有这个id就用模糊搜索
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
-        }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}`;
+        }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}
+        ${actualId ? `&id=${actualId}` : ''}${actualSource&&actualId ? `&source=${actualSource}` : ''}`;
       router.push(url);
-    } else if (actualSource && actualId) {
+    } else if (actualSource && actualId) { // 有数据源和有id
       const url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
         actualTitle
       )}${actualYear ? `&year=${actualYear}` : ''}${isAggregate ? '&prefer=true' : ''

@@ -20,6 +20,8 @@ interface CmsHomePageApiResponse {
   shortVideos: DoubanResult;
 }
 
+// For client-side execution, the proto definition must be a string literal.
+// It cannot be read from the filesystem.
 let protoRoot: protobuf.Root | null = null;
 async function getProtoRoot(): Promise<protobuf.Root> {
   if (protoRoot) {
@@ -31,12 +33,13 @@ async function getProtoRoot(): Promise<protobuf.Root> {
   package maccms;
 
   message DoubanItem {
-    string id = 1;
-    string title = 2;
-    string poster = 3;
-    string rate = 4;
-    string year = 5;
-    string remarks = 6;
+    string id = 1; // douban_id
+    string vodid =2;
+    string title = 3;
+    string poster = 4;
+    string rate = 5;
+    string year = 6;
+    string remarks = 7;
   }
 
   message DoubanResult {
@@ -46,7 +49,7 @@ async function getProtoRoot(): Promise<protobuf.Root> {
   }
 
   message SearchResult {
-    string id = 1;
+    string id = 1; //vodid
     string title = 2;
     string poster = 3;
     repeated string episodes = 4;
@@ -91,7 +94,9 @@ async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, stri
       url += `?${queryString}`;
     }
   }
+
   const response = await fetch(url);
+
   if (!response.ok) {
     throw new Error(`Failed to fetch from CMS API: ${response.statusText}`);
   }
@@ -192,17 +197,36 @@ async function search(extra: Record<string, string>): Promise<SearchResult[] | E
   return [];
 }
 
+
 async function focusedSearch(params: { q: string; source?: string; id?: string; }): Promise<SearchResult[]> {
-  console.error(NOT_IMPLEMENTED_ERROR, 'focusedSearch');
-  return Promise.resolve([]);
+  const { q, source, id } = params;
+  if (!q) {
+    return Promise.resolve([]);
+  }
+  const apiParams: Record<string, string> = { q };
+  if (source) {
+    apiParams.source = source;
+  }
+  if (id) {
+    apiParams.id = id;
+  }
+  const response = await fetchFromCmsApi<{ results: SearchResult[] }>('/api/cms/shine/search/focused', apiParams, 'maccms.SearchResultList');
+  return response.results || [];
 }
 
 async function detail(params: { id: string; source: string; }): Promise<SearchResult | null> {
-  console.error(NOT_IMPLEMENTED_ERROR, 'detail');
-  return Promise.resolve(null);
+  const { id, source } = params;
+  if (!id) {
+    return Promise.resolve(null);
+  }
+  try {
+    // source 对于 maccms 可能不是必须的，但我们仍然传递它以保持接口一致性
+    return await fetchFromCmsApi<SearchResult>('/api/cms/shine/detail', { id, source }, 'maccms.SearchResult');
+  } catch (error) {
+    // 404 等错误会在这里被捕获，返回 null 是符合预期的
+    return null;
+  }
 }
-
-
 // --- Legacy Method Implementations (kept for compatibility) ---
 
 async function getMovies(): Promise<DoubanResult> {
