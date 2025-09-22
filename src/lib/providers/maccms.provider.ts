@@ -151,19 +151,20 @@ async function getHomePageData(): Promise<HomePageData> {
   if (homeData.animes && homeData.animes.list) {
     const animeResult: DoubanResult = homeData.animes;
     const specialCalendarEntry: BangumiCalendarData = {
-      weekday: {  en: 'CMS' },
+      weekday: { en: 'CMS' },
       items: animeResult.list.map((item: DoubanItem) => ({
         id: parseInt(item.id, 10),
+        vodid: item.vodid,
         name: item.title,
         name_cn: item.title,
         rating: { score: parseFloat(item.rate || '0') }, // This structure is expected by Bangumi cards
         air_date: item.year || '',
-        images: { 
-          large: item.poster || '', 
-          common: item.poster || '', 
-          medium: item.poster || '', 
-          small: item.poster || '', 
-          grid: item.poster || '' 
+        images: {
+          large: item.poster || '',
+          common: item.poster || '',
+          medium: item.poster || '',
+          small: item.poster || '',
+          grid: item.poster || ''
         },
       })),
     };
@@ -175,8 +176,8 @@ async function getHomePageData(): Promise<HomePageData> {
 
 async function getList(path: string, extra: Record<string, string>, page = 1): Promise<DoubanResult> {
   const category = path.split('/')[0];
-  const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', { 
-    category: category, 
+  const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', {
+    category: category,
     page: page.toString()
   }, 'maccms.DoubanResult');
   return normalizeRateInResult(result);
@@ -248,19 +249,19 @@ async function getAnimes(): Promise<BangumiCalendarData[]> {
   }
 
   const specialCalendarEntry: BangumiCalendarData = {
-    weekday: {  en: 'CMS'},
+    weekday: { en: 'CMS' },
     items: result.list.map((item: DoubanItem) => ({
       id: parseInt(item.id, 10),
       name: item.title,
       name_cn: item.title,
       rating: { score: parseFloat(item.rate || '0') },
       air_date: item.year || '',
-      images: { 
-        large: item.poster || '', 
-        common: item.poster || '', 
-        medium: item.poster || '', 
-        small: item.poster || '', 
-        grid: item.poster || '' 
+      images: {
+        large: item.poster || '',
+        common: item.poster || '',
+        medium: item.poster || '',
+        small: item.poster || '',
+        grid: item.poster || ''
       },
     })),
   };
@@ -274,13 +275,13 @@ async function getShortVideos(): Promise<DoubanResult> {
 
 
 /** @deprecated */
-async function getCategories({ type, pageStart }: CategoriesParams): Promise<DoubanResult> { 
+async function getCategories({ type, pageStart }: CategoriesParams): Promise<DoubanResult> {
   return getList(type, {}, pageStart ? pageStart / 25 + 1 : 1);
 }
 
 /** @deprecated */
-async function getListByTag(_params: ListByTagParams): Promise<DoubanResult> { 
-  throw new Error(NOT_IMPLEMENTED_ERROR); 
+async function getListByTag(_params: ListByTagParams): Promise<DoubanResult> {
+  throw new Error(NOT_IMPLEMENTED_ERROR);
 }
 
 /** @deprecated */
