@@ -27,6 +27,8 @@ ENV DOCKER_ENV=true
 
 # --- Maccms Database Configuration ---
 ENV NEXT_PUBLIC_DATA_SOURCE='maccms'
+# close filter bar
+ENV NEXT_PUBLIC_SHOW_FILTER_TOOLBAR=false
 
 # 生成生产构建
 RUN pnpm run build
