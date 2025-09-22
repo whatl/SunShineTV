@@ -2,7 +2,7 @@
 
 'use client';
 
-import { Cat, Clover, Film, Home, Radio, Star, Tv } from 'lucide-react';
+import { Cat, Clover, Film, Home, Star, Tv } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -42,11 +42,12 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
       label: '综艺',
       href: '/category/show',
     },
-    {
-      icon: Radio,
-      label: '直播',
-      href: '/live',
-    },
+    // 直播开关(By Faker)
+    // {
+    //   icon: Radio,
+    //   label: '直播',
+    //   href: '/live',
+    // },
   ]);
 
   useEffect(() => {

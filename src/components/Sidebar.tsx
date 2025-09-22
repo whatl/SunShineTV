@@ -2,7 +2,7 @@
 
 'use client';
 
-import { Cat, Clover, Film, Home, Menu, Radio, Search, Star, Tv } from 'lucide-react';
+import { Cat, Clover, Film, Home, Menu, Search, Star, Tv } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -145,11 +145,12 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       label: '综艺',
       href: '/category/show',
     },
-    {
-      icon: Radio,
-      label: '直播',
-      href: '/live',
-    },
+    // 直播开关(By Faker)
+    // {
+    //   icon: Radio,
+    //   label: '直播',
+    //   href: '/live',
+    // },
   ]);
 
   useEffect(() => {

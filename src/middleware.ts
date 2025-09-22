@@ -42,22 +42,26 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. 如果未设置密码，强制跳转到警告页
+  // 2. 黑名单开关
+  const handled = handleBlackPath(request,pathname)
+  if (handled) return handled
+
+  // 3. 如果未设置密码，强制跳转到警告页
   if (!process.env.PASSWORD) {
     const warningUrl = new URL('/warning', request.url);
     return NextResponse.redirect(warningUrl);
   }
 
-  // 3. 获取并验证用户身份
+  // 4. 获取并验证用户身份
   const authInfo = getAuthInfoFromCookie(request);
   const userIsAuthenticated = await isAuthenticated(authInfo);
 
-  // 4. 如果用户已通过身份验证，允许访问
+  // 5. 如果用户已通过身份验证，允许访问
   if (userIsAuthenticated) {
     return NextResponse.next();
   }
 
-  // 5. 如果用户未通过身份验证（无Cookie或Cookie无效）
+  // 6. 如果用户未通过身份验证（无Cookie或Cookie无效）
   //    - 如果是受保护的API路由，则拒绝访问
   //    - 如果是普通页面，则允许匿名访问
   if (pathname.startsWith('/api')) {
@@ -111,7 +115,7 @@ async function verifySignature(
 function handleAuthFailure(
   request: NextRequest,
   pathname: string
-): NextResponse {
+): NextResponse{
   // 如果是 API 路由，返回 401 状态码
   if (pathname.startsWith('/api')) {
     return new NextResponse('Unauthorized', { status: 401 });
@@ -123,6 +127,23 @@ function handleAuthFailure(
   const fullUrl = `${pathname}${request.nextUrl.search}`;
   loginUrl.searchParams.set('redirect', fullUrl);
   return NextResponse.redirect(loginUrl);
+}
+
+// 处理黑名单的情况
+function handleBlackPath(
+  request: NextRequest,
+  pathname: string
+): NextResponse | null  {
+  
+  if (pathname.startsWith('/live')) { // 直播开关(By Faker)
+    const url = new URL('/', request.url); // 重定向到主页
+    // 保留完整的URL，包括查询参数
+    // const fullUrl = `${pathname}${request.nextUrl.search}`;
+    // url.searchParams.set('redirect', fullUrl);
+    return NextResponse.redirect(url);
+  }
+
+  return null;
 }
 
 // 判断是否需要跳过认证的路径
@@ -145,6 +166,8 @@ function shouldSkipAuth(pathname: string): boolean {
 
   return skipPaths.some((path) => pathname.startsWith(path));
 }
+
+
 
 // 配置middleware匹配规则
 export const config = {
