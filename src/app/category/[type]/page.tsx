@@ -48,7 +48,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
         throw new Error(result.message || 'Failed to fetch data');
       }
     } catch (error) {
-      // console.error('Error fetching data:', error);
+      console.error('Error fetching data:', error);
       // setErrorState or other error handling can be added here.
     } finally {
       setLoading(false);
@@ -72,11 +72,9 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
     // with a default path, as the toolbar is not present to do so.
     if (showFilter === false) {
       const defaultPath = `${type}`;
-      
       // Set the refs for pagination to work correctly
       currentFilterPath.current = defaultPath;
       currentFilterExtra.current = {};
-
       loadData(defaultPath, {}, 1);
     }
     // This effect should only run once on mount when the filter is hidden.

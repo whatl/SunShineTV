@@ -107,7 +107,11 @@ const mapToLegacyParams = (path: string, extra: Record<string, string>, page = 1
 // --- New Generic Method Implementations ---
 
 async function getList(path: string, extra: Record<string, string>, page = 1): Promise<DoubanResult> {
-  const params = mapToLegacyParams(path, extra, page);
+  let mPath = path;
+  if (!mPath.includes('/')) {
+      mPath = `${mPath}/all`; // 不包含斜杠时，追加 /all
+  }
+  const params = mapToLegacyParams(mPath, extra, page);
 
   if ('special' in params && params.special === 'bangumi_daily') {
     const calendarData = await GetBangumiCalendarData();
@@ -131,7 +135,7 @@ async function getList(path: string, extra: Record<string, string>, page = 1): P
     }
   }
 
-  const [type, primary] = path.split('/');
+  const [type, primary] = mPath.split('/');
 
   if (type === 'anime' || primary === 'all') {
     return getDoubanRecommends(params as RecommendationsParams);

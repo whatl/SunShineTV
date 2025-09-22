@@ -30,6 +30,7 @@ import MobileActionSheet from '@/components/MobileActionSheet';
 export interface VideoCardProps {
   id?: string; // 对应的是vodid，如果有这个值肯定能从后台服务器找到
   source?: string; // 对应的数据源资源提供者，比如如意，电影天堂 豆瓣 Maccms
+  ids?: string[]; //vodid [] 数组， 聚合时使用
   title?: string;
   query?: string;
   poster?: string;
@@ -58,6 +59,7 @@ export type VideoCardHandle = {
 const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard(
   {
     id,
+    ids,
     title = '',
     query = '',
     poster = '',
@@ -121,6 +123,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const actualDoubanId = dynamicDoubanId;
   const actualEpisodes = dynamicEpisodes;
   const actualYear = year;
+  const actualIds = ids;
+  const actualSources = source_names;
   const actualQuery = query || '';
   const actualSearchType = isAggregate
     ? (actualEpisodes && actualEpisodes === 1 ? 'movie' : 'tv')
@@ -223,14 +227,23 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   );
 
   const handleClick = useCallback(() => {
+
     if (origin === 'live' && actualSource && actualId) {
       // 直播内容跳转到直播页面
       const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
       router.push(url);
-    } else if (from === 'base' || (isAggregate && !actualSource && !actualId)) { // 豆瓣 或者 聚合没有这个id就用模糊搜索
+    } else if (from === 'base' || (isAggregate && !actualSource && !actualId)) { // 豆瓣 或者 聚合（没id 没源，因为没放这里）就用模糊搜索
+      const isDouban = process.env.NEXT_PUBLIC_DATA_SOURCE === 'douban'
+      // 豆瓣这里不需要传递actualId，其他系统支持用id查询效率更快
+      let mTempId  = !isDouban ? actualId : "";
+      let mTempSource = !isDouban ? actualSource : "";
+      if (!mTempId && isAggregate && !isDouban && actualIds && actualSources) { // 聚合尝试使用第一个做为id，后续有需求可以修改这里
+          mTempId = actualIds[0];
+          mTempSource = actualSources[0];
+      }
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
         }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}
-        ${actualId ? `&id=${actualId}` : ''}${actualSource && actualId ? `&source=${actualSource}` : ''}`;
+        ${mTempId ? `&id=${mTempId}` : ''}${mTempSource && mTempId ? `&source=${mTempSource}` : ''}`;
       router.push(url);
     } else if (actualSource && actualId) { // 有数据源和有id
       const url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(

@@ -776,6 +776,8 @@ function SearchPageClient() {
                       const poster = group[0]?.poster || '';
                       const year = group[0]?.year || 'unknown';
                       const { episodes, source_names, douban_id } = computeGroupStats(group);
+                      // 仅传递ids，不传递id
+                      const ids = Array.from(new Set(group.map((g) => g.id).filter(Boolean))) as string[]; // 返回聚合后的vodid （By Faker）
                       const type = episodes === 1 ? 'movie' : 'tv';
 
                       // 如果该聚合第一次出现，写入初始统计
@@ -788,6 +790,7 @@ function SearchPageClient() {
                           <VideoCard
                             ref={getGroupRef(mapKey)}
                             from='search'
+                            ids={ids}
                             isAggregate={true}
                             title={title}
                             poster={poster}
