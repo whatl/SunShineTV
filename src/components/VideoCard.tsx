@@ -128,7 +128,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
   // 获取收藏状态（搜索结果页面不检查）
   useEffect(() => {
-    if (from === 'douban' || from === 'search' || !actualSource || !actualId) return;
+    if (from === 'base' || from === 'search' || !actualSource || !actualId) return;
 
     const fetchFavoriteStatus = async () => {
       try {
@@ -159,7 +159,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     async (e: React.MouseEvent) => {
       e.preventDefault();
       e.stopPropagation();
-      if (from === 'douban' || !actualSource || !actualId) return;
+      if (from === 'base' || !actualSource || !actualId) return;
 
       try {
         // 确定当前收藏状态
@@ -230,7 +230,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     } else if (from === 'base' || (isAggregate && !actualSource && !actualId)) { // 豆瓣 或者 聚合没有这个id就用模糊搜索
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
         }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}
-        ${actualId ? `&id=${actualId}` : ''}${actualSource&&actualId ? `&source=${actualSource}` : ''}`;
+        ${actualId ? `&id=${actualId}` : ''}${actualSource && actualId ? `&source=${actualSource}` : ''}`;
       router.push(url);
     } else if (actualSource && actualId) { // 有数据源和有id
       const url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
@@ -259,7 +259,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       // 直播内容跳转到直播页面
       const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
       window.open(url, '_blank');
-    } else if (from === 'douban' || (isAggregate && !actualSource && !actualId)) {
+    } else if (from === 'base' || (isAggregate && !actualSource && !actualId)) {
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''}${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}`;
       window.open(url, '_blank');
     } else if (actualSource && actualId) {
@@ -346,7 +346,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         showRating: false,
         showYear: true,
       },
-      douban: {
+      base: {
         showSourceName: false,
         showProgress: false,
         showPlayButton: true,
@@ -358,7 +358,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       },
     };
     // If a specific config exists for the source, use it. Otherwise, default to the 'douban' (browsing) style.
-    return configs[from] || configs.douban;
+    return configs[from] || configs.base;
   }, [from, isAggregate, douban_id, rate]);
 
   // 移动端操作菜单配置
@@ -388,7 +388,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     // 聚合源信息 - 直接在菜单中展示，不需要单独的操作项
 
     // 收藏/取消收藏操作
-    if (config.showHeart && from !== 'douban' && actualSource && actualId) {
+    if (config.showHeart && from !== 'base' && actualSource && actualId) {
       const currentFavorited = from === 'search' ? searchFavorited : favorited;
 
       if (from === 'search') {
