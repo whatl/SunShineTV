@@ -87,7 +87,7 @@ export interface IStorage {
 
 // 搜索结果数据结构
 export interface SearchResult {
-  id?: string; // 对应vodid 可有可无
+  id: string; // 对应vodid 可有可无
   title: string;
   poster: string;
   episodes: string[];
@@ -104,7 +104,7 @@ export interface SearchResult {
 // 豆瓣数据结构
 export interface DoubanItem {
   id?: string; // 豆瓣id可有可无
-  vodid?:string; // 对应的资源id可有可无，代表这个数据对应的id资源
+  vodid?: string; // 对应的资源id可有可无，代表这个数据对应的id资源
   title: string;
   poster: string;
   rate: string;
