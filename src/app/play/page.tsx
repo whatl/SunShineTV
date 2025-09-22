@@ -724,7 +724,8 @@ function PlayPageClient() {
         currentSource,
         currentId
       );
-      if (
+      const isDouban = process.env.NEXT_PUBLIC_DATA_SOURCE !== 'maccms'; // 特殊处理
+      if (isDouban &&
         currentSource &&
         currentId &&
         !sourcesInfo.some(
@@ -743,7 +744,9 @@ function PlayPageClient() {
       // 指定源和id且无需优选
       if (currentSource && currentId && !needPreferRef.current) {
         const target = sourcesInfo.find(
-          (source) => source.source === currentSource && source.id === currentId
+          (source) => {
+            return String(source.source) === String(currentSource) && String(source.id) === String(currentId)
+          }
         );
         if (target) {
           detailData = target;
