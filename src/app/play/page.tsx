@@ -8,7 +8,7 @@ import { Heart } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
-import { detail as fetchDetail,focusedSearch } from '@/lib/dataProvider';
+import { detail as fetchDetail, focusedSearch } from '@/lib/dataProvider';
 import {
   deleteFavorite,
   deletePlayRecord,
@@ -691,7 +691,7 @@ function PlayPageClient() {
               : true) &&
             (searchType
               ? (searchType === 'tv' && result.episodes.length > 1) ||
-                (searchType === 'movie' && result.episodes.length === 1)
+              (searchType === 'movie' && result.episodes.length === 1)
               : true)
         ) : data;
         setAvailableSources(results);
@@ -769,7 +769,7 @@ function PlayPageClient() {
 
       setNeedPrefer(false);
       setCurrentSource(detailData.source);
-      setCurrentId(detailData.id);
+      setCurrentId(detailData.id || "");
       setVideoYear(detailData.year);
       setVideoTitle(detailData.title || videoTitleRef.current);
       setVideoCover(detailData.poster);
@@ -782,7 +782,7 @@ function PlayPageClient() {
       // 规范URL参数
       const newUrl = new URL(window.location.href);
       newUrl.searchParams.set('source', detailData.source);
-      newUrl.searchParams.set('id', detailData.id);
+      newUrl.searchParams.set('id', detailData.id || "");
       newUrl.searchParams.set('year', detailData.year);
       newUrl.searchParams.set('title', detailData.title);
       newUrl.searchParams.delete('prefer');
