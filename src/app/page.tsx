@@ -294,6 +294,7 @@ function HomeClient() {
                       >
                         <VideoCard
                           from='base'
+                          id={show.vodid}
                           title={show.title}
                           poster={show.poster}
                           douban_id={Number(show.id)}

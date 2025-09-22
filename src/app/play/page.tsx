@@ -741,22 +741,37 @@ function PlayPageClient() {
       }
 
       let detailData: SearchResult = sourcesInfo[0];
+      // 优先按照source和id匹配，最差情况按id匹配（By Facker）
+      const needTarget = (currentSource && currentId && !needPreferRef.current) || (currentId && !needPreferRef.current);
       // 指定源和id且无需优选
-      if (currentSource && currentId && !needPreferRef.current) {
+      if (needTarget) {
+        let notFound = true;
         const target = sourcesInfo.find(
           (source) => {
             return String(source.source) === String(currentSource) && String(source.id) === String(currentId)
           }
         );
         if (target) {
+          notFound = false;
           detailData = target;
-        } else {
+        }
+        if (notFound) {
+          const target = sourcesInfo.find(
+          (source) => {
+            return String(source.id) === String(currentId)
+          });
+          if (target) {
+            notFound = false;
+            detailData = target;
+          } 
+        }
+        if (notFound) {
           setError('未找到匹配结果');
           setLoading(false);
           return;
         }
       }
-
+      
       // 未指定源和 id 或需要优选，且开启优选开关
       if (
         (!currentSource || !currentId || needPreferRef.current) &&
