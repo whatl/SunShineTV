@@ -62,9 +62,9 @@ export async function GET(request: NextRequest) {
 
     const offset = (page - 1) * PAGE_SIZE;
     const commonFields = 'vod_id,vod_douban_id, vod_name, vod_pic, vod_year, vod_remarks, vod_douban_score, vod_score';
-
+console.log(`00000`)
     const placeholders = categoryIds.map(() => '?').join(',');
-
+console.log(`T----`)
     const sql = `
       SELECT ${commonFields}
       FROM ${TABLE_PREFIX}vod
@@ -73,24 +73,27 @@ export async function GET(request: NextRequest) {
       LIMIT ?
       OFFSET ?
     `;
-
+    console.log(`TEST1111`)
     const params: (string | number)[] = [...categoryIds, PAGE_SIZE, offset];
-
+console.log(`TEST2222`)
     const results = await queryCmsDB<VodRow[]>(sql, params);
-
+console.log(`TEST333`)
     const responseData = mapToDoubanItem(results);
-
+console.log(`TEST4444`)
     if (config.SiteConfig.ApiProtocol === 'proto') {
+      console.log(`TEST555`)
       const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
       const root = await protobuf.load(protoPath);
       const DoubanResult = root.lookupType('maccms.DoubanResult');
+      console.log(`TEST99999`)
       const message = DoubanResult.create(responseData);
       const buffer = DoubanResult.encode(message).finish();
+      console.log(`TEST7777`)
       return new NextResponse(buffer, {
         headers: { 'Content-Type': 'application/x-protobuf' },
       });
     }
-
+console.log(`TEST6666`)
     return NextResponse.json(responseData);
 
   } catch (error) {
