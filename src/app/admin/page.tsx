@@ -3392,7 +3392,7 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
     DoubanImageProxyType: 'cmliussss-cdn-tencent',
     DoubanImageProxy: '',
     DisableYellowFilter: false,
-    FluidSearch: true,
+    FluidSearch: false,
   });
 
   // 豆瓣数据源相关状态
@@ -3454,7 +3454,7 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
           config.SiteConfig.DoubanImageProxyType || 'cmliussss-cdn-tencent',
         DoubanImageProxy: config.SiteConfig.DoubanImageProxy || '',
         DisableYellowFilter: config.SiteConfig.DisableYellowFilter || false,
-        FluidSearch: config.SiteConfig.FluidSearch || true,
+        FluidSearch: config.SiteConfig.FluidSearch || false,
       });
     }
   }, [config]);
