@@ -724,6 +724,10 @@ function PlayPageClient() {
         currentSource,
         currentId
       );
+      if (!Array.isArray(sourcesInfo)) {
+        sourcesInfo = [sourcesInfo].filter(Boolean);
+      }
+
       const isDouban = process.env.NEXT_PUBLIC_DATA_SOURCE !== 'maccms'; // 特殊处理
       if (isDouban &&
         currentSource &&
