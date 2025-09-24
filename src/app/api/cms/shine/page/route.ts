@@ -29,7 +29,7 @@ function mapToDoubanItem(rows: VodRow[]): DoubanResult {
   }
   const list = rows.map(row => ({
     id: String(row.vod_douban_id || ''),
-    vodid: row.vod_id.toString(),
+    vodid: String(row.vod_id || ''),
     title: row.vod_name,
     poster: row.vod_pic,
     rate: row.vod_douban_score ? row.vod_douban_score.toString() : (row.vod_score || '0'),

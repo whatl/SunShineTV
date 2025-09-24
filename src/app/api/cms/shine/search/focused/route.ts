@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
       playFromSources.forEach((fromItem, sourceIndex) => {
       
         searchResults.push({
-            id: item.vod_id, // 拼接来源索引，确保id唯一
+            id: String(item.vod_id || ''), // 拼接来源索引，确保id唯一
             douban_id: item.vod_douban_id,
             title: item.vod_name,
             poster: item.vod_pic,
