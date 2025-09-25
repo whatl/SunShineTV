@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import protobuf from 'protobufjs';
 
-import { getConfig } from '@/lib/config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { SearchResult } from '@/lib/types';
 
@@ -73,8 +72,7 @@ export async function GET(request: NextRequest) {
   const params = [`${id}`];
 
   try {
-    const config = await getConfig();
-    const protocol = config.SiteConfig.ApiProtocol === 'proto'
+    const protocol = process.env.API_PROTOCOL === 'proto'
     
     const results = await queryCmsDB<any[]>(sql, params);
     // 处理逻辑：根据来源数量创建对应的 searchResults 条目

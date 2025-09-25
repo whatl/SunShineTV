@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import protobuf from 'protobufjs';
 
-import { getConfig } from '@/lib/config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { SearchResult } from '@/lib/types';
 
@@ -61,8 +60,7 @@ export async function GET(request: NextRequest) {
   const params = [`%${query}%`];
 
   try {
-    const config = await getConfig();
-    const protocol = config.SiteConfig.ApiProtocol === 'proto'
+    const protocol = process.env.API_PROTOCOL === 'proto'
     
     const results = await queryCmsDB<any[]>(sql, params);
     const searchResults: SearchResult[] = results.map(item => {

@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import protobuf from 'protobufjs';
 
-import { getConfig } from '@/lib/config';
 import { TABLE_PREFIX } from '@/lib/maccms.config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
@@ -49,7 +48,6 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const config = await getConfig();
     const typeEn = translateCategory(categoryShortName);
     if (!typeEn) {
       return new NextResponse(`Invalid category: ${categoryShortName}`, { status: 400 });
@@ -75,7 +73,7 @@ export async function GET(request: NextRequest) {
     const params: (string | number)[] = [...categoryIds, PAGE_SIZE, offset];
     const results = await queryCmsDB<VodRow[]>(sql, params);
     const responseData = mapToDoubanItem(results);
-    if (config.SiteConfig.ApiProtocol === 'proto') {
+    if (process.env.API_PROTOCOL === 'proto') {
       const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
       const root = await protobuf.load(protoPath);
       const DoubanResult = root.lookupType('maccms.DoubanResult');

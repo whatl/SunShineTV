@@ -3,7 +3,6 @@ import { NextResponse } from 'next/server';
 import path from 'path';
 import protobuf from 'protobufjs';
 
-import { getConfig } from '@/lib/config';
 import { TABLE_PREFIX } from '@/lib/maccms.config';
 import { queryCmsDB } from '@/lib/maccms.db';
 import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
@@ -54,7 +53,6 @@ function mapToDoubanItem(rows: VodRow[]): DoubanResult {
  */
 export async function GET() {
   try {
-    const config = await getConfig();
     const commonFields = 'v.vod_id,v.vod_douban_id, v.vod_name, v.vod_pic, v.vod_year, v.vod_remarks, v.vod_douban_score, v.vod_score';
 
     // Get category IDs for all sections in parallel first
@@ -110,7 +108,7 @@ export async function GET() {
       shortVideos: { code: 200, message: 'Success', list: [] },
     };
 
-    if (config.SiteConfig.ApiProtocol === 'proto') {
+    if (process.env.API_PROTOCOL === 'proto') {
       const protoPath = path.join(process.cwd(), 'src', 'lib', 'protos', 'maccms.proto');
       const root = await protobuf.load(protoPath);
       const CmsHomePageApiResponse = root.lookupType('maccms.CmsHomePageApiResponse');
