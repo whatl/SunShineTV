@@ -21,6 +21,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
@@ -34,6 +35,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
     } else {
       setIsLoadingMore(true);
     }
+    setIsError(false);
 
     try {
       const result = await getList(path, extra, pageNum);
@@ -44,17 +46,23 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
           setData(prev => [...prev, ...result.list]);
         }
         setHasMore(result.list.length > 0);
+        if (pageNum > page) {
+          setPage(pageNum);
+        }
       } else {
         throw new Error(result.message || 'Failed to fetch data');
       }
     } catch (error) {
       console.error('Error fetching data:', error);
-      // setErrorState or other error handling can be added here.
+      setIsError(true);
     } finally {
-      setLoading(false);
-      setIsLoadingMore(false);
+      if (pageNum === 1) {
+        setLoading(false);
+      } else {
+        setIsLoadingMore(false);
+      }
     }
-  }, []);
+  }, [page]);
 
   const handleFilterChange = useCallback((path: string, extra: Record<string, string>) => {
     if (path !== currentFilterPath.current || JSON.stringify(extra) !== JSON.stringify(currentFilterExtra.current)) {
@@ -63,6 +71,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
       setPage(1);
       setData([]);
       setHasMore(true);
+      setIsError(false);
       loadData(path, extra, 1);
     }
   }, [loadData]);
@@ -83,30 +92,29 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
 
   useEffect(() => {
     if (loading || isLoadingMore || !hasMore) return;
+
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
-          setPage(prev => prev + 1);
+        if (entries[0].isIntersecting && !isError) {
+          loadData(currentFilterPath.current, currentFilterExtra.current, page + 1);
+        } else if (!entries[0].isIntersecting) {
+          setIsError(false);
         }
       },
       { threshold: 0.1 }
     );
+
     if (loadingRef.current) {
       observer.observe(loadingRef.current);
     }
     observerRef.current = observer;
+
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
     };
-  }, [loading, isLoadingMore, hasMore]);
-
-  useEffect(() => {
-    if (page > 1) {
-      loadData(currentFilterPath.current, currentFilterExtra.current, page);
-    }
-  }, [page, loadData]);
+  }, [loading, isLoadingMore, hasMore, page, loadData, isError]);
 
   const getPageTitle = () => {
     return type === 'movie' ? '电影' : type === 'tv' ? '电视剧' : type === 'anime' ? '动漫' : type === 'show' ? '综艺' : '分类';
