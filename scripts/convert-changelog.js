@@ -115,7 +115,7 @@ ${fixedEntries || '      // 无修复内容'}
     })
     .join(',\n');
 
-  return `// 此文件由 scripts/convert-changelog.js 自动生成
+  return `// 此文件由node scripts/convert-changelog.js 自动生成
 // 请勿手动编辑
 
 export interface ChangelogEntry {
@@ -166,7 +166,8 @@ function updateVersionTs(version) {
 
 function main() {
   try {
-    const changelogPath = path.join(process.cwd(), 'CHANGELOG');
+    // 从这文件里面解析生成配置，如果更改CHANGELOG,需要node scripts/convert-changelog.js才生效（By Faker）
+    const changelogPath = path.join(process.cwd(), 'public/version/CHANGELOG');
     const outputPath = path.join(process.cwd(), 'src/lib/changelog.ts');
 
     console.log('正在读取 CHANGELOG 文件...');
