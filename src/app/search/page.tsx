@@ -547,7 +547,8 @@ function SearchPageClient() {
       
                   if (pageNum === 1) {
                     setSearchResults(sortedResults);
-                    setLocalPageSize(results.length);
+                   // 优化不更新localpagesize，因为搜索页每一页返回数据大小不固定，无法确定pagesize，使用默认值（By Faker）
+                   // setLocalPageSize(results.length);
                   } else {
                     setSearchResults((prev) => [...prev, ...sortedResults]);
                   }
@@ -876,7 +877,7 @@ function SearchPageClient() {
                       </div>
                     )}
       
-                    {!hasMore && searchResults.length > 0 && (
+                    {false && !hasMore && searchResults.length > 0 && (
                       <div className='text-center text-gray-500 py-8'>已加载全部内容</div>
                     )}
                   </section>
