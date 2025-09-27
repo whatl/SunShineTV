@@ -174,7 +174,19 @@ async function getHomePageData(): Promise<HomePageData> {
   return { ...homeData, animes: transformedAnimes };
 }
 
+// 平衡服务器性能和体验代码（By Faker）
+async function optmisePerformance(page: number){
+  if ( page <= 1 ) return;
+  if ( page <= 3) {
+    await new Promise(r => setTimeout(r, 100)); 
+    return;
+  }
+  // 随机睡眠100-600毫秒来减轻服务器压力
+  await new Promise(r => setTimeout(r, (page <= 10 ? 100 : 200) + Math.random() * (page <= 10 ? 300 : 400))); 
+}
+
 async function getList(path: string, extra: Record<string, string>, page = 1): Promise<DoubanResult> {
+  await optmisePerformance(page);
   const category = path.split('/')[0];
   const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', {
     category: category,
@@ -183,12 +195,16 @@ async function getList(path: string, extra: Record<string, string>, page = 1): P
   return normalizeRateInResult(result);
 }
 
-async function search(extra: Record<string, string>): Promise<SearchResult[] | EventSource> {
+async function search(extra: Record<string, string>, useStream = false, page = 1): Promise<SearchResult[] | EventSource> {
+  // if (page > 1) {
+  //   return Promise.resolve([]);
+  // }
   const query = extra.search || '';
   if (!query) {
     return Promise.resolve([]);
   }
-  const response = await fetchFromCmsApi<SearchResult[] | { results: SearchResult[] }>('/api/cms/shine/search', { q: query }, 'maccms.SearchResultList');
+  await optmisePerformance(page);
+  const response = await fetchFromCmsApi<SearchResult[] | { results: SearchResult[] }>('/api/cms/shine/search', { q: query,page:page.toString() }, 'maccms.SearchResultList');
 
   if (Array.isArray(response)) {
     return response;

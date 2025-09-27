@@ -46,6 +46,9 @@ export async function GET(request: NextRequest) {
   if (!categoryShortName) {
     return new NextResponse('Category parameter is required', { status: 400 });
   }
+  if (page < 1) {
+    return new NextResponse('Page Error', { status: 400 });
+  }
 
   try {
     const typeEn = translateCategory(categoryShortName);

@@ -67,7 +67,7 @@ export interface DataProvider {
    * @param useStream Optional flag to enable streaming results.
    * @returns A promise that resolves to search results or an EventSource for streaming.
    */
-  search: (extra: Record<string, string>, useStream?: boolean) => Promise<SearchResult[] | EventSource>;
+  search: (extra: Record<string, string>, useStream?: boolean,page?: number) => Promise<SearchResult[] | EventSource>;
 
   /**
    * Performs a broad search for a resource, potentially using context like source and id to refine.

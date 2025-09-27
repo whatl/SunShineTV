@@ -144,7 +144,11 @@ async function getList(path: string, extra: Record<string, string>, page = 1): P
   return getDoubanCategories(params as CategoriesParams);
 }
 
-async function search(extra: Record<string, string>, useStream = false): Promise<SearchResult[] | EventSource> {
+async function search(extra: Record<string, string>, useStream = false, page?: number): Promise<SearchResult[] | EventSource> {
+  const mPage = page || 1
+  if (mPage > 1) {
+    return Promise.resolve([]);
+  }
   const query = extra.search || '';
   if (!query) {
     return Promise.resolve([]);

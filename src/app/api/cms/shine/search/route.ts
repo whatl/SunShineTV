@@ -4,7 +4,7 @@ import protobuf from 'protobufjs';
 
 import { queryCmsDB } from '@/lib/maccms.db';
 import { SearchResult } from '@/lib/types';
-
+const PAGE_SIZE = 25;
 // 将播放列表字符串转换为数组
 function parseEpisodes(playUrl: string): { episodes: string[], episodes_titles: string[] } {
   if (!playUrl) {
@@ -35,11 +35,15 @@ function parseEpisodes(playUrl: string): { episodes: string[], episodes_titles: 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const query = searchParams.get('q') || '';
-
+  const page = parseInt(searchParams.get('page') || '1');
   if (!query) {
     return NextResponse.json({ error: 'Query parameter "q" is required' }, { status: 400 });
   }
-
+  if (page < 1) {
+    return new NextResponse('Page Error', { status: 400 });
+  }
+  const emptyList = page > 4;
+  const offset = (page - 1) * PAGE_SIZE;
   const sql = `
     SELECT 
       v.vod_id, 
@@ -55,14 +59,15 @@ export async function GET(request: NextRequest) {
     LEFT JOIN mac_type AS t ON v.type_id = t.type_id
     WHERE v.vod_name LIKE ? 
     ORDER BY v.vod_time DESC 
-    LIMIT 20
+    LIMIT ?
+    OFFSET ?
   `;
-  const params = [`%${query}%`];
+  const params = [`%${query}%`,PAGE_SIZE,offset];
 
   try {
     const protocol = process.env.API_PROTOCOL === 'proto'
     
-    const results = await queryCmsDB<any[]>(sql, params);
+    const results = emptyList? [] : await queryCmsDB<any[]>(sql, params);
     const searchResults: SearchResult[] = results.map(item => {
       const { episodes, episodes_titles } = parseEpisodes(item.vod_play_url);
       return {

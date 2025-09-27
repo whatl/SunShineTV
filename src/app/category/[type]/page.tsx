@@ -15,7 +15,7 @@ import VideoCard from '@/components/VideoCard';
 function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
   const params = useParams();
   const type = params.type as string;
-
+  const [localPageSize, setLocalPageSize] = useState(10); // 一般分页默认最少十条
   const [data, setData] = useState<DoubanItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -29,7 +29,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
   const currentFilterPath = useRef<string>('');
   const currentFilterExtra = useRef<Record<string, string>>({});
 
-  const loadData = useCallback(async (path: string, extra: Record<string, string>, pageNum: number) => {
+  const loadData = useCallback(async (path: string, extra: Record<string, string>, pageNum: number, localPageSizeNum: number) => {
     if (pageNum === 1) {
       setLoading(true);
     } else {
@@ -42,10 +42,12 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
       if (result.code === 200) {
         if (pageNum === 1) {
           setData(result.list);
+          setLocalPageSize(result.list.length);
         } else {
           setData(prev => [...prev, ...result.list]);
         }
-        setHasMore(result.list.length > 0);
+        console.log(`localPageSizeNum ${localPageSizeNum} ${result.list.length >= localPageSizeNum}`)
+        setHasMore(result.list.length >= localPageSizeNum); // (By Faker)
         if (pageNum > page) {
           setPage(pageNum);
         }
@@ -72,9 +74,9 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
       setData([]);
       setHasMore(true);
       setIsError(false);
-      loadData(path, extra, 1);
+      loadData(path, extra, 1, localPageSize);
     }
-  }, [loadData]);
+  }, [loadData,localPageSize]);
 
   useEffect(() => {
     // When the filter is hidden, we manually trigger the initial data load
@@ -84,7 +86,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
       // Set the refs for pagination to work correctly
       currentFilterPath.current = defaultPath;
       currentFilterExtra.current = {};
-      loadData(defaultPath, {}, 1);
+      loadData(defaultPath, {}, 1, localPageSize);
     }
     // This effect should only run once on mount when the filter is hidden.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -96,7 +98,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !isError) {
-          loadData(currentFilterPath.current, currentFilterExtra.current, page + 1);
+          loadData(currentFilterPath.current, currentFilterExtra.current, page + 1, localPageSize);
         } else if (!entries[0].isIntersecting) {
           setIsError(false);
         }
@@ -114,7 +116,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
         observerRef.current.disconnect();
       }
     };
-  }, [loading, isLoadingMore, hasMore, page, loadData, isError]);
+  }, [loading, isLoadingMore, hasMore, page, loadData, localPageSize, isError]);
 
   const getPageTitle = () => {
     return type === 'movie' ? '电影' : type === 'tv' ? '电视剧' : type === 'anime' ? '动漫' : type === 'show' ? '综艺' : '分类';
