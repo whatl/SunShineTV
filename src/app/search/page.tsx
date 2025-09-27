@@ -594,7 +594,8 @@ function SearchPageClient() {
           const observer = new IntersectionObserver(
             (entries) => {
               if (entries[0].isIntersecting && !isError) {
-                loadData(currentQueryRef.current, page + 1, localPageSize);
+                const nextPage = searchResults.length === 0 ? 1 : page + 1;
+                loadData(currentQueryRef.current, nextPage, localPageSize);
               } else if (!entries[0].isIntersecting) {
                 setIsError(false);
               }
@@ -608,7 +609,7 @@ function SearchPageClient() {
           return () => {
             if (observerRef.current) observerRef.current.disconnect();
           };
-        }, [isLoading, isLoadingMore, hasMore, isError, page, loadData, localPageSize]);        
+        }, [isLoading, isLoadingMore, hasMore, isError, page, searchResults.length, loadData, localPageSize]);        
       // 组件卸载时，关闭可能存在的连接
       useEffect(() => {
         return () => {
