@@ -69,12 +69,12 @@ interface UserCacheStore {
 }
 
 // ---- 常量 ----
-const PLAY_RECORDS_KEY = 'moontv_play_records';
-const FAVORITES_KEY = 'moontv_favorites';
-const SEARCH_HISTORY_KEY = 'moontv_search_history';
+const PLAY_RECORDS_KEY = 'ltv_play_records';
+const FAVORITES_KEY = 'ltv_favorites';
+const SEARCH_HISTORY_KEY = 'ltv_search_history';
 
 // 缓存相关常量
-const CACHE_PREFIX = 'moontv_cache_';
+const CACHE_PREFIX = 'ltv_cache_';
 const CACHE_VERSION = '1.0.0';
 const CACHE_EXPIRE_TIME = 60 * 60 * 1000; // 一小时缓存过期
 
@@ -196,7 +196,7 @@ class HybridCacheManager {
   private clearAllCache(): void {
     const keys = Object.keys(localStorage);
     keys.forEach((key) => {
-      if (key.startsWith('moontv_cache_')) {
+      if (key.startsWith('ltv_cache_')) {
         localStorage.removeItem(key);
       }
     });
@@ -1650,7 +1650,7 @@ export async function getSkipConfig(
 
   // localStorage 模式
   try {
-    const raw = localStorage.getItem('moontv_skip_configs');
+    const raw = localStorage.getItem('ltv_skip_configs');
     if (!raw) return null;
     const configs = JSON.parse(raw) as Record<string, SkipConfig>;
     return configs[key] || null;
@@ -1706,10 +1706,10 @@ export async function saveSkipConfig(
     } else {
       // 未登录，降级操作 localStorage
       try {
-        const raw = localStorage.getItem('moontv_skip_configs');
+        const raw = localStorage.getItem('ltv_skip_configs');
         const configs = raw ? (JSON.parse(raw) as Record<string, SkipConfig>) : {};
         configs[key] = config;
-        localStorage.setItem('moontv_skip_configs', JSON.stringify(configs));
+        localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
       } catch (err) {
         console.error('保存跳过片头片尾配置到 localStorage 失败:', err);
         triggerGlobalError('保存跳过片头片尾配置失败');
@@ -1725,10 +1725,10 @@ export async function saveSkipConfig(
   }
 
   try {
-    const raw = localStorage.getItem('moontv_skip_configs');
+    const raw = localStorage.getItem('ltv_skip_configs');
     const configs = raw ? (JSON.parse(raw) as Record<string, SkipConfig>) : {};
     configs[key] = config;
-    localStorage.setItem('moontv_skip_configs', JSON.stringify(configs));
+    localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
     window.dispatchEvent(
       new CustomEvent('skipConfigsUpdated', {
         detail: configs,
@@ -1760,7 +1760,7 @@ export async function getAllSkipConfigs(): Promise<Record<string, SkipConfig>> {
     // 如果未登录，则降级为从 localStorage 读取
     if (!isLoggedIn) {
       try {
-        const raw = localStorage.getItem('moontv_skip_configs');
+        const raw = localStorage.getItem('ltv_skip_configs');
         if (!raw) return {};
         return JSON.parse(raw) as Record<string, SkipConfig>;
       } catch (err) {
@@ -1813,7 +1813,7 @@ export async function getAllSkipConfigs(): Promise<Record<string, SkipConfig>> {
 
   // localStorage 模式
   try {
-    const raw = localStorage.getItem('moontv_skip_configs');
+    const raw = localStorage.getItem('ltv_skip_configs');
     if (!raw) return {};
     return JSON.parse(raw) as Record<string, SkipConfig>;
   } catch (err) {
@@ -1862,11 +1862,11 @@ export async function deleteSkipConfig(
     } else {
       // 未登录，降级操作 localStorage
       try {
-        const raw = localStorage.getItem('moontv_skip_configs');
+        const raw = localStorage.getItem('ltv_skip_configs');
         if (raw) {
           const configs = JSON.parse(raw) as Record<string, SkipConfig>;
           delete configs[key];
-          localStorage.setItem('moontv_skip_configs', JSON.stringify(configs));
+          localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
         }
       } catch (err) {
         console.error('删除跳过片头片尾配置到 localStorage 失败:', err);
@@ -1883,11 +1883,11 @@ export async function deleteSkipConfig(
   }
 
   try {
-    const raw = localStorage.getItem('moontv_skip_configs');
+    const raw = localStorage.getItem('ltv_skip_configs');
     if (raw) {
       const configs = JSON.parse(raw) as Record<string, SkipConfig>;
       delete configs[key];
-      localStorage.setItem('moontv_skip_configs', JSON.stringify(configs));
+      localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
       window.dispatchEvent(
         new CustomEvent('skipConfigsUpdated', {
           detail: configs,
