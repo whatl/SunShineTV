@@ -690,8 +690,8 @@ function PlayPageClient() {
               ? result.year.toLowerCase() === videoYearRef.current.toLowerCase()
               : true) &&
             (searchType
-              ? (searchType === 'tv' && result.episodes.length > 1) ||
-              (searchType === 'movie' && result.episodes.length === 1)
+              ? (searchType === 'tv' && (result.episodes?.length||0) > 1) ||
+              (searchType === 'movie' && (result.episodes?.length||0) === 1)
               : true)
         ) : data;
         setAvailableSources(results);
@@ -797,7 +797,7 @@ function PlayPageClient() {
       setVideoCover(detailData.poster);
       setVideoDoubanId(detailData.douban_id || 0);
       setDetail(detailData);
-      if (currentEpisodeIndex >= detailData.episodes.length) {
+      if (currentEpisodeIndex >= (detailData.episodes?.length ||0)) {
         setCurrentEpisodeIndex(0);
       }
 
@@ -925,7 +925,7 @@ function PlayPageClient() {
       let targetIndex = currentEpisodeIndex;
 
       // 如果当前集数超出新源的范围，则跳转到第一集
-      if (!newDetail.episodes || targetIndex >= newDetail.episodes.length) {
+      if (!newDetail.episodes || targetIndex >= (newDetail.episodes?.length ||0)) {
         targetIndex = 0;
       }
 
@@ -1028,7 +1028,7 @@ function PlayPageClient() {
     if (e.altKey && e.key === 'ArrowRight') {
       const d = detailRef.current;
       const idx = currentEpisodeIndexRef.current;
-      if (d && idx < d.episodes.length - 1) {
+      if (d && idx < (d.episodes?.length || 0) - 1) {
         handleNextEpisode();
         e.preventDefault();
       }
@@ -1125,7 +1125,7 @@ function PlayPageClient() {
         year: detailRef.current?.year,
         cover: detailRef.current?.poster || '',
         index: currentEpisodeIndexRef.current + 1, // 转换为1基索引
-        total_episodes: detailRef.current?.episodes.length || 1,
+        total_episodes: detailRef.current?.episodes?.length || 1,
         play_time: Math.floor(currentTime),
         total_time: Math.floor(duration),
         save_time: Date.now(),
@@ -1239,7 +1239,7 @@ function PlayPageClient() {
           source_name: detailRef.current?.source_name || '',
           year: detailRef.current?.year,
           cover: detailRef.current?.poster || '',
-          total_episodes: detailRef.current?.episodes.length || 1,
+          total_episodes: detailRef.current?.episodes?.length || 1,
           save_time: Date.now(),
           search_title: searchTitle,
         });
