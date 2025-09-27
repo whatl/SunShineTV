@@ -48,20 +48,21 @@ async function getProtoRoot(): Promise<protobuf.Root> {
     repeated DoubanItem list = 3;
   }
 
-  message SearchResult {
-    string id = 1; //vodid
-    string title = 2;
-    string poster = 3;
-    repeated string episodes = 4;
-    repeated string episodes_titles = 5;
-    string source = 6;
-    string source_name = 7;
-    string class = 8;
-    string year = 9;
-    string desc = 10;
-    string type_name = 11;
-    int32 douban_id = 12;
-  }
+ message SearchResult {
+  string id = 1; // vodid
+  string title = 2;
+  string poster = 3;
+  repeated string episodes = 4;
+  repeated string episodes_titles = 5;
+  int32 episodes_count=6;
+  string source = 7;
+  string source_name = 8;
+  string class = 9;
+  string year = 10;
+  string desc = 11;
+  string type_name = 12;
+  int32 douban_id = 13;
+}
 
   message SearchResultList {
       repeated SearchResult results = 1;

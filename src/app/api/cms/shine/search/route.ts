@@ -4,7 +4,7 @@ import protobuf from 'protobufjs';
 
 import { queryCmsDB } from '@/lib/maccms.db';
 import { SearchResult } from '@/lib/types';
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 20;
 // 将播放列表字符串转换为数组
 function parseEpisodes(playUrl: string): { episodes: string[], episodes_titles: string[] } {
   if (!playUrl) {
@@ -69,16 +69,18 @@ export async function GET(request: NextRequest) {
     
     const results = emptyList? [] : await queryCmsDB<any[]>(sql, params);
     const searchResults: SearchResult[] = results.map(item => {
-      const { episodes, episodes_titles } = parseEpisodes(item.vod_play_url);
+      const { episodes } = parseEpisodes(item.vod_play_url);
+      const episodes_count = episodes.length ==0 ? 0 : episodes.length
       return {
         id: item.vod_id.toString(),
         douban_id: item.vod_douban_id,
         title: item.vod_name,
         poster: item.vod_pic,
         year: item.vod_year,
-        episodes,
-        episodes_titles,
-        desc: item.vod_content,
+        // episodes, 不需要
+        // episodes_titles, 不需要
+        episodes_count:episodes_count,
+        // desc: item.vod_content, 不需要
         type_name: item.type_name,
         source: 'maccms',
         source_name: 'MacCMS',

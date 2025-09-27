@@ -8,7 +8,7 @@ import { queryCmsDB } from '@/lib/maccms.db';
 import { getChildCategoryIds, translateCategory } from '@/lib/maccms.helper';
 import { DoubanResult } from '@/lib/types';
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 20;
 
 
 interface VodRow {

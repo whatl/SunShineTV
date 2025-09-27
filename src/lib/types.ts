@@ -90,8 +90,9 @@ export interface SearchResult {
   id: string; // 对应vodid 可有可无
   title: string;
   poster: string;
-  episodes: string[];
-  episodes_titles: string[];
+  episodes?: string[];
+  episodes_titles?: string[];
+  episodes_count?:number;
   source: string;
   source_name?: string;
   class?: string;

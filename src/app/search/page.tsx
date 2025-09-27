@@ -32,6 +32,7 @@ function SearchPageClient() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isError, setIsError] = useState(false);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [showResults, setShowResults] = useState(false);
@@ -62,7 +63,8 @@ function SearchPageClient() {
     const episodes = (() => {
       const countMap = new Map<number, number>();
       group.forEach((g) => {
-        const len = g.episodes?.length || 0;
+        const count = g.episodes_count || 0;
+        const len = count>0?count : g.episodes?.length || 0;
         if (len > 0) countMap.set(len, (countMap.get(len) || 0) + 1);
       });
       let max = 0;
@@ -168,7 +170,7 @@ function SearchPageClient() {
     searchResults.forEach((item) => {
       // 使用 title + year + type 作为键，year 必然存在，但依然兜底 'unknown'
       const key = `${item.title.replaceAll(' ', '')}-${item.year || 'unknown'
-        }-${item.episodes.length === 1 ? 'movie' : 'tv'}`;
+        }-${item.episodes?.length === 1 ? 'movie' : 'tv'}`;
       const arr = map.get(key) || [];
 
       // 如果是新的键，记录其顺序
@@ -410,202 +412,203 @@ function SearchPageClient() {
     };
   }, []);
 
-    const loadData = useCallback(
-      async (query: string, pageNum: number,localPageSizeNum: number) => {
-        if (pageNum === 1) {
-          setIsLoading(true);
-          setSearchResults([]);
-          setTotalSources(0);
-          setCompletedSources(0);
-          pendingResultsRef.current = [];
-          if (flushTimerRef.current) {
-            clearTimeout(flushTimerRef.current);
-            flushTimerRef.current = null;
-          }
-        } else {
-          setIsLoadingMore(true);
-        }
-  
-        // 每次搜索时重新读取设置，确保使用最新的配置
-        let currentFluidSearch = useFluidSearch;
-        if (typeof window !== 'undefined') {
-          const savedFluidSearch = localStorage.getItem('fluidSearch');
-          if (savedFluidSearch !== null) {
-            currentFluidSearch = JSON.parse(savedFluidSearch);
-          } else {
-            const defaultFluidSearch = (window as any).RUNTIME_CONFIG?.FLUID_SEARCH === true;
-            currentFluidSearch = defaultFluidSearch;
-          }
-        }
-        if (currentFluidSearch !== useFluidSearch) {
-          setUseFluidSearch(currentFluidSearch);
-        }
-  
-        if (currentFluidSearch) {
-          // 流式搜索不支持分页，一次性加载
-          if (pageNum > 1) {
-            setHasMore(false);
-            setIsLoadingMore(false);
-            return;
-          }
-          const es = (await search({ search: query }, true)) as EventSource;
-          eventSourceRef.current = es;
-
-          es.onmessage = (event) => {
-            if (!event.data) return;
-            try {
-              const payload = JSON.parse(event.data);
-              if (currentQueryRef.current !== query) return;
-              switch (payload.type) {
-                case 'start':
-                  setTotalSources(payload.totalSources || 0);
-                  setCompletedSources(0);
-                  break;
-                case 'source_result': {
-                  setCompletedSources((prev) => prev + 1);
-                  if (Array.isArray(payload.results) && payload.results.length > 0) {
-                    const activeYearOrder = (viewMode === 'agg' ? (filterAgg.yearOrder) : (filterAll.yearOrder));
-                    const incoming: SearchResult[] =
-                      activeYearOrder === 'none'
-                        ? sortBatchForNoOrder(payload.results as SearchResult[])
-                                                : (payload.results as SearchResult[]);
-                    pendingResultsRef.current.push(...incoming);
-                    if (!flushTimerRef.current) {
-                      flushTimerRef.current = window.setTimeout(() => {
-                        const toAppend = pendingResultsRef.current;
-                        pendingResultsRef.current = [];
-                        startTransition(() => {
-                          setSearchResults((prev) => prev.concat(toAppend));
-                        });
-                        flushTimerRef.current = null;
-                      }, 80);
-                    }
-                  }
-                  break;
-                }
-                case 'source_error':
-                  setCompletedSources((prev) => prev + 1);
-                  break;
-                case 'complete':
-                  setCompletedSources(payload.completedSources || totalSources);
-                  if (pendingResultsRef.current.length > 0) {
-                    const toAppend = pendingResultsRef.current;
-                    pendingResultsRef.current = [];
-                    if (flushTimerRef.current) {
-                      clearTimeout(flushTimerRef.current);
-                      flushTimerRef.current = null;
-                    }
-                    startTransition(() => {
-                      setSearchResults((prev) => prev.concat(toAppend));
-                    });
-                  }
-                  setIsLoading(false);
-                  setHasMore(false); // 流式搜索一次性加载完
-                  try { es.close(); } catch { }
-                  if (eventSourceRef.current === es) {
-                    eventSourceRef.current = null;
-                  }
-                  break;
-              }
-            } catch { }
-          };
-
-          es.onerror = () => {
-            setIsLoading(false);
-            if (pendingResultsRef.current.length > 0) {
-              const toAppend = pendingResultsRef.current;
+        const loadData = useCallback(
+          async (query: string, pageNum: number, localPageSizeNum: number) => {
+            if (pageNum === 1) {
+              setIsLoading(true);
+              setSearchResults([]);
+              setTotalSources(0);
+              setCompletedSources(0);
               pendingResultsRef.current = [];
               if (flushTimerRef.current) {
                 clearTimeout(flushTimerRef.current);
                 flushTimerRef.current = null;
               }
-              startTransition(() => {
-                setSearchResults((prev) => prev.concat(toAppend));
-              });
+            } else {
+              setIsLoadingMore(true);
             }
-            try { es.close(); } catch { }
-            if (eventSourceRef.current === es) {
-              eventSourceRef.current = null;
-            }
-          };
-        } else {
-          // 传统搜索，支持分页
-          try {
-            const results = (await search({ search: query }, false, pageNum)) as SearchResult[];
-            if (currentQueryRef.current !== query) return;
-  
-            if (results && Array.isArray(results)) {
-              const activeYearOrder = viewMode === 'agg' ? filterAgg.yearOrder : filterAll.yearOrder;
-              const sortedResults: SearchResult[] =
-                activeYearOrder === 'none' ? sortBatchForNoOrder(results) : results;
-  
-              if (pageNum === 1) {
-                setSearchResults(sortedResults);
-                setLocalPageSize(results.length);
-              } else {
-                setSearchResults((prev) => [...prev, ...sortedResults]);
+            setIsError(false);
+            
+            let currentFluidSearch = useFluidSearch;
+            if (typeof window !== 'undefined') {
+              const savedFluidSearch = localStorage.getItem('fluidSearch');
+              if (savedFluidSearch !== null) {
+                currentFluidSearch = JSON.parse(savedFluidSearch);
               }
-              setHasMore(results.length >= localPageSizeNum); // (By Faker)
-            } else {
-              setHasMore(false);
+              else {
+                const defaultFluidSearch = (window as any).RUNTIME_CONFIG?.FLUID_SEARCH === true;
+                currentFluidSearch = defaultFluidSearch;
+              }
             }
-          } catch {
-            setHasMore(false); // Error case
-          } finally {
-            if (pageNum === 1) {
-              setIsLoading(false);
-            } else {
-              setIsLoadingMore(false);
+            if (currentFluidSearch !== useFluidSearch) {
+              setUseFluidSearch(currentFluidSearch);
             }
+      
+            if (currentFluidSearch) {
+              if (pageNum > 1) {
+                setHasMore(false);
+                setIsLoadingMore(false);
+                return;
+              }
+              const es = (await search({ search: query }, true)) as EventSource;
+              eventSourceRef.current = es;
+              es.onmessage = (event) => {
+                if (!event.data) return;
+                try {
+                  const payload = JSON.parse(event.data);
+                  if (currentQueryRef.current !== query) return;
+                  switch (payload.type) {
+                    case 'start':
+                      setTotalSources(payload.totalSources || 0);
+                      setCompletedSources(0);
+                      break;
+                    case 'source_result': {
+                      setCompletedSources((prev) => prev + 1);
+                      if (Array.isArray(payload.results) && payload.results.length > 0) {
+                        const activeYearOrder = (viewMode === 'agg' ? (filterAgg.yearOrder) : (filterAll.yearOrder));
+                        const incoming: SearchResult[] =
+                          activeYearOrder === 'none'
+                            ? sortBatchForNoOrder(payload.results as SearchResult[])
+                            : (payload.results as SearchResult[]);
+                        pendingResultsRef.current.push(...incoming);
+                        if (!flushTimerRef.current) {
+                          flushTimerRef.current = window.setTimeout(() => {
+                            const toAppend = pendingResultsRef.current;
+                            pendingResultsRef.current = [];
+                            startTransition(() => {
+                              setSearchResults((prev) => prev.concat(toAppend));
+                            });
+                            flushTimerRef.current = null;
+                          }, 80);
+                        }
+                      }
+                      break;
+                    }
+                    case 'source_error':
+                      setCompletedSources((prev) => prev + 1);
+                      break;
+                    case 'complete':
+                      setCompletedSources(payload.completedSources || totalSources);
+                      if (pendingResultsRef.current.length > 0) {
+                        const toAppend = pendingResultsRef.current;
+                        pendingResultsRef.current = [];
+                        if (flushTimerRef.current) {
+                          clearTimeout(flushTimerRef.current);
+                          flushTimerRef.current = null;
+                        }
+                        startTransition(() => {
+                          setSearchResults((prev) => prev.concat(toAppend));
+                        });
+                      }
+                      setIsLoading(false);
+                      setHasMore(false);
+                      try { es.close(); } catch { }
+                      if (eventSourceRef.current === es) {
+                        eventSourceRef.current = null;
+                      }
+                      break;
+                  }
+                } catch { }
+              };
+              es.onerror = () => {
+                setIsLoading(false);
+                if (pendingResultsRef.current.length > 0) {
+                  const toAppend = pendingResultsRef.current;
+                  pendingResultsRef.current = [];
+                  if (flushTimerRef.current) {
+                    clearTimeout(flushTimerRef.current);
+                    flushTimerRef.current = null;
+                  }
+                  startTransition(() => {
+                    setSearchResults((prev) => prev.concat(toAppend));
+                  });
+                }
+                try { es.close(); } catch { }
+                if (eventSourceRef.current === es) {
+                  eventSourceRef.current = null;
+                }
+              };
+            } else {
+              try {
+                const results = (await search({ search: query }, false, pageNum)) as SearchResult[];
+                if (currentQueryRef.current !== query) return;
+      
+                if (results && Array.isArray(results)) {
+                results.forEach(item=>{
+                  if((item.episodes_count||0) < 1 && ((item.episodes?.length ||0) > 0)){
+                      item.episodes_count=item.episodes?.length || 0;
+                  }
+                  if((item.episodes_count || 0) < 0)item.episodes_count = 0;
+                });
+
+                  const activeYearOrder = viewMode === 'agg' ? filterAgg.yearOrder : filterAll.yearOrder;
+                  const sortedResults: SearchResult[] =
+                    activeYearOrder === 'none' ? sortBatchForNoOrder(results) : results;
+      
+                  if (pageNum === 1) {
+                    setSearchResults(sortedResults);
+                    setLocalPageSize(results.length);
+                  } else {
+                    setSearchResults((prev) => [...prev, ...sortedResults]);
+                  }
+                  setHasMore(results.length >= localPageSizeNum);
+                  setPage(pageNum); // Only update page on success
+                } else {
+                  setHasMore(false);
+                }
+              } catch (error) {
+                console.error('Error search data:', error);
+                setIsError(true);
+              } finally {
+                if (pageNum === 1) {
+                  setIsLoading(false);
+                }
+                else {
+                  setIsLoadingMore(false);
+                }
+              }
+            }
+          },
+          [useFluidSearch, viewMode, filterAgg.yearOrder, filterAll.yearOrder]
+        );
+      
+        useEffect(() => {
+          const query = searchParams.get('q') || '';
+          currentQueryRef.current = query.trim();
+      
+          if (query) {
+            setSearchQuery(query);
+            setShowResults(true);
+            setPage(1);
+            setHasMore(true);
+            loadData(query.trim(), 1, localPageSize);
+            addSearchHistory(query);
+          } else {
+            setShowResults(false);
+            setShowSuggestions(false);
           }
-        }
-      },
-      [useFluidSearch, viewMode, filterAgg.yearOrder, filterAll.yearOrder]
-    );
-  
-    useEffect(() => {
-      // 当搜索参数变化时更新搜索状态
-      const query = searchParams.get('q') || '';
-      currentQueryRef.current = query.trim();
-  
-      if (query) {
-        setSearchQuery(query);
-        setShowResults(true);
-        setPage(1);
-        setHasMore(true);
-        loadData(query.trim(), 1, localPageSize);
-        addSearchHistory(query);
-      } else {
-        setShowResults(false);
-        setShowSuggestions(false);
-      }
-    }, [searchParams, loadData]);
-  
-    useEffect(() => {
-      if (page > 1) {
-        loadData(currentQueryRef.current, page, localPageSize);
-      }
-    }, [page, loadData]);
-  
-    useEffect(() => {
-      if (isLoading || isLoadingMore || !hasMore) return;
-      const observer = new IntersectionObserver(
-        (entries) => {
-          if (entries[0].isIntersecting) {
-            setPage((prev) => prev + 1);
+        }, [searchParams, loadData]);
+      
+        useEffect(() => {
+          if (isLoading || isLoadingMore || !hasMore) return;
+          const observer = new IntersectionObserver(
+            (entries) => {
+              if (entries[0].isIntersecting && !isError) {
+                loadData(currentQueryRef.current, page + 1, localPageSize);
+              } else if (!entries[0].isIntersecting) {
+                setIsError(false);
+              }
+            },
+            { threshold: 0.1 }
+          );
+          if (loadingRef.current) {
+            observer.observe(loadingRef.current);
           }
-        },
-        { threshold: 0.1 }
-      );
-      if (loadingRef.current) {
-        observer.observe(loadingRef.current);
-      }
-      return () => {
-        if (observerRef.current) observerRef.current.disconnect();
-        observer.disconnect();
-      };
-      }, [isLoading, isLoadingMore, hasMore]);
-        
+          observerRef.current = observer;
+          return () => {
+            if (observerRef.current) observerRef.current.disconnect();
+          };
+        }, [isLoading, isLoadingMore, hasMore, isError, page, loadData, localPageSize]);        
       // 组件卸载时，关闭可能存在的连接
       useEffect(() => {
         return () => {
@@ -843,7 +846,7 @@ function SearchPageClient() {
                                 id={item.id}
                                 title={item.title}
                                 poster={item.poster}
-                                episodes={item.episodes.length}
+                                episodes={item.episodes_count}
                                 source={item.source}
                                 source_name={item.source_name}
                                 douban_id={item.douban_id}
@@ -854,7 +857,7 @@ function SearchPageClient() {
                                 }
                                 year={item.year}
                                 from='search'
-                                type={item.episodes.length > 1 ? 'tv' : 'movie'}
+                                type={(item.episodes_count||0) > 1 ? 'tv' : 'movie'}
                               />
                             </div>
                           ))}
