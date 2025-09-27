@@ -27,6 +27,7 @@ import { getVideoResolutionFromM3u8, processImageUrl } from '@/lib/utils';
 
 import EpisodeSelector from '@/components/EpisodeSelector';
 import PageLayout from '@/components/PageLayout';
+import SafeHtmlRenderer from '@/components/SafeHtmlRenderer';
 
 // 扩展 HTMLVideoElement 类型以支持 hls 属性
 declare global {
@@ -2021,14 +2022,12 @@ function PlayPageClient() {
                 )}
                 {detail?.type_name && <span>{detail.type_name}</span>}
               </div>
-              {/* 剧情简介 */}
+              {/* 简介 */}
               {detail?.desc && (
-                <div
-                  className='mt-0 text-base leading-relaxed opacity-90 overflow-y-auto pr-2 flex-1 min-h-0 scrollbar-hide'
-                  style={{ whiteSpace: 'pre-line' }}
-                >
-                  {detail.desc}
-                </div>
+                <SafeHtmlRenderer
+                  htmlContent={detail.desc}
+                  className='prose prose-sm dark:prose-invert max-w-none text-gray-600 dark:text-gray-400 leading-relaxed mt-4'
+                />
               )}
             </div>
           </div>
