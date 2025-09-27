@@ -132,7 +132,7 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
                     poster={record.cover}
                     year={record.year}
                     source={source}
-                    source_name={record.source_name}
+                    source_name={record.source_name || ''}
                     progress={getProgress(record)}
                     episodes={record.total_episodes}
                     currentEpisode={record.index}

@@ -1103,8 +1103,7 @@ function PlayPageClient() {
       !artPlayerRef.current ||
       !currentSourceRef.current ||
       !currentIdRef.current ||
-      !videoTitleRef.current ||
-      !detailRef.current?.source_name
+      !videoTitleRef.current
     ) {
       return;
     }
@@ -1122,7 +1121,7 @@ function PlayPageClient() {
       await savePlayRecord(currentSourceRef.current, currentIdRef.current, {
         title: videoTitleRef.current,
         source_name: detailRef.current?.source_name || '',
-        year: detailRef.current?.year,
+        year: detailRef.current?.year || '',
         cover: detailRef.current?.poster || '',
         index: currentEpisodeIndexRef.current + 1, // 转换为1基索引
         total_episodes: detailRef.current?.episodes?.length || 1,
@@ -1237,7 +1236,7 @@ function PlayPageClient() {
         await saveFavorite(currentSourceRef.current, currentIdRef.current, {
           title: videoTitleRef.current,
           source_name: detailRef.current?.source_name || '',
-          year: detailRef.current?.year,
+          year: detailRef.current?.year || '',
           cover: detailRef.current?.poster || '',
           total_episodes: detailRef.current?.episodes?.length || 1,
           save_time: Date.now(),

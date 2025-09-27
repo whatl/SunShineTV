@@ -3,6 +3,7 @@ import path from 'path';
 import protobuf from 'protobufjs';
 
 import { queryCmsDB } from '@/lib/maccms.db';
+import { getSourceNameByKey } from '@/lib/source.utils';
 import { SearchResult } from '@/lib/types';
 
 // 将播放列表字符串转换为数组
@@ -94,7 +95,7 @@ export async function GET(request: NextRequest) {
             desc: item.vod_content,
             type_name: item.vod_class,
             source: fromItem,  // 显示来源编号
-            source_name:fromItem,
+            source_name: getSourceNameByKey(fromItem),
         });
     });
     

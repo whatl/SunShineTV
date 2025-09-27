@@ -82,8 +82,8 @@ export async function GET(request: NextRequest) {
         episodes_count:episodes_count,
         // desc: item.vod_content, 不需要
         type_name: item.type_name,
-        source: 'maccms',
-        source_name: 'MacCMS',
+        source: '', // 这里不需要显示
+        source_name: '', // 不需要显示
       };
     });
 
