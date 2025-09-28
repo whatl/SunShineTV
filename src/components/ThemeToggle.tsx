@@ -1,16 +1,13 @@
-/* eslint-disable @typescript-eslint/no-explicit-any,react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 'use client';
 
 import { Moon, Sun } from 'lucide-react';
-import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 export function ThemeToggle() {
-  const [mounted, setMounted] = useState(false);
   const { setTheme, resolvedTheme } = useTheme();
-  const pathname = usePathname();
 
   const setThemeColor = (theme?: string) => {
     const meta = document.querySelector('meta[name="theme-color"]');
@@ -25,20 +22,10 @@ export function ThemeToggle() {
   };
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  // 监听主题变化和路由变化，确保主题色始终同步
-  useEffect(() => {
-    if (mounted) {
+    if (resolvedTheme) {
       setThemeColor(resolvedTheme);
     }
-  }, [mounted, resolvedTheme, pathname]);
-
-  if (!mounted) {
-    // 渲染一个占位符以避免布局偏移
-    return <div className='w-10 h-10' />;
-  }
+  }, [resolvedTheme]);
 
   const toggleTheme = () => {
     // 检查浏览器是否支持 View Transitions API
@@ -53,18 +40,15 @@ export function ThemeToggle() {
       setTheme(targetTheme);
     });
   };
-
+  // 同时渲染两个按钮（这样不用改变dom），用透明度来改变防止闪烁
   return (
     <button
       onClick={toggleTheme}
-      className='w-10 h-10 p-2 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-gray-700/50 transition-colors'
+      className='w-10 h-10 p-2 rounded-full flex items-center justify-center text-gray-600 hover:bg-gray-200/50 dark:text-gray-300 dark:hover:bg-gray-700/50 transition-colors relative'
       aria-label='Toggle theme'
     >
-      {resolvedTheme === 'dark' ? (
-        <Sun className='w-full h-full' />
-      ) : (
-        <Moon className='w-full h-full' />
-      )}
+      <Sun className='w-full h-full absolute inset-0 p-2 opacity-0 dark:opacity-100 transition-opacity duration-200' />
+      <Moon className='w-full h-full absolute inset-0 p-2 opacity-100 dark:opacity-0 transition-opacity duration-200' />
     </button>
   );
 }
