@@ -4,7 +4,7 @@ package maccms;
 
 message DoubanItem {
   string id = 1; // douban_id
-  string vodid =2;
+  string vodid = 2;
   string title = 3;
   string poster = 4;
   string rate = 5;
@@ -24,7 +24,7 @@ message SearchResult {
   string poster = 3;
   repeated string episodes = 4;
   repeated string episodes_titles = 5;
-  int32 episodes_count=6;
+  int32 episodes_count = 6;
   string source = 7;
   string source_name = 8;
   string class = 9;
@@ -35,7 +35,7 @@ message SearchResult {
 }
 
 message SearchResultList {
-    repeated SearchResult results = 1;
+  repeated SearchResult results = 1;
 }
 
 message CmsHomePageApiResponse {

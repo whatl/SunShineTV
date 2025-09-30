@@ -229,8 +229,14 @@ async function focusedSearch(params: { q: string; source?: string; id?: string; 
   if (id) {
     apiParams.id = id;
   }
-  const response = await fetchFromCmsApi<SearchResult[]>('/api/cms/shine/search/focused', apiParams, 'maccms.SearchResultList');
-  return response || [];
+  const response = await fetchFromCmsApi<SearchResult[] | { results: SearchResult[] }>('/api/cms/shine/search/focused', apiParams, 'maccms.SearchResultList');
+
+  if (Array.isArray(response)) {
+    return response;
+  } else if (response && Array.isArray(response.results)) {
+    return response.results;
+  }
+  return [];
 }
 
 async function detail(params: { id: string; source: string; }): Promise<SearchResult | null> {
