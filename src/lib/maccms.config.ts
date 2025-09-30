@@ -12,3 +12,10 @@
  * This allows the application to adapt to different database schemas without code changes.
  */
 export const TABLE_PREFIX = process.env.MAC_TABLE_PREFIX || 'mac_';
+
+/**
+ * The base URL for Maccms API endpoints.
+ * - If NEXT_PUBLIC_MACCMS_API_BASE is set, use it (e.g., 'http://localhost:8089')
+ * - Otherwise, use empty string for Next.js API routes (default behavior)
+ */
+export const API_BASE_URL = process.env.NEXT_PUBLIC_MACCMS_API_BASE || '';

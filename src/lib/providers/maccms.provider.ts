@@ -8,6 +8,7 @@ import protobuf from 'protobufjs';
 import { CategoriesParams, DataProvider, HomePageData, ListByTagParams, RecommendationsParams } from './interface';
 import { BangumiCalendarData } from '../bangumi.client';
 import { DoubanItem, DoubanResult, SearchResult } from '../types';
+import { API_BASE_URL } from '../maccms.config';
 
 const NOT_IMPLEMENTED_ERROR = 'Maccms provider API endpoint is not yet implemented for this method.';
 
@@ -82,7 +83,7 @@ async function getProtoRoot(): Promise<protobuf.Root> {
 
 
 async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, string>, protoTypeName?: string): Promise<T> {
-  let url = endpoint;
+  let url = `${API_BASE_URL}${endpoint}`;
   if (params) {
     const searchParams = new URLSearchParams();
     Object.entries(params).forEach(([key, value]) => {
