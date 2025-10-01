@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 interface CapsuleSwitchProps {
   options: { label: string; value: string }[];
@@ -17,10 +17,12 @@ const CapsuleSwitch: React.FC<CapsuleSwitchProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  // 初始化为0，让CSS处理初始状态
   const [indicatorStyle, setIndicatorStyle] = useState<{
     left: number;
     width: number;
   }>({ left: 0, width: 0 });
+  const [isPositioned, setIsPositioned] = useState(false);
 
   const activeIndex = options.findIndex((opt) => opt.value === active);
 
@@ -42,21 +44,22 @@ const CapsuleSwitch: React.FC<CapsuleSwitchProps> = ({
             left: buttonRect.left - containerRect.left,
             width: buttonRect.width,
           });
+          setIsPositioned(true);
         }
       }
     }
   };
 
-  // 组件挂载时立即计算初始位置
-  useEffect(() => {
-    const timeoutId = setTimeout(updateIndicatorPosition, 0);
-    return () => clearTimeout(timeoutId);
-  }, []);
+  // 使用 useLayoutEffect 在浏览器绘制前更新
+  useLayoutEffect(() => {
+    updateIndicatorPosition();
+  }, [activeIndex]);
 
-  // 监听选中项变化
+  // 窗口大小变化时重新计算
   useEffect(() => {
-    const timeoutId = setTimeout(updateIndicatorPosition, 0);
-    return () => clearTimeout(timeoutId);
+    const handleResize = () => updateIndicatorPosition();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [activeIndex]);
 
   return (
@@ -67,7 +70,19 @@ const CapsuleSwitch: React.FC<CapsuleSwitchProps> = ({
       }`}
     >
       {/* 滑动的白色背景指示器 */}
-      {indicatorStyle.width > 0 && (
+      {!isPositioned && (
+        // 初始渲染时的指示器，使用百分比定位更安全
+        <div
+          className='absolute top-1 bottom-1 left-1 w-16 sm:w-20 bg-white dark:bg-gray-500 rounded-full shadow-sm transition-none'
+          style={{
+            transform: `translateX(${activeIndex * 100}%)`,
+            pointerEvents: 'none',
+          }}
+        />
+      )}
+
+      {isPositioned && (
+        // 计算完成后的精确定位
         <div
           className='absolute top-1 bottom-1 bg-white dark:bg-gray-500 rounded-full shadow-sm transition-all duration-300 ease-out'
           style={{
