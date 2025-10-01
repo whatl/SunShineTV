@@ -4,6 +4,7 @@
 
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 
 import { BangumiCalendarData } from '@/lib/bangumi.client';
@@ -19,12 +20,13 @@ import { DoubanItem } from '@/lib/types';
 
 import CapsuleSwitch from '@/components/CapsuleSwitch';
 import ContinueWatching from '@/components/ContinueWatching';
+import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import PageLayout from '@/components/PageLayout';
 import ScrollableRow from '@/components/ScrollableRow';
 import { useSite } from '@/components/SiteProvider';
 import VideoCard from '@/components/VideoCard';
 
-function HomeClient() {
+export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
   const [activeTab, setActiveTab] = useState<'home' | 'favorites'>('home');
   const [hotMovies, setHotMovies] = useState<DoubanItem[]>([]);
   const [hotTvShows, setHotTvShows] = useState<DoubanItem[]>([]);
@@ -150,9 +152,8 @@ function HomeClient() {
     localStorage.setItem('hasSeenAnnouncement', announcement); // 记录已查看弹窗
   };
 
-  return (
-    <PageLayout>
-      <div className='px-2 sm:px-10 py-4 sm:py-8 overflow-visible'>
+  const content = (
+    <div className='px-2 sm:px-10 py-4 sm:py-8 overflow-visible'>
         {/* 顶部 Tab 切换 */}
         <div className='mb-8 flex justify-center'>
           <CapsuleSwitch
@@ -432,8 +433,7 @@ function HomeClient() {
             </>
           )}
         </div>
-      </div>
-      {announcement && showAnnouncement && (
+        {announcement && showAnnouncement && (
         <div
           className={`fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm dark:bg-black/70 p-4 transition-opacity duration-300 ${showAnnouncement ? '' : 'opacity-0 pointer-events-none'
             }`}
@@ -496,15 +496,33 @@ function HomeClient() {
             </button>
           </div>
         </div>
-      )}
-    </PageLayout>
+        )}
+      </div>
   );
+
+  if (noLayout) {
+    return content;
+  }
+
+  return <PageLayout>{content}</PageLayout>;
+}
+
+function HomeRedirect() {
+  const router = useRouter();
+
+  useEffect(() => {
+    // 立即重定向到 /main?type=home 以使用缓存功能
+    router.replace('/main?type=home');
+  }, [router]);
+
+  // 返回 null 避免显示任何内容
+  return null;
 }
 
 export default function Home() {
   return (
-    <Suspense>
-      <HomeClient />
+    <Suspense fallback={null}>
+      <HomeRedirect />
     </Suspense>
   );
 }
