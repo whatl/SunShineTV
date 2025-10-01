@@ -113,9 +113,9 @@ export interface DoubanItem {
 }
 
 export interface DoubanResult {
-  code: number;
-  message: string;
   list: DoubanItem[];
+  code?: number;  // 可选，没有值或者 0/200 表示成功
+  message?: string;
 }
 
 // 跳过片头片尾配置数据结构

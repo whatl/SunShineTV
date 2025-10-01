@@ -7,8 +7,8 @@ import protobuf from 'protobufjs';
 
 import { CategoriesParams, DataProvider, HomePageData, ListByTagParams, RecommendationsParams } from './interface';
 import { BangumiCalendarData } from '../bangumi.client';
-import { DoubanItem, DoubanResult, SearchResult } from '../types';
 import { API_BASE_URL } from '../maccms.config';
+import { DoubanItem, DoubanResult, SearchResult } from '../types';
 
 const NOT_IMPLEMENTED_ERROR = 'Maccms provider API endpoint is not yet implemented for this method.';
 
@@ -268,7 +268,12 @@ async function getVarietyShows(): Promise<DoubanResult> {
 
 async function getAnimes(): Promise<BangumiCalendarData[]> {
   const result: DoubanResult = await fetchFromCmsApi('/api/cms/shine/page', { category: 'anime' }, 'maccms.DoubanResult');
-  if (result.code !== 200 || !result.list || result.list.length === 0) {
+  // 检查是否有错误：code 存在且不是成功状态（0 或 200）
+  if (result.code && result.code !== 0 && result.code !== 200) {
+    return [];
+  }
+  // 检查数据是否为空
+  if (!result.list || result.list.length === 0) {
     return [];
   }
 
