@@ -130,29 +130,18 @@ const normalizeResponseCode = (result: DoubanResult): DoubanResult => {
   return result;
 };
 
-// Helper to ensure all items have a consistent, top-level 'rate' property as a string.
-const normalizeRateInResult = (result: DoubanResult): DoubanResult => {
-  if (result && result.list) {
-    result.list = result.list.map((item: DoubanItem) => ({
-      ...item,
-      rate: (item.rate || '0').toString(),
-    }));
-  }
-  return normalizeResponseCode(result);
-};
-
 async function getHomePageData(): Promise<HomePageData> {
   const homeData = await fetchFromCmsApi<CmsHomePageApiResponse>('/api/cms/shine/home', undefined, 'maccms.CmsHomePageApiResponse');
 
-  // Normalize rate for all categories that use the standard VideoCard
+  // Normalize response code for all categories
   if (homeData.movies) {
-    homeData.movies = normalizeRateInResult(homeData.movies);
+    homeData.movies = normalizeResponseCode(homeData.movies);
   }
   if (homeData.tvShows) {
-    homeData.tvShows = normalizeRateInResult(homeData.tvShows);
+    homeData.tvShows = normalizeResponseCode(homeData.tvShows);
   }
   if (homeData.varietyShows) {
-    homeData.varietyShows = normalizeRateInResult(homeData.varietyShows);
+    homeData.varietyShows = normalizeResponseCode(homeData.varietyShows);
   }
 
   // The API returns a DoubanResult for animes, but the UI expects BangumiCalendarData[].
@@ -202,7 +191,7 @@ async function getList(path: string, extra: Record<string, string>, page = 1): P
     category: category,
     page: page.toString()
   }, 'maccms.DoubanResult');
-  return normalizeRateInResult(result);
+  return normalizeResponseCode(result);
 }
 
 async function search(extra: Record<string, string>, useStream = false, page = 1): Promise<SearchResult[] | EventSource> {
@@ -264,17 +253,17 @@ async function detail(params: { id: string; source: string; }): Promise<SearchRe
 
 async function getMovies(): Promise<DoubanResult> {
   const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', { category: 'movie' }, 'maccms.DoubanResult');
-  return normalizeRateInResult(result);
+  return normalizeResponseCode(result);
 }
 
 async function getTvShows(): Promise<DoubanResult> {
   const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', { category: 'tv' }, 'maccms.DoubanResult');
-  return normalizeRateInResult(result);
+  return normalizeResponseCode(result);
 }
 
 async function getVarietyShows(): Promise<DoubanResult> {
   const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', { category: 'show' }, 'maccms.DoubanResult');
-  return normalizeRateInResult(result);
+  return normalizeResponseCode(result);
 }
 
 async function getAnimes(): Promise<BangumiCalendarData[]> {
@@ -313,7 +302,7 @@ async function getAnimes(): Promise<BangumiCalendarData[]> {
 
 async function getShortVideos(): Promise<DoubanResult> {
   const result = await fetchFromCmsApi<DoubanResult>('/api/cms/shine/page', { category: 'drama' }, 'maccms.DoubanResult');
-  return normalizeRateInResult(result);
+  return normalizeResponseCode(result);
 }
 
 
