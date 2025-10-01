@@ -9,7 +9,7 @@ import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
 import PageLayout from '@/components/PageLayout';
 import { CategoryPageClient } from '@/components/pages/CategoryPageClient';
 
-import { HomeClient } from '@/app/page';
+import { HomeClient } from '@/components/pages/HomeClient';
 
 // 缓存过期时间（毫秒），默认 1 分钟
 const CACHE_EXPIRE_TIME = 1 * 60 * 1000;
@@ -61,12 +61,9 @@ function MainContent() {
       const newMap = new Map<string, number>();
 
       // 先过滤出未过期的缓存
-      const validEntries: [string, number][] = [];
-      for (const [key, timestamp] of prev.entries()) {
-        if (now - timestamp <= CACHE_EXPIRE_TIME) {
-          validEntries.push([key, timestamp]);
-        }
-      }
+      const validEntries: [string, number][] = Array.from(prev.entries()).filter(
+        ([, timestamp]) => now - timestamp <= CACHE_EXPIRE_TIME
+      );
 
       // 如果超过最大缓存数量，移除最旧的（按时间戳排序）
       if (validEntries.length >= MAX_CACHE_SIZE) {
@@ -118,7 +115,11 @@ function MainContent() {
 
 export default function MainPage() {
   return (
-    <Suspense fallback={<div className="p-4"><DoubanCardSkeleton count={12} /></div>}>
+    <Suspense fallback={
+      <div className="p-4 grid grid-cols-3 gap-x-2 gap-y-12 sm:grid-cols-[repeat(auto-fill,minmax(160px,1fr))] sm:gap-x-8 sm:gap-y-20">
+        {Array.from({ length: 12 }).map((_, i) => <DoubanCardSkeleton key={i} />)}
+      </div>
+    }>
       <MainContent />
     </Suspense>
   );
