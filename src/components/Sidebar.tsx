@@ -26,7 +26,6 @@ const SidebarContext = createContext<SidebarContextType>({
 
 export const useSidebar = () => useContext(SidebarContext);
 
-// 可替换为你自己的 logo 图片
 const Logo = () => {
   const { siteName } = useSite();
   return (
@@ -46,46 +45,26 @@ interface SidebarProps {
   activePath?: string;
 }
 
-// 在浏览器环境下通过全局变量缓存折叠状态，避免组件重新挂载时出现初始值闪烁
-declare global {
-  interface Window {
-    __sidebarCollapsed?: boolean;
-  }
-}
 
 const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  // 若同一次 SPA 会话中已经读取过折叠状态，则直接复用，避免闪烁
+  // 读取初始状态
   const [isCollapsed, setIsCollapsed] = useState<boolean>(() => {
-    if (
-      typeof window !== 'undefined' &&
-      typeof window.__sidebarCollapsed === 'boolean'
-    ) {
-      return window.__sidebarCollapsed;
+    if (typeof document !== 'undefined') {
+      const htmlCollapsed = document.documentElement.dataset.sidebarCollapsed;
+      return htmlCollapsed === 'true';
     }
-    return false; // 默认展开
+    return false;
   });
 
-  // 首次挂载时读取 localStorage，以便刷新后仍保持上次的折叠状态
+  // 初始化和状态变化时同步
   useLayoutEffect(() => {
-    const saved = localStorage.getItem('sidebarCollapsed');
-    if (saved !== null) {
-      const val = JSON.parse(saved);
-      setIsCollapsed(val);
-      window.__sidebarCollapsed = val;
-    }
-  }, []);
-
-  // 当折叠状态变化时，同步到 <html> data 属性，供首屏 CSS 使用
-  useLayoutEffect(() => {
-    if (typeof document !== 'undefined') {
-      if (isCollapsed) {
-        document.documentElement.dataset.sidebarCollapsed = 'true';
-      } else {
-        delete document.documentElement.dataset.sidebarCollapsed;
-      }
+    document.documentElement.dataset.sidebarCollapsed = isCollapsed ? 'true' : 'false';
+    // 只在首次挂载时标记 JS 已准备好
+    if (!document.documentElement.hasAttribute('data-js-ready')) {
+      document.documentElement.setAttribute('data-js-ready', 'true');
     }
   }, [isCollapsed]);
 
@@ -109,10 +88,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
   const handleToggle = useCallback(() => {
     const newState = !isCollapsed;
     setIsCollapsed(newState);
-    localStorage.setItem('sidebarCollapsed', JSON.stringify(newState));
-    if (typeof window !== 'undefined') {
-      window.__sidebarCollapsed = newState;
-    }
+    document.cookie = `sc=${newState ? '1' : '0'}; path=/; max-age=31536000`;
     onToggle?.(newState);
   }, [isCollapsed, onToggle]);
 
@@ -175,8 +151,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
       <div className='hidden md:flex'>
         <aside
           data-sidebar
-          className={`fixed top-0 left-0 h-screen bg-white/40 backdrop-blur-xl transition-all duration-300 border-r border-gray-200/50 z-10 shadow-lg dark:bg-gray-900/70 dark:border-gray-700/50 ${isCollapsed ? 'w-16' : 'w-64'
-            }`}
+          className='fixed top-0 left-0 h-screen bg-white/40 backdrop-blur-xl transition-all duration-300 border-r border-gray-200/50 z-10 shadow-lg dark:bg-gray-900/70 dark:border-gray-700/50 w-64'
           style={{
             backdropFilter: 'blur(20px)',
             WebkitBackdropFilter: 'blur(20px)',
@@ -186,17 +161,17 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             {/* 顶部 Logo 区域 */}
             <div className='relative h-16'>
               <div
-                className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 ${isCollapsed ? 'opacity-0' : 'opacity-100'
-                  }`}
+                data-sidebar-text
+                className='absolute inset-0 flex items-center justify-center transition-opacity duration-200'
               >
                 <div className='w-[calc(100%-4rem)] flex justify-center'>
-                  {!isCollapsed && <Logo />}
+                  <Logo />
                 </div>
               </div>
               <button
                 onClick={handleToggle}
-                className={`absolute top-1/2 -translate-y-1/2 flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 z-10 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700/50 ${isCollapsed ? 'left-1/2 -translate-x-1/2' : 'right-2'
-                  }`}
+                className='absolute top-1/2 -translate-y-1/2 right-2 flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100/50 transition-colors duration-200 z-10 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-700/50'
+                data-sidebar-toggle
               >
                 <Menu className='h-4 w-4' />
               </button>
@@ -208,17 +183,14 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                 href='/'
                 onClick={() => setActive('/')}
                 data-active={active === '/'}
-                className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 ${isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                  } gap-3 justify-start`}
+                className='group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 mx-0 gap-3 justify-start'
               >
                 <div className='w-4 h-4 flex items-center justify-center'>
                   <Home className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
                 </div>
-                {!isCollapsed && (
-                  <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
-                    首页
-                  </span>
-                )}
+                <span data-sidebar-text className='whitespace-nowrap transition-opacity duration-200'>
+                  首页
+                </span>
               </Link>
               <Link
                 href='/search'
@@ -228,17 +200,14 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                   setActive('/search');
                 }}
                 data-active={active === '/search'}
-                className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 ${isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                  } gap-3 justify-start`}
+                className='group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 mx-0 gap-3 justify-start'
               >
                 <div className='w-4 h-4 flex items-center justify-center'>
                   <Search className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
                 </div>
-                {!isCollapsed && (
-                  <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
-                    搜索
-                  </span>
-                )}
+                <span data-sidebar-text className='whitespace-nowrap transition-opacity duration-200'>
+                  搜索
+                </span>
               </Link>
             </nav>
 
@@ -265,17 +234,14 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                       href={item.href}
                       onClick={() => setActive(item.href)}
                       data-active={isActive}
-                      className={`group flex items-center rounded-lg px-2 py-2 pl-4 text-sm text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 ${isCollapsed ? 'w-full max-w-none mx-0' : 'mx-0'
-                        } gap-3 justify-start`}
+                      className='group flex items-center rounded-lg px-2 py-2 pl-4 text-sm text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 mx-0 gap-3 justify-start'
                     >
                       <div className='w-4 h-4 flex items-center justify-center'>
                         <Icon className='h-4 w-4 text-gray-500 group-hover:text-green-600 data-[active=true]:text-green-700 dark:text-gray-400 dark:group-hover:text-green-400 dark:data-[active=true]:text-green-400' />
                       </div>
-                      {!isCollapsed && (
-                        <span className='whitespace-nowrap transition-opacity duration-200 opacity-100'>
-                          {item.label}
-                        </span>
-                      )}
+                      <span data-sidebar-text className='whitespace-nowrap transition-opacity duration-200'>
+                        {item.label}
+                      </span>
                     </Link>
                   );
                 })}
@@ -284,8 +250,7 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
           </div>
         </aside>
         <div
-          className={`transition-all duration-300 sidebar-offset ${isCollapsed ? 'w-16' : 'w-64'
-            }`}
+          className='transition-all duration-300 sidebar-offset w-64'
         ></div>
       </div>
     </SidebarContext.Provider>

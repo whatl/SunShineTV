@@ -107,8 +107,12 @@ export default async function RootLayout({
     }
   }
 
+  // 读取侧边栏折叠状态 (sc = sidebar collapsed)
+  const sidebarCollapsedCookie = cookies().get('sc');
+  const sidebarCollapsed = sidebarCollapsedCookie?.value === '1';
+
   return (
-    <html lang='zh-CN' suppressHydrationWarning>
+    <html lang='zh-CN' suppressHydrationWarning data-sidebar-collapsed={sidebarCollapsed ? 'true' : 'false'}>
       <head>
         <meta
           name='viewport'
