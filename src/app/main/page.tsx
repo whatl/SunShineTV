@@ -11,8 +11,11 @@ import { CategoryPageClient } from '@/components/pages/CategoryPageClient';
 
 import { HomeClient } from '@/app/page';
 
-// 缓存过期时间（毫秒），默认 2 分钟
-const CACHE_EXPIRE_TIME = 2 * 60 * 1000;
+// 缓存过期时间（毫秒），默认 1 分钟
+const CACHE_EXPIRE_TIME = 1 * 60 * 1000;
+
+// 最大缓存页面数量
+const MAX_CACHE_SIZE = 4;
 
 // 样式常量
 const HIDDEN_STYLE = {
@@ -56,11 +59,27 @@ function MainContent() {
 
       // 创建新的 Map，移除过期缓存并添加当前类型
       const newMap = new Map<string, number>();
+
+      // 先过滤出未过期的缓存
+      const validEntries: [string, number][] = [];
       for (const [key, timestamp] of prev.entries()) {
         if (now - timestamp <= CACHE_EXPIRE_TIME) {
-          newMap.set(key, timestamp);
+          validEntries.push([key, timestamp]);
         }
       }
+
+      // 如果超过最大缓存数量，移除最旧的（按时间戳排序）
+      if (validEntries.length >= MAX_CACHE_SIZE) {
+        validEntries.sort((a, b) => b[1] - a[1]); // 按时间戳降序排序
+        validEntries.splice(MAX_CACHE_SIZE - 1); // 保留最新的 MAX_CACHE_SIZE - 1 个
+      }
+
+      // 添加回 Map
+      for (const [key, timestamp] of validEntries) {
+        newMap.set(key, timestamp);
+      }
+
+      // 添加当前类型
       newMap.set(type, now);
       return newMap;
     });
