@@ -1,8 +1,6 @@
-
 'use client';
 
-import { useParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { getList } from '@/lib/dataProvider';
 import { DoubanItem } from '@/lib/types';
@@ -12,9 +10,8 @@ import FilterToolbar from '@/components/FilterToolbar';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
 
-function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
-  const params = useParams();
-  const type = params.type as string;
+export function CategoryPageClient({ params, showFilter, activePath }: { params: { type: string }, showFilter?: boolean, activePath?: string }) {
+  const type = params.type;
   const [localPageSize, setLocalPageSize] = useState(10); // 一般分页默认最少十条
   const [data, setData] = useState<DoubanItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,10 +75,12 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
     }
   }, [loadData,localPageSize]);
 
+  const showFilterResolved = showFilter ?? (process.env.NEXT_PUBLIC_SHOW_FILTER_TOOLBAR !== 'false');
+
   useEffect(() => {
     // When the filter is hidden, we manually trigger the initial data load
     // with a default path, as the toolbar is not present to do so.
-    if (showFilter === false) {
+    if (showFilterResolved === false) {
       const defaultPath = `${type}`;
       // Set the refs for pagination to work correctly
       currentFilterPath.current = defaultPath;
@@ -90,7 +89,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
     }
     // This effect should only run once on mount when the filter is hidden.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showFilter, type]);
+  }, [showFilterResolved, type]);
 
   useEffect(() => {
     if (loading || isLoadingMore || !hasMore) return;
@@ -127,7 +126,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
   // const cardFrom = (process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms' ? 'douban' : process.env.NEXT_PUBLIC_DATA_SOURCE) || 'douban';
 
   return (
-    <PageLayout activePath={`/category/${type}`}>
+    <PageLayout activePath={activePath || `/main?type=${type}`}>
       <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible'>
         <div className='mb-6 sm:mb-8 space-y-4 sm:space-y-6'>
           <div>
@@ -139,7 +138,7 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
             </p>
           </div>
           {/* The missing container with background and rounding */}
-          {showFilter && (
+          {showFilterResolved && (
             <div className='bg-white/60 dark:bg-gray-800/40 rounded-2xl p-4 sm:p-6 border border-gray-200/30 dark:border-gray-700/30 backdrop-blur-sm'>
               <FilterToolbar onFilterChange={handleFilterChange} />
             </div>
@@ -190,24 +189,5 @@ function CategoryPageClient({ showFilter }: { showFilter: boolean }) {
         </div>
       </div>
     </PageLayout>
-  );
-}
-
-import { notFound } from 'next/navigation';
-
-import { supportedCategories } from '@/lib/dataProvider';
-
-export default function CategoryPage({ params }: { params: { type: string } }) {
-  // Server-side validation: If the type is not in the supported list, show a 404 page.
-  if (!supportedCategories.includes(params.type)) {
-    notFound();
-  }
-
-  const showFilter = process.env.NEXT_PUBLIC_SHOW_FILTER_TOOLBAR !== 'false';
-
-  return (
-    <Suspense>
-      <CategoryPageClient showFilter={showFilter} />
-    </Suspense>
   );
 }

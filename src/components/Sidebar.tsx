@@ -104,22 +104,22 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     {
       icon: Film,
       label: '电影',
-      href: '/category/movie',
+      href: '/main?type=movie',
     },
     {
       icon: Tv,
       label: '剧集',
-      href: '/category/tv',
+      href: '/main?type=tv',
     },
     {
       icon: Cat,
       label: '动漫',
-      href: '/category/anime',
+      href: '/main?type=anime',
     },
     {
       icon: Clover,
       label: '综艺',
-      href: '/category/show',
+      href: '/main?type=show',
     },
     // 直播开关(By Faker)
     // {
