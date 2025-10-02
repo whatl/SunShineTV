@@ -332,26 +332,33 @@ const faqData: FAQItem[] = [
   },
   {
     question: '版权声明',
-    answer: (
-      <div className="space-y-3">
-        <p className="text-gray-700 dark:text-gray-300">
-          本站所有视频资源均采集自互联网。如果无意中侵犯了您的版权，请立即通过邮件联系我们，我们将在核实后第一时间进行处理。
-        </p>
-        <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            版权投诉联系邮箱：
-          </p>
-          <p className="text-base font-mono text-green-600 dark:text-green-400">
-            {copyrightEmail || contactEmail || 'google@gmail.com'}
-          </p>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            请在邮件中详细说明侵权内容及您的版权证明材料
-          </p>
-        </div>
-      </div>
-    ),
+    answer: 'CopyrightSection',
   },
 ];
+
+// 版权声明组件
+function CopyrightSection() {
+  const { copyrightEmail, contactEmail } = useSite();
+
+  return (
+    <div className="space-y-3">
+      <p className="text-gray-700 dark:text-gray-300">
+        本站所有视频资源均采集自互联网。如果无意中侵犯了您的版权，请立即通过邮件联系我们，我们将在核实后第一时间进行处理。
+      </p>
+      <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+        <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          版权投诉联系邮箱：
+        </p>
+        <p className="text-base font-mono text-green-600 dark:text-green-400">
+          {copyrightEmail || contactEmail || 'google@gmail.com'}
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+          请在邮件中详细说明侵权内容及您的版权证明材料
+        </p>
+      </div>
+    </div>
+  );
+}
 
 // 求片功能组件
 function RequestMovieSection() {
@@ -445,6 +452,9 @@ function FAQAccordion({
     }
     if (item.answer === 'FeedbackSection') {
       return <FeedbackSection />;
+    }
+    if (item.answer === 'CopyrightSection') {
+      return <CopyrightSection />;
     }
     return item.answer;
   };
