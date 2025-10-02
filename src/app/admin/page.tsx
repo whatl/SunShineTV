@@ -259,6 +259,8 @@ const useLoadingState = () => {
 interface SiteConfig {
   SiteName: string;
   Announcement: string;
+  FooterText?: string;
+  FooterLinks?: { name: string; url: string }[];
   SearchDownstreamMaxPage: number;
   SiteInterfaceCacheTime: number;
   DoubanProxyType: string;
@@ -3385,6 +3387,8 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
   const [siteSettings, setSiteSettings] = useState<SiteConfig>({
     SiteName: '',
     Announcement: '',
+    FooterText: '',
+    FooterLinks: [],
     SearchDownstreamMaxPage: 1,
     SiteInterfaceCacheTime: 7200,
     DoubanProxyType: 'cmliussss-cdn-tencent',
@@ -3448,6 +3452,8 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
     if (config?.SiteConfig) {
       setSiteSettings({
         ...config.SiteConfig,
+        FooterText: config.SiteConfig.FooterText || '',
+        FooterLinks: config.SiteConfig.FooterLinks || [],
         DoubanProxyType: config.SiteConfig.DoubanProxyType || 'cmliussss-cdn-tencent',
         DoubanProxy: config.SiteConfig.DoubanProxy || '',
         DoubanImageProxyType:
@@ -3579,6 +3585,59 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
         />
+      </div>
+
+      {/* Footer 文本 */}
+      <div>
+        <label
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
+          Footer 版权文本
+        </label>
+        <textarea
+          value={siteSettings.FooterText}
+          onChange={(e) =>
+            setSiteSettings((prev) => ({
+              ...prev,
+              FooterText: e.target.value,
+            }))
+          }
+          rows={2}
+          placeholder="例如：本站所有视频和图片均来自互联网收集而来..."
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+        />
+        <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
+          显示在首页底部的版权说明文字
+        </p>
+      </div>
+
+      {/* Footer 链接 */}
+      <div>
+        <label
+          className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+        >
+          Footer 链接配置
+        </label>
+        <textarea
+          value={JSON.stringify(siteSettings.FooterLinks, null, 2)}
+          onChange={(e) => {
+            try {
+              const parsed = JSON.parse(e.target.value);
+              setSiteSettings((prev) => ({
+                ...prev,
+                FooterLinks: Array.isArray(parsed) ? parsed : [],
+              }));
+            } catch {
+              // 如果 JSON 格式不正确，暂不更新
+            }
+          }}
+          rows={8}
+          placeholder={'[\n  {"name": "Baidu", "url": "https://www.baidu.com"},\n  {"name": "Telegram群", "url": ""}\n]'}
+          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
+        />
+        <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
+          JSON 格式配置链接，URL 为空时链接不可点击
+        </p>
       </div>
 
       {/* 豆瓣数据源设置 */}
