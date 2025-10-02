@@ -125,7 +125,7 @@ export function CategoryPageClient({ params, showFilter, activePath, noLayout }:
   }, [loading, isLoadingMore, hasMore, page, loadData, localPageSize, isError]);
 
   const getPageTitle = () => {
-    return type === 'movie' ? '电影' : type === 'tv' ? '电视剧' : type === 'anime' ? '动漫' : type === 'show' ? '综艺' : '分类';
+    return type === 'movie' ? '电影' : type === 'tv' ? '电视剧' : type === 'anime' ? '动漫' : type === 'show' ? '综艺' : type === 'drama' ? '短剧' : '分类';
   };
 
   const skeletonData = Array.from({ length: 25 }, (_, index) => index);

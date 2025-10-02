@@ -2,7 +2,7 @@
 
 'use client';
 
-import { Cat, Clover, Film, Home, Menu, Search, Star, Tv } from 'lucide-react';
+import { Cat, Clover, Film, Home, Menu, Search, Star, Tv, Video } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
@@ -13,6 +13,8 @@ import {
   useLayoutEffect,
   useState,
 } from 'react';
+
+import { supportedCategories } from '@/lib/dataProvider';
 
 import { useSite } from './SiteProvider';
 
@@ -131,18 +133,28 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
 
   useEffect(() => {
     const runtimeConfig = (window as any).RUNTIME_CONFIG;
-    if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
-      setMenuItems((prevItems) => [
-        ...prevItems,
-        {
-          icon: Star,
-          label: '自定义',
-          // Note: The 'custom' category might need a special page or logic.
-          // For now, it points to the old structure, which will redirect.
-          href: '/douban?type=custom',
-        },
-      ]);
+    const newItems = [...menuItems];
+
+    // 只在 supportedCategories 包含 drama 时添加短剧
+    if (supportedCategories.includes('drama')) {
+      newItems.push({
+        icon: Video,
+        label: '短剧',
+        href: '/main?type=drama',
+      });
     }
+
+    if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
+      newItems.push({
+        icon: Star,
+        label: '自定义',
+        // Note: The 'custom' category might need a special page or logic.
+        // For now, it points to the old structure, which will redirect.
+        href: '/douban?type=custom',
+      });
+    }
+
+    setMenuItems(newItems);
   }, []);
 
   return (

@@ -153,6 +153,9 @@ async function getHomePageData(): Promise<HomePageData> {
   if (homeData.varietyShows) {
     homeData.varietyShows = normalizeResponseCode(homeData.varietyShows);
   }
+  if (homeData.shortVideos) {
+    homeData.shortVideos = normalizeResponseCode(homeData.shortVideos);
+  }
 
   // The API returns a DoubanResult for animes, but the UI expects BangumiCalendarData[].
   // We must transform it, just like the old getAnimes() function did.

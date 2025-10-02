@@ -2,10 +2,12 @@
 
 'use client';
 
-import { Cat, Clover, Film, Home, Star, Tv } from 'lucide-react';
+import { Cat, Clover, Film, Home, Star, Tv, Video } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+
+import { supportedCategories } from '@/lib/dataProvider';
 
 interface MobileBottomNavProps {
   /**
@@ -52,16 +54,26 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
   useEffect(() => {
     const runtimeConfig = (window as any).RUNTIME_CONFIG;
-    if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
-      setNavItems((prevItems) => [
-        ...prevItems,
-        {
-          icon: Star,
-          label: '自定义',
-          href: '/douban?type=custom', // This will redirect
-        },
-      ]);
+    const newItems = [...navItems];
+
+    // 只在 supportedCategories 包含 drama 时添加短剧
+    if (supportedCategories.includes('drama')) {
+      newItems.push({
+        icon: Video,
+        label: '短剧',
+        href: '/main?type=drama',
+      });
     }
+
+    if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
+      newItems.push({
+        icon: Star,
+        label: '自定义',
+        href: '/douban?type=custom', // This will redirect
+      });
+    }
+
+    setNavItems(newItems);
   }, []);
 
   const isActive = (href: string) => {
