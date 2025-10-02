@@ -102,59 +102,60 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     isCollapsed,
   };
 
-  const [menuItems, setMenuItems] = useState([
-    {
-      icon: Film,
-      label: '电影',
-      href: '/main?type=movie',
-    },
-    {
-      icon: Tv,
-      label: '剧集',
-      href: '/main?type=tv',
-    },
-    {
-      icon: Cat,
-      label: '动漫',
-      href: '/main?type=anime',
-    },
-    {
-      icon: Clover,
-      label: '综艺',
-      href: '/main?type=show',
-    },
-    // 直播开关(By Faker)
-    // {
-    //   icon: Radio,
-    //   label: '直播',
-    //   href: '/live',
-    // },
-  ]);
-
-  useEffect(() => {
-    const runtimeConfig = (window as any).RUNTIME_CONFIG;
-    const newItems = [...menuItems];
+  const [menuItems, setMenuItems] = useState(() => {
+    const items = [
+      {
+        icon: Film,
+        label: '电影',
+        href: '/main?type=movie',
+      },
+      {
+        icon: Tv,
+        label: '剧集',
+        href: '/main?type=tv',
+      },
+      {
+        icon: Cat,
+        label: '动漫',
+        href: '/main?type=anime',
+      },
+      {
+        icon: Clover,
+        label: '综艺',
+        href: '/main?type=show',
+      },
+      // 直播开关(By Faker)
+      // {
+      //   icon: Radio,
+      //   label: '直播',
+      //   href: '/live',
+      // },
+    ];
 
     // 只在 supportedCategories 包含 drama 时添加短剧
     if (supportedCategories.includes('drama')) {
-      newItems.push({
+      items.push({
         icon: Video,
         label: '短剧',
         href: '/main?type=drama',
       });
     }
 
+    return items;
+  });
+
+  useEffect(() => {
+    const runtimeConfig = (window as any).RUNTIME_CONFIG;
+
     if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
-      newItems.push({
+      setMenuItems(prev => [...prev, {
         icon: Star,
         label: '自定义',
         // Note: The 'custom' category might need a special page or logic.
         // For now, it points to the old structure, which will redirect.
         href: '/douban?type=custom',
-      });
+      }]);
     }
-
-    setMenuItems(newItems);
   }, []);
 
   return (

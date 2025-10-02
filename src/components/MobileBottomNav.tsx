@@ -22,58 +22,59 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
   // 当前激活路径：优先使用传入的 activePath，否则回退到浏览器地址
   const currentActive = activePath ?? pathname;
 
-  const [navItems, setNavItems] = useState([
-    { icon: Home, label: '首页', href: '/main?type=home' },
-    {
-      icon: Film,
-      label: '电影',
-      href: '/main?type=movie',
-    },
-    {
-      icon: Tv,
-      label: '剧集',
-      href: '/main?type=tv',
-    },
-    {
-      icon: Cat,
-      label: '动漫',
-      href: '/main?type=anime',
-    },
-    {
-      icon: Clover,
-      label: '综艺',
-      href: '/main?type=show',
-    },
-    // 直播开关(By Faker)
-    // {
-    //   icon: Radio,
-    //   label: '直播',
-    //   href: '/live',
-    // },
-  ]);
-
-  useEffect(() => {
-    const runtimeConfig = (window as any).RUNTIME_CONFIG;
-    const newItems = [...navItems];
+  const [navItems, setNavItems] = useState(() => {
+    const items = [
+      { icon: Home, label: '首页', href: '/main?type=home' },
+      {
+        icon: Film,
+        label: '电影',
+        href: '/main?type=movie',
+      },
+      {
+        icon: Tv,
+        label: '剧集',
+        href: '/main?type=tv',
+      },
+      {
+        icon: Cat,
+        label: '动漫',
+        href: '/main?type=anime',
+      },
+      {
+        icon: Clover,
+        label: '综艺',
+        href: '/main?type=show',
+      },
+      // 直播开关(By Faker)
+      // {
+      //   icon: Radio,
+      //   label: '直播',
+      //   href: '/live',
+      // },
+    ];
 
     // 只在 supportedCategories 包含 drama 时添加短剧
     if (supportedCategories.includes('drama')) {
-      newItems.push({
+      items.push({
         icon: Video,
         label: '短剧',
         href: '/main?type=drama',
       });
     }
 
+    return items;
+  });
+
+  useEffect(() => {
+    const runtimeConfig = (window as any).RUNTIME_CONFIG;
+
     if (runtimeConfig?.CUSTOM_CATEGORIES?.length > 0) {
-      newItems.push({
+      setNavItems(prev => [...prev, {
         icon: Star,
         label: '自定义',
         href: '/douban?type=custom', // This will redirect
-      });
+      }]);
     }
-
-    setNavItems(newItems);
   }, []);
 
   const isActive = (href: string) => {
