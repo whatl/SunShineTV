@@ -260,6 +260,11 @@ interface SiteConfig {
   Announcement: string;
   FooterText?: string;
   FooterLinks?: { name: string; url: string }[];
+  ContactEmail?: string;
+  ContactTwitter?: string;
+  ContactQQ?: string;
+  ContactTelegram?: string;
+  CopyrightEmail?: string;
   SearchDownstreamMaxPage: number;
   SiteInterfaceCacheTime: number;
   DoubanProxyType: string;
