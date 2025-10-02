@@ -49,6 +49,11 @@ export default async function RootLayout({
   let announcement = !notLocalStorage ? process.env.ANNOUNCEMENT || '' : '';
   let footerText = !notLocalStorage ? process.env.FOOTER_TEXT || '' : '';
   let footerLinks: { name: string; url: string }[] = [];
+  let contactEmail = '';
+  let contactTwitter = '';
+  let contactQQ = '';
+  let contactTelegram = '';
+  let copyrightEmail = '';
 
   let doubanProxyType = process.env.NEXT_PUBLIC_DOUBAN_PROXY_TYPE || 'cmliussss-cdn-tencent';
   let doubanProxy = process.env.NEXT_PUBLIC_DOUBAN_PROXY || '';
@@ -69,6 +74,11 @@ export default async function RootLayout({
     announcement = config.SiteConfig.Announcement;
     footerText = config.SiteConfig.FooterText || footerText;
     footerLinks = config.SiteConfig.FooterLinks || footerLinks;
+    contactEmail = config.SiteConfig.ContactEmail || '';
+    contactTwitter = config.SiteConfig.ContactTwitter || '';
+    contactQQ = config.SiteConfig.ContactQQ || '';
+    contactTelegram = config.SiteConfig.ContactTelegram || '';
+    copyrightEmail = config.SiteConfig.CopyrightEmail || '';
 
     doubanProxyType = config.SiteConfig.DoubanProxyType;
     doubanProxy = config.SiteConfig.DoubanProxy;
@@ -145,6 +155,11 @@ export default async function RootLayout({
               announcement={announcement}
               footerText={footerText}
               footerLinks={footerLinks}
+              contactEmail={contactEmail}
+              contactTwitter={contactTwitter}
+              contactQQ={contactQQ}
+              contactTelegram={contactTelegram}
+              copyrightEmail={copyrightEmail}
             >
               {children}
               <GlobalErrorIndicator />

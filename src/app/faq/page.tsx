@@ -342,7 +342,7 @@ const faqData: FAQItem[] = [
             版权投诉联系邮箱：
           </p>
           <p className="text-base font-mono text-green-600 dark:text-green-400">
-            google@gmail.com
+            {copyrightEmail || contactEmail || 'google@gmail.com'}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
             请在邮件中详细说明侵权内容及您的版权证明材料
@@ -481,7 +481,7 @@ function FAQAccordion({
 }
 
 export default function FAQPage() {
-  const { siteName } = useSite();
+  const { siteName, contactEmail, contactTwitter, contactQQ, contactTelegram, copyrightEmail } = useSite();
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   const handleToggle = (index: number) => {
@@ -525,13 +525,16 @@ export default function FAQPage() {
             </p>
             <div className="space-y-1 mb-3">
               <p className="text-sm sm:text-base text-green-700 dark:text-green-400">
-                Email: <span className="font-mono text-green-600 dark:text-green-400">google@gmail.com</span>
+                Email: <span className="font-mono text-green-600 dark:text-green-400">{contactEmail || ''}</span>
               </p>
               <p className="text-sm sm:text-base text-green-700 dark:text-green-400">
-                QQ: <span className="font-mono text-green-600 dark:text-green-400">123456789</span>
+                Twitter: <span className="font-mono text-green-600 dark:text-green-400">{contactTwitter || ''}</span>
               </p>
               <p className="text-sm sm:text-base text-green-700 dark:text-green-400">
-                Telegram: <span className="font-mono text-green-600 dark:text-green-400">@yourtelegram</span>
+                QQ: <span className="font-mono text-green-600 dark:text-green-400">{contactQQ || ''}</span>
+              </p>
+              <p className="text-sm sm:text-base text-green-700 dark:text-green-400">
+                Telegram: <span className="font-mono text-green-600 dark:text-green-400">{contactTelegram || ''}</span>
               </p>
             </div>
             <Link

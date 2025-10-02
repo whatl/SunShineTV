@@ -12,6 +12,11 @@ interface SiteContextType {
   announcement?: string;
   footerText?: string;
   footerLinks?: FooterLink[];
+  contactEmail?: string;
+  contactTwitter?: string;
+  contactQQ?: string;
+  contactTelegram?: string;
+  copyrightEmail?: string;
 }
 
 const SiteContext = createContext<SiteContextType>({ // 可以理解为前端兜底默认值，一般不会用到
@@ -32,19 +37,34 @@ export function SiteProvider({
   announcement,
   footerText,
   footerLinks,
+  contactEmail,
+  contactTwitter,
+  contactQQ,
+  contactTelegram,
+  copyrightEmail,
 }: {
   children: ReactNode;
   siteName: string;
   announcement?: string;
   footerText?: string;
   footerLinks?: FooterLink[];
+  contactEmail?: string;
+  contactTwitter?: string;
+  contactQQ?: string;
+  contactTelegram?: string;
+  copyrightEmail?: string;
 }) {
   return (
     <SiteContext.Provider value={{
       siteName,
       announcement,
       footerText,
-      footerLinks: footerLinks
+      footerLinks,
+      contactEmail,
+      contactTwitter,
+      contactQQ,
+      contactTelegram,
+      copyrightEmail,
     }}>
       {children}
     </SiteContext.Provider>
