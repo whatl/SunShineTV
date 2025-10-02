@@ -48,12 +48,19 @@ export function CategoryPageClient({ params, showFilter, activePath, noLayout }:
         if (pageNum > page) {
           setPage(pageNum);
         }
+        // 成功加载，清除错误状态
+        setIsError(false);
       } else {
         throw new Error(result.message || 'Failed to fetch data');
       }
     } catch (error) {
       console.error('Error fetching data:', error);
+      // 只有真正的错误才设置 isError
       setIsError(true);
+      // 加载失败时，如果是第一页则停止加载更多
+      if (pageNum === 1) {
+        setHasMore(false);
+      }
     } finally {
       if (pageNum === 1) {
         setLoading(false);
@@ -73,7 +80,7 @@ export function CategoryPageClient({ params, showFilter, activePath, noLayout }:
       setIsError(false);
       loadData(path, extra, 1, localPageSize);
     }
-  }, [loadData,localPageSize]);
+  }, [loadData, localPageSize]);
 
   const showFilterResolved = showFilter ?? (process.env.NEXT_PUBLIC_SHOW_FILTER_TOOLBAR !== 'false');
 
@@ -182,8 +189,20 @@ export function CategoryPageClient({ params, showFilter, activePath, noLayout }:
             <div className='text-center text-gray-500 py-8'>已加载全部内容</div>
           )}
 
-          {!loading && data.length === 0 && (
+          {!loading && data.length === 0 && !isError && (
             <div className='text-center text-gray-500 py-8'>暂无相关内容</div>
+          )}
+
+          {!loading && data.length === 0 && isError && (
+            <div className='text-center py-8'>
+              <p className='text-gray-500 mb-4'>加载失败，请重试</p>
+              <button
+                onClick={() => loadData(currentFilterPath.current, currentFilterExtra.current, 1, localPageSize)}
+                className='px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200'
+              >
+                重新加载
+              </button>
+            </div>
           )}
         </div>
       </div>
