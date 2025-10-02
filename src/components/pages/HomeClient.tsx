@@ -214,7 +214,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
               <ContinueWatching />
 
               {/* 热门电影 */}
-              <section className='mb-8'>
+              <section className='mb-3'>
                 <div className='mb-4 flex items-center justify-between'>
                   <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
                     热门电影
@@ -263,7 +263,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
               </section>
 
               {/* 热门剧集 */}
-              <section className='mb-8'>
+              <section className='mb-3'>
                 <div className='mb-4 flex items-center justify-between'>
                   <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
                     热门剧集
@@ -311,7 +311,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
               </section>
 
               {/* 每日新番放送 */}
-              <section className='mb-8'>
+              <section className='mb-3'>
                 <div className='mb-4 flex items-center justify-between'>
                   <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
                     新番放送
@@ -387,7 +387,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
               </section>
 
               {/* 热门综艺 */}
-              <section className='mb-8'>
+              <section className='mb-3'>
                 <div className='mb-4 flex items-center justify-between'>
                   <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
                     热门综艺
@@ -436,7 +436,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
 
               {/* 热门短剧 - 仅在有数据时显示 */}
               {hotShortVideos.length > 0 && (
-                <section className='mb-8'>
+                <section className='mb-3'>
                   <div className='mb-4 flex items-center justify-between'>
                     <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
                       热门短剧
