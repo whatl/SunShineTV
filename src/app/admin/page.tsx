@@ -3399,6 +3399,9 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
     FluidSearch: false,
   });
 
+  // Footer 链接 JSON 文本状态（用于支持编辑中的非法 JSON）
+  const [footerLinksJson, setFooterLinksJson] = useState('');
+
   // 豆瓣数据源相关状态
   const [isDoubanDropdownOpen, setIsDoubanDropdownOpen] = useState(false);
   const [isDoubanImageProxyDropdownOpen, setIsDoubanImageProxyDropdownOpen] =
@@ -3450,10 +3453,11 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
 
   useEffect(() => {
     if (config?.SiteConfig) {
+      const footerLinks = config.SiteConfig.FooterLinks || [];
       setSiteSettings({
         ...config.SiteConfig,
         FooterText: config.SiteConfig.FooterText || '',
-        FooterLinks: config.SiteConfig.FooterLinks || [],
+        FooterLinks: footerLinks,
         DoubanProxyType: config.SiteConfig.DoubanProxyType || 'cmliussss-cdn-tencent',
         DoubanProxy: config.SiteConfig.DoubanProxy || '',
         DoubanImageProxyType:
@@ -3462,6 +3466,8 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
         DisableYellowFilter: config.SiteConfig.DisableYellowFilter || false,
         FluidSearch: config.SiteConfig.FluidSearch || false,
       });
+      // 同步更新 JSON 文本
+      setFooterLinksJson(footerLinks.length > 0 ? JSON.stringify(footerLinks, null, 2) : '');
     }
   }, [config]);
 
@@ -3619,24 +3625,46 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
           Footer 链接配置
         </label>
         <textarea
-          value={JSON.stringify(siteSettings.FooterLinks, null, 2)}
+          value={footerLinksJson}
           onChange={(e) => {
-            try {
-              const parsed = JSON.parse(e.target.value);
+            const value = e.target.value;
+            setFooterLinksJson(value);
+
+            // 如果为空，设置为空数组
+            if (!value.trim()) {
               setSiteSettings((prev) => ({
                 ...prev,
-                FooterLinks: Array.isArray(parsed) ? parsed : [],
+                FooterLinks: [],
               }));
+              return;
+            }
+
+            // 尝试解析 JSON
+            try {
+              const parsed = JSON.parse(value);
+              if (Array.isArray(parsed)) {
+                setSiteSettings((prev) => ({
+                  ...prev,
+                  FooterLinks: parsed,
+                }));
+              }
             } catch {
-              // 如果 JSON 格式不正确，暂不更新
+              // JSON 格式错误时，允许继续输入但不更新 FooterLinks
             }
           }}
-          rows={8}
-          placeholder={'[\n  {"name": "Baidu", "url": "https://www.baidu.com"},\n  {"name": "Telegram群", "url": ""}\n]'}
+          rows={10}
+          placeholder={`配置示例：
+[
+  {"name": "Google", "url": "https://www.google.com"}
+]
+
+说明：
+- name: 链接显示的文字
+- url: 链接地址，为空时显示但不可点击`}
           className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent font-mono text-sm"
         />
         <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
-          JSON 格式配置链接，URL 为空时链接不可点击
+          JSON 格式配置链接，URL 为空时链接显示但不可点击
         </p>
       </div>
 

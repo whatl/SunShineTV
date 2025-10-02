@@ -31,6 +31,8 @@ export async function POST(request: NextRequest) {
     const {
       SiteName,
       Announcement,
+      FooterText,
+      FooterLinks,
       SearchDownstreamMaxPage,
       SiteInterfaceCacheTime,
       DoubanProxyType,
@@ -42,6 +44,8 @@ export async function POST(request: NextRequest) {
     } = body as {
       SiteName: string;
       Announcement: string;
+      FooterText?: string;
+      FooterLinks?: { name: string; url: string }[];
       SearchDownstreamMaxPage: number;
       SiteInterfaceCacheTime: number;
       DoubanProxyType: string;
@@ -85,6 +89,8 @@ export async function POST(request: NextRequest) {
     adminConfig.SiteConfig = {
       SiteName,
       Announcement,
+      FooterText,
+      FooterLinks,
       SearchDownstreamMaxPage,
       SiteInterfaceCacheTime,
       DoubanProxyType,
