@@ -48,12 +48,7 @@ export const getRecommendations = provider.getRecommendations;
  */
 export async function getHomePageData(): Promise<HomePageData> {
   if (provider.getHomePageData) {
-    try {
-      return await provider.getHomePageData();
-    } catch (error) {
-      // The error is handled by the individual .catch() handlers on each promise.
-      // This outer catch is for any other unexpected errors during Promise.all itself.
-    }
+    return await provider.getHomePageData();
   }
 
   const [movies, tvShows, varietyShows, animes, shortVideos] = await Promise.all([

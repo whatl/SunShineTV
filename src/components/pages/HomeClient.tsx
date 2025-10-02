@@ -72,16 +72,16 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
         setLoading(true);
         const homeData = await getHomePageData();
 
-        if (homeData.movies.code === 200) {
+        if (homeData.movies?.code === 200) {
           setHotMovies(homeData.movies.list);
         }
-        if (homeData.tvShows.code === 200) {
+        if (homeData.tvShows?.code === 200) {
           setHotTvShows(homeData.tvShows.list);
         }
-        if (homeData.varietyShows.code === 200) {
+        if (homeData.varietyShows?.code === 200) {
           setHotVarietyShows(homeData.varietyShows.list);
         }
-        if (homeData.shortVideos.code === 200) {
+        if (homeData.shortVideos?.code === 200) {
           setHotShortVideos(homeData.shortVideos.list);
         }
         setBangumiCalendarData(homeData.animes);
@@ -435,7 +435,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
               </section>
 
               {/* 热门短剧 - 仅在有数据时显示 */}
-              {hotShortVideos.length > 0 && (
+              {hotShortVideos?.length > 0 && (
                 <section className='mb-3'>
                   <div className='mb-4 flex items-center justify-between'>
                     <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>
