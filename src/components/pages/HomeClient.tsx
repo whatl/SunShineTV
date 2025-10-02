@@ -19,6 +19,7 @@ import { DoubanItem } from '@/lib/types';
 
 import CapsuleSwitch from '@/components/CapsuleSwitch';
 import ContinueWatching from '@/components/ContinueWatching';
+import { Footer } from '@/components/Footer';
 import PageLayout from '@/components/PageLayout';
 import ScrollableRow from '@/components/ScrollableRow';
 import { useSite } from '@/components/SiteProvider';
@@ -495,6 +496,9 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
           </div>
         </div>
         )}
+
+        {/* Footer - 只在首页显示 */}
+        {activeTab === 'home' && <Footer />}
       </div>
   );
 

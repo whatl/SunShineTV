@@ -48,6 +48,10 @@ export default async function RootLayout({
   let announcement =
     process.env.ANNOUNCEMENT ||
     '本网站仅提供影视信息搜索服务，所有内容均来自第三方网站。本站不存储任何视频资源，不对任何内容的准确性、合法性、完整性负责。';
+  let footerText =
+    process.env.FOOTER_TEXT ||
+    '本站所有视频和图片均来自互联网收集而来，版权归原创者所有，本网站只提供web页面服务，并不提供资源存储，也不参与录制、上传。若本站收录的节目无意侵犯了贵司版权，请发邮件至chuichui#gmail.com（#换成@）';
+  let footerLinks: { name: string; url: string }[] = [];
 
   let doubanProxyType = process.env.NEXT_PUBLIC_DOUBAN_PROXY_TYPE || 'cmliussss-cdn-tencent';
   let doubanProxy = process.env.NEXT_PUBLIC_DOUBAN_PROXY || '';
@@ -62,10 +66,12 @@ export default async function RootLayout({
     type: 'movie' | 'tv';
     query: string;
   }[];
-  if (storageType !== 'localstorage') {
+  if (storageType !== 'localstorage') { // 不是本地存储才有
     const config = await getConfig();
     siteName = config.SiteConfig.SiteName;
     announcement = config.SiteConfig.Announcement;
+    footerText = config.SiteConfig.FooterText || footerText;
+    footerLinks = config.SiteConfig.FooterLinks || footerLinks;
 
     doubanProxyType = config.SiteConfig.DoubanProxyType;
     doubanProxy = config.SiteConfig.DoubanProxy;
@@ -137,7 +143,12 @@ export default async function RootLayout({
           disableTransitionOnChange
         >
           <AuthProvider value={authInfo}>
-            <SiteProvider siteName={siteName} announcement={announcement}>
+            <SiteProvider
+              siteName={siteName}
+              announcement={announcement}
+              footerText={footerText}
+              footerLinks={footerLinks}
+            >
               {children}
               <GlobalErrorIndicator />
             </SiteProvider>

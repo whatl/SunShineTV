@@ -8,6 +8,8 @@ export interface AdminConfig {
   SiteConfig: {
     SiteName: string;
     Announcement: string;
+    FooterText?: string;
+    FooterLinks?: { name: string; url: string }[];
     SearchDownstreamMaxPage: number;
     SiteInterfaceCacheTime: number;
     DoubanProxyType: string;
