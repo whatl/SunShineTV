@@ -29,7 +29,6 @@ import {
   ChevronDown,
   ChevronUp,
   Database,
-  ExternalLink,
   FileText,
   FolderOpen,
   Settings,
@@ -3432,25 +3431,6 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
     { value: 'custom', label: '自定义代理' },
   ];
 
-  // 获取感谢信息
-  const getThanksInfo = (dataSource: string) => {
-    switch (dataSource) {
-      case 'cors-proxy-zwei':
-        return {
-          text: 'Thanks to @Zwei',
-          url: 'https://github.com/bestzwei',
-        };
-      case 'cmliussss-cdn-tencent':
-      case 'cmliussss-cdn-ali':
-        return {
-          text: 'Thanks to @CMLiussss',
-          url: 'https://github.com/cmliu',
-        };
-      default:
-        return null;
-    }
-  };
-
   useEffect(() => {
     if (config?.SiteConfig) {
       const footerLinks = config.SiteConfig.FooterLinks || [];
@@ -3458,6 +3438,11 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
         ...config.SiteConfig,
         FooterText: config.SiteConfig.FooterText || '',
         FooterLinks: footerLinks,
+        ContactEmail: config.SiteConfig.ContactEmail || '',
+        ContactTwitter: config.SiteConfig.ContactTwitter || '',
+        ContactQQ: config.SiteConfig.ContactQQ || '',
+        ContactTelegram: config.SiteConfig.ContactTelegram || '',
+        CopyrightEmail: config.SiteConfig.CopyrightEmail || '',
         DoubanProxyType: config.SiteConfig.DoubanProxyType || 'cmliussss-cdn-tencent',
         DoubanProxy: config.SiteConfig.DoubanProxy || '',
         DoubanImageProxyType:
@@ -3668,6 +3653,118 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
         </p>
       </div>
 
+      {/* 联系方式配置 */}
+      <div className='space-y-4 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700'>
+        <div>
+          <h3 className='text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1'>
+            联系方式
+          </h3>
+          <p className='text-xs text-gray-500 dark:text-gray-400 mb-3'>
+            方便用户反馈问题，请填写联系方式
+          </p>
+        </div>
+
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          {/* Email */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              Email
+            </label>
+            <input
+              type='text'
+              value={siteSettings.ContactEmail || ''}
+              onChange={(e) =>
+                setSiteSettings((prev) => ({
+                  ...prev,
+                  ContactEmail: e.target.value,
+                }))
+              }
+              placeholder='example@gmail.com'
+              className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+            />
+          </div>
+
+          {/* Twitter */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              Twitter
+            </label>
+            <input
+              type='text'
+              value={siteSettings.ContactTwitter || ''}
+              onChange={(e) =>
+                setSiteSettings((prev) => ({
+                  ...prev,
+                  ContactTwitter: e.target.value,
+                }))
+              }
+              placeholder='@yourtwitter'
+              className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+            />
+          </div>
+
+          {/* QQ */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              QQ
+            </label>
+            <input
+              type='text'
+              value={siteSettings.ContactQQ || ''}
+              onChange={(e) =>
+                setSiteSettings((prev) => ({
+                  ...prev,
+                  ContactQQ: e.target.value,
+                }))
+              }
+              placeholder='123456789'
+              className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+            />
+          </div>
+
+          {/* Telegram */}
+          <div>
+            <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+              Telegram
+            </label>
+            <input
+              type='text'
+              value={siteSettings.ContactTelegram || ''}
+              onChange={(e) =>
+                setSiteSettings((prev) => ({
+                  ...prev,
+                  ContactTelegram: e.target.value,
+                }))
+              }
+              placeholder='@yourtelegram'
+              className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* 版权投诉联系邮箱 */}
+      <div>
+        <label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2'>
+          版权投诉联系邮箱
+        </label>
+        <input
+          type='text'
+          value={siteSettings.CopyrightEmail || ''}
+          onChange={(e) =>
+            setSiteSettings((prev) => ({
+              ...prev,
+              CopyrightEmail: e.target.value,
+            }))
+          }
+          placeholder='copyright@example.com'
+          className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent'
+        />
+        <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
+          用于接收版权投诉相关邮件
+        </p>
+      </div>
+
       {/* 豆瓣数据源设置 */}
       <div className='space-y-3'>
         <div>
@@ -3726,27 +3823,6 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
           <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
             选择获取豆瓣数据的方式
           </p>
-
-          {/* 感谢信息 */}
-          {getThanksInfo(siteSettings.DoubanProxyType) && (
-            <div className='mt-3'>
-              <button
-                type='button'
-                onClick={() =>
-                  window.open(
-                    getThanksInfo(siteSettings.DoubanProxyType)!.url,
-                    '_blank'
-                  )
-                }
-                className='flex items-center justify-center gap-1.5 w-full px-3 text-xs text-gray-500 dark:text-gray-400 cursor-pointer'
-              >
-                <span className='font-medium'>
-                  {getThanksInfo(siteSettings.DoubanProxyType)!.text}
-                </span>
-                <ExternalLink className='w-3.5 opacity-70' />
-              </button>
-            </div>
-          )}
         </div>
 
         {/* 豆瓣代理地址设置 - 仅在选择自定义代理时显示 */}
@@ -3838,27 +3914,6 @@ const SiteConfigComponent = ({ config, refreshConfig }: { config: AdminConfig | 
           <p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>
             选择获取豆瓣图片的方式
           </p>
-
-          {/* 感谢信息 */}
-          {getThanksInfo(siteSettings.DoubanImageProxyType) && (
-            <div className='mt-3'>
-              <button
-                type='button'
-                onClick={() =>
-                  window.open(
-                    getThanksInfo(siteSettings.DoubanImageProxyType)!.url,
-                    '_blank'
-                  )
-                }
-                className='flex items-center justify-center gap-1.5 w-full px-3 text-xs text-gray-500 dark:text-gray-400 cursor-pointer'
-              >
-                <span className='font-medium'>
-                  {getThanksInfo(siteSettings.DoubanImageProxyType)!.text}
-                </span>
-                <ExternalLink className='w-3.5 opacity-70' />
-              </button>
-            </div>
-          )}
         </div>
 
         {/* 豆瓣代理地址设置 - 仅在选择自定义代理时显示 */}

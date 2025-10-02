@@ -33,6 +33,11 @@ export async function POST(request: NextRequest) {
       Announcement,
       FooterText,
       FooterLinks,
+      ContactEmail,
+      ContactTwitter,
+      ContactQQ,
+      ContactTelegram,
+      CopyrightEmail,
       SearchDownstreamMaxPage,
       SiteInterfaceCacheTime,
       DoubanProxyType,
@@ -46,6 +51,11 @@ export async function POST(request: NextRequest) {
       Announcement: string;
       FooterText?: string;
       FooterLinks?: { name: string; url: string }[];
+      ContactEmail?: string;
+      ContactTwitter?: string;
+      ContactQQ?: string;
+      ContactTelegram?: string;
+      CopyrightEmail?: string;
       SearchDownstreamMaxPage: number;
       SiteInterfaceCacheTime: number;
       DoubanProxyType: string;
@@ -91,6 +101,11 @@ export async function POST(request: NextRequest) {
       Announcement,
       FooterText,
       FooterLinks,
+      ContactEmail,
+      ContactTwitter,
+      ContactQQ,
+      ContactTelegram,
+      CopyrightEmail,
       SearchDownstreamMaxPage,
       SiteInterfaceCacheTime,
       DoubanProxyType,
