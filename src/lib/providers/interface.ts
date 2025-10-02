@@ -42,6 +42,31 @@ export interface DataProvider {
    */
   supportedCategories: string[];
 
+  // Feedback and Captcha (optional, not all providers support these)
+  /**
+   * Get captcha image for feedback submission
+   * @param oldSessionId Optional old session ID to invalidate
+   * @returns Promise with session ID and base64 encoded image
+   */
+  getCaptcha?: (oldSessionId?: string) => Promise<{ sessionId: string; imageBase64: string }>;
+
+  /**
+   * Submit user feedback
+   * @param type Feedback type (1=suggestion, 2=request, 3=bug report)
+   * @param content Feedback content
+   * @param sessionId Captcha session ID
+   * @param captchaAnswer Captcha answer
+   * @param email Optional user email
+   * @returns Promise with response code and message
+   */
+  submitFeedback?: (
+    type: number,
+    content: string,
+    sessionId: string,
+    captchaAnswer: string,
+    email?: string
+  ) => Promise<{ code: number; message: string }>;
+
   // Optional batch fetch for homepage, for performance optimization.
   getHomePageData?: () => Promise<HomePageData>;
 

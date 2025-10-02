@@ -76,6 +76,16 @@ async function getProtoRoot(): Promise<protobuf.Root> {
     DoubanResult animes = 4;
     DoubanResult shortVideos = 5;
   }
+
+  message CommonResponse {
+    int32 code = 1;
+    string message = 2;
+  }
+
+  message CaptchaResponse {
+    string sessionId = 1;
+    string imageBase64 = 2;
+  }
   `;
   protoRoot = protobuf.parse(protoDefinition).root;
   return protoRoot;
@@ -324,6 +334,84 @@ async function getRecommendations({ type, pageStart }: RecommendationsParams): P
   return getList(category, {}, page);
 }
 
+/**
+ * 获取验证码
+ * @param oldSessionId 可选的旧sessionId，如果提供则后端会移除旧的session
+ */
+export async function getCaptcha(oldSessionId?: string): Promise<{ sessionId: string; imageBase64: string }> {
+  let url = `${API_BASE_URL}/api/cms/shine/captcha`;
+
+  if (oldSessionId) {
+    url += `?oldSessionId=${encodeURIComponent(oldSessionId)}`;
+  }
+
+  const response = await fetch(url, { method: 'GET' });
+
+  const contentType = response.headers.get('Content-Type');
+  if (contentType && contentType.includes('application/x-protobuf')) {
+    const buffer = await response.arrayBuffer();
+    const root = await getProtoRoot();
+    const MessageType = root.lookupType('maccms.CaptchaResponse');
+    const decodedMessage = MessageType.decode(new Uint8Array(buffer));
+    return MessageType.toObject(decodedMessage, {
+      longs: String,
+      enums: String,
+      bytes: String,
+      defaults: true,
+    }) as { sessionId: string; imageBase64: string };
+  }
+
+  return response.json();
+}
+
+/**
+ * 提交反馈/留言
+ * @param type 类型：1=反馈建议 2=求片 3=报错
+ * @param content 内容
+ * @param sessionId 验证码sessionId
+ * @param captchaAnswer 验证码答案
+ * @param email 邮箱（可选）
+ */
+export async function submitFeedback(
+  type: number,
+  content: string,
+  sessionId: string,
+  captchaAnswer: string,
+  email?: string
+): Promise<{ code: number; message: string }> {
+  const url = `${API_BASE_URL}/api/cms/shine/feedback`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      type,
+      content,
+      email,
+      captchaAnswer,
+      sessionId,
+    }),
+  });
+
+  const contentType = response.headers.get('Content-Type');
+  if (contentType && contentType.includes('application/x-protobuf')) {
+    const buffer = await response.arrayBuffer();
+    const root = await getProtoRoot();
+    const MessageType = root.lookupType('maccms.CommonResponse');
+    const decodedMessage = MessageType.decode(new Uint8Array(buffer));
+    return MessageType.toObject(decodedMessage, {
+      longs: String,
+      enums: String,
+      bytes: String,
+      defaults: true,
+    }) as { code: number; message: string };
+  }
+
+  return response.json();
+}
+
 export const maccmsProvider: DataProvider = {
   supportedCategories: ['movie', 'tv', 'show', 'anime', 'drama'],
 
@@ -333,6 +421,10 @@ export const maccmsProvider: DataProvider = {
   search,
   focusedSearch,
   detail,
+
+  // Feedback methods
+  getCaptcha,
+  submitFeedback,
 
   // Legacy methods
   getMovies,

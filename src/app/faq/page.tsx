@@ -1,11 +1,12 @@
 'use client';
 
-import { ChevronDown, ChevronUp, HelpCircle, Copy, X, Send } from 'lucide-react';
+import { ChevronDown, ChevronUp, Copy, Send,X } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 import PageLayout from '@/components/PageLayout';
 import { useSite } from '@/components/SiteProvider';
+import { submitFeedback, getCaptcha } from '@/lib/dataProvider';
 
 interface FAQItem {
   question: string;
@@ -18,35 +19,102 @@ function FeedbackModal({
   onClose,
   title,
   placeholder,
+  type,
 }: {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   placeholder: string;
+  type: number;
 }) {
   const [content, setContent] = useState('');
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [captchaImage, setCaptchaImage] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  const [userAnswer, setUserAnswer] = useState('');
+  const [captchaLoading, setCaptchaLoading] = useState(false);
 
-  const handleSubmit = () => {
+  // 获取验证码
+  const loadCaptcha = async () => {
+    setCaptchaLoading(true);
+    try {
+      // 如果已有sessionId，传递给后端以便移除旧的
+      const captchaData = await getCaptcha(sessionId || undefined);
+      setCaptchaImage(captchaData.imageBase64);
+      setSessionId(captchaData.sessionId);
+      setUserAnswer('');
+    } catch (error) {
+      console.error('获取验证码失败:', error);
+      alert('获取验证码失败，请重试');
+    } finally {
+      setCaptchaLoading(false);
+    }
+  };
+
+  // 组件打开时获取验证码
+  useEffect(() => {
+    if (isOpen) {
+      loadCaptcha();
+    }
+  }, [isOpen]);
+
+  const handleSubmit = async () => {
     if (!content.trim()) return;
 
-    // TODO: 调用接口提交反馈
-    console.log('提交反馈:', { content, email });
+    // 验证码校验（前端简单校验）
+    if (!userAnswer.trim()) {
+      alert('请输入验证码');
+      return;
+    }
 
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setContent('');
-      setEmail('');
-      onClose();
-    }, 1500);
+    if (userAnswer.trim().length !== 4) {
+      alert('请输入4位验证码');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const data = await submitFeedback(
+        type,
+        content.trim(),
+        sessionId,
+        userAnswer.trim(),
+        email.trim() || undefined
+      );
+
+      if (data.code === 200) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          setContent('');
+          setEmail('');
+          setUserAnswer('');
+          onClose();
+        }, 1500);
+      } else {
+        // 显示后端返回的具体错误信息
+        alert(data.message || '提交失败，请稍后重试');
+        // 只有验证码相关错误（401）才刷新验证码
+        if (data.code === 401) {
+          loadCaptcha();
+        }
+      }
+    } catch (error: any) {
+      console.error('提交失败:', error);
+      alert('网络错误，请检查网络连接');
+      loadCaptcha(); // 网络错误时刷新验证码
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleClose = () => {
     setContent('');
     setEmail('');
     setSubmitted(false);
+    setUserAnswer('');
     onClose();
   };
 
@@ -83,7 +151,7 @@ function FeedbackModal({
         ) : (
           <>
             {/* 内容输入 */}
-            <div className="mb-4">
+            <div className="mb-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 内容 <span className="text-red-500">*</span>
               </label>
@@ -97,7 +165,7 @@ function FeedbackModal({
                 }}
                 placeholder={placeholder}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent resize-none"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 resize-none"
               />
               <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">
                 {content.length}/70
@@ -105,7 +173,7 @@ function FeedbackModal({
             </div>
 
             {/* 邮箱输入 */}
-            <div className="mb-6">
+            <div className="mb-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 联系邮箱（选填）
               </label>
@@ -114,8 +182,46 @@ function FeedbackModal({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500"
               />
+            </div>
+
+            {/* 验证码 */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                验证码 <span className="text-red-500">*</span>
+              </label>
+              <div className="flex items-center gap-3 w-full">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value.replace(/[^0-9]/g, ''))}
+                  placeholder="请输入4位数字"
+                  className="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500"
+                />
+                <button
+                  type="button"
+                  onClick={loadCaptcha}
+                  disabled={captchaLoading}
+                  className="flex items-center justify-center min-w-[90px] h-[36px] flex-shrink-0 rounded-lg border border-gray-300 dark:border-gray-600 hover:opacity-80 transition-opacity cursor-pointer overflow-hidden bg-gray-100 dark:bg-gray-700"
+                  title="点击换一个"
+                >
+                  {captchaLoading ? (
+                    <span className="text-sm text-gray-500">加载中...</span>
+                  ) : captchaImage ? (
+                    <img
+                      src={captchaImage}
+                      alt="验证码"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-sm text-gray-500">点击获取</span>
+                  )}
+                </button>
+              </div>
             </div>
 
             {/* 按钮 */}
@@ -128,11 +234,11 @@ function FeedbackModal({
               </button>
               <button
                 onClick={handleSubmit}
-                disabled={!content.trim()}
+                disabled={!content.trim() || !userAnswer.trim() || submitting}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
               >
                 <Send className="w-4 h-4" />
-                提交
+                {submitting ? '提交中...' : '提交'}
               </button>
             </div>
           </>
@@ -350,7 +456,7 @@ function CopyrightSection() {
           版权投诉联系邮箱：
         </p>
         <p className="text-base font-mono text-green-600 dark:text-green-400">
-          {copyrightEmail || contactEmail || 'google@gmail.com'}
+          {copyrightEmail || contactEmail || ''}
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
           请在邮件中详细说明侵权内容及您的版权证明材料
@@ -389,6 +495,7 @@ function RequestMovieSection() {
         onClose={() => setShowModal(false)}
         title="留言求片"
         placeholder="请输入您想看的影片名称和相关信息..."
+        type={2}
       />
     </div>
   );
@@ -429,6 +536,7 @@ function FeedbackSection() {
         onClose={() => setShowModal(false)}
         title="提交反馈建议"
         placeholder="请描述您的问题或建议..."
+        type={1}
       />
     </div>
   );

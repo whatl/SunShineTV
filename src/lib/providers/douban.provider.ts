@@ -223,6 +223,22 @@ async function getRecommendations(params: RecommendationsParams): Promise<Douban
   return getDoubanRecommends(params);
 }
 
+// --- Feedback Methods (Not Implemented) ---
+
+async function getCaptcha(_oldSessionId?: string): Promise<{ sessionId: string; imageBase64: string }> {
+  throw new Error('Captcha is not available for douban data source');
+}
+
+async function submitFeedback(
+  _type: number,
+  _content: string,
+  _sessionId: string,
+  _captchaAnswer: string,
+  _email?: string
+): Promise<{ code: number; message: string }> {
+  throw new Error('Feedback submission is not available for douban data source');
+}
+
 // --- Provider Export ---
 
 export const doubanProvider: DataProvider = {
@@ -233,6 +249,10 @@ export const doubanProvider: DataProvider = {
   search,
   focusedSearch,
   detail,
+
+  // Feedback methods
+  getCaptcha,
+  submitFeedback,
 
   // Legacy methods for homepage and direct calls
   getMovies,

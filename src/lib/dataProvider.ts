@@ -13,8 +13,6 @@ import { maccmsProvider } from './providers/maccms.provider';
 const useCms = process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms';
 const provider: DataProvider = useCms ? maccmsProvider : doubanProvider;
 
-
-
 // --- Re-export all methods from the selected provider ---
 
 // New generic methods
@@ -23,6 +21,10 @@ export const search = provider.search;
 export const focusedSearch = provider.focusedSearch;
 export const detail = provider.detail;
 export const supportedCategories = provider.supportedCategories;
+
+// Feedback methods (optional, may throw if not supported by provider)
+export const getCaptcha = provider.getCaptcha!;
+export const submitFeedback = provider.submitFeedback!;
 
 // Legacy methods (for homepage, etc.)
 export const getMovies = provider.getMovies;
