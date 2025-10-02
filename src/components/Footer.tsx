@@ -21,13 +21,14 @@ export function Footer() {
           <div className='flex flex-wrap justify-center items-center gap-x-2 gap-y-1 sm:gap-x-3 mb-2'>
             {footerLinks.map((link, index) => {
               const hasUrl = link.url && link.url.trim() !== '';
+              const isInternalLink = hasUrl && link.url.startsWith('/');
 
               return (
                 <a
                   key={index}
                   href={hasUrl ? link.url : '#'}
-                  target={hasUrl ? '_blank' : undefined}
-                  rel={hasUrl ? 'noopener noreferrer' : undefined}
+                  target={hasUrl && !isInternalLink ? '_blank' : undefined}
+                  rel={hasUrl && !isInternalLink ? 'noopener noreferrer' : undefined}
                   onClick={(e) => {
                     if (!hasUrl) {
                       e.preventDefault();
