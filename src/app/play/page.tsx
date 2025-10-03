@@ -4,11 +4,11 @@
 
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
-import { Heart } from 'lucide-react';
+import { Heart, Send, X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
-import { detail as fetchDetail, focusedSearch } from '@/lib/dataProvider';
+import { detail as fetchDetail, focusedSearch, getCaptcha,submitFeedback } from '@/lib/dataProvider';
 import {
   deleteFavorite,
   deletePlayRecord,
@@ -44,6 +44,385 @@ interface WakeLockSentinel {
   removeEventListener(type: 'release', listener: () => void): void;
 }
 
+// 反馈弹窗组件
+function FeedbackModal({
+  isOpen,
+  onClose,
+  currentSource,
+  videoTitle,
+  currentEpisode,
+  videoUrl,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  currentSource: string;
+  videoTitle: string;
+  currentEpisode: number;
+  videoUrl: string;
+}) {
+  const [problemType, setProblemType] = useState<'lag' | 'loading' | 'other'>('lag');
+  const [content, setContent] = useState('');
+  const [email, setEmail] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [captchaImage, setCaptchaImage] = useState('');
+  const [sessionId, setSessionId] = useState('');
+  const [userAnswer, setUserAnswer] = useState('');
+  const [captchaLoading, setCaptchaLoading] = useState(false);
+
+  const loadCaptcha = async () => {
+    setCaptchaLoading(true);
+    try {
+      const captchaData = await getCaptcha(sessionId || undefined);
+      setCaptchaImage(captchaData.imageBase64);
+      setSessionId(captchaData.sessionId);
+      setUserAnswer('');
+    } catch (error) {
+      console.error('获取验证码失败:', error);
+      alert('获取验证码失败，请重试');
+    } finally {
+      setCaptchaLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    // 只有在打开弹窗、切换到需要验证码的类型、且验证码未加载时才获取
+    if (isOpen && (problemType === 'loading' || problemType === 'other') && !captchaImage) {
+      loadCaptcha();
+    }
+  }, [isOpen, problemType]);
+
+  const handleSubmit = async () => {
+    // 播放卡顿不需要提交
+    if (problemType === 'lag') {
+      onClose();
+      return;
+    }
+
+    // 加载不出视频和其他需要验证码
+    if (!userAnswer.trim()) {
+      alert('请输入验证码');
+      return;
+    }
+    if (userAnswer.trim().length !== 4) {
+      alert('请输入4位验证码');
+      return;
+    }
+
+    // 其他类型需要内容
+    if (problemType === 'other' && !content.trim()) {
+      alert('请输入问题描述');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const baseInfo = `${currentSource}-《${videoTitle}》 ${currentEpisode} ${videoUrl}`;
+      const feedbackContent = problemType === 'loading'
+        ? `${baseInfo}`
+        : `${baseInfo} ${content.trim()}`;
+
+      const data = await submitFeedback(
+        3, // type 固定为 3 (报错类型)
+        feedbackContent,
+        sessionId,
+        userAnswer.trim(),
+        email.trim() || undefined
+      );
+
+      if (data.code === 200) {
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          setContent('');
+          setEmail('');
+          setUserAnswer('');
+          setProblemType('lag');
+          onClose();
+        }, 1500);
+      } else {
+        alert(data.message || '提交失败，请稍后重试');
+        if (data.code === 401) {
+          loadCaptcha();
+        }
+      }
+    } catch (error: any) {
+      console.error('提交失败:', error);
+      alert('网络错误，请检查网络连接');
+      loadCaptcha();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleClose = () => {
+    setContent('');
+    setEmail('');
+    setSubmitted(false);
+    setUserAnswer('');
+    setProblemType('lag');
+    onClose();
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl max-w-md w-full p-6 relative max-h-[90vh] overflow-y-auto">
+        <button
+          onClick={handleClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors z-10"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        {submitted ? (
+          <div className="py-8 text-center">
+            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Send className="w-8 h-8 text-green-600 dark:text-green-400" />
+            </div>
+            <p className="text-lg font-medium text-green-600 dark:text-green-400">
+              提交成功！
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
+              感谢您的反馈，我们会尽快处理
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* 当前播放信息 */}
+            <div className="mb-4">
+              <p className="text-sm text-gray-700 dark:text-gray-300 mb-1">
+                尝试其他线路后影片仍无法播放：
+              </p>
+              <p className="text-sm text-gray-700 dark:text-gray-300">
+                【{currentSource}】-【{videoTitle}】【第 {currentEpisode} 集】
+              </p>
+            </div>
+
+            {/* 问题类型选择 */}
+            <div className="mb-4">
+              <div className="flex gap-2">
+                <label className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                  problemType === 'lag'
+                    ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                    : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="problemType"
+                    value="lag"
+                    checked={problemType === 'lag'}
+                    onChange={(e) => setProblemType(e.target.value as 'lag')}
+                    className="sr-only"
+                  />
+                  <span className="text-sm">播放卡顿</span>
+                </label>
+
+                <label className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                  problemType === 'loading'
+                    ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                    : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="problemType"
+                    value="loading"
+                    checked={problemType === 'loading'}
+                    onChange={(e) => setProblemType(e.target.value as 'loading')}
+                    className="sr-only"
+                  />
+                  <span className="text-sm">加载不出</span>
+                </label>
+
+                <label className={`flex-1 flex items-center justify-center px-4 py-2 rounded-lg cursor-pointer transition-colors ${
+                  problemType === 'other'
+                    ? 'bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-400'
+                    : 'bg-gray-50 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+                }`}>
+                  <input
+                    type="radio"
+                    name="problemType"
+                    value="other"
+                    checked={problemType === 'other'}
+                    onChange={(e) => setProblemType(e.target.value as 'other')}
+                    className="sr-only"
+                  />
+                  <span className="text-sm">其他</span>
+                </label>
+              </div>
+            </div>
+
+            {/* 根据问题类型显示不同内容 */}
+            {problemType === 'lag' && (
+              <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                  播放卡顿解决方案
+                </p>
+                <p className="text-sm text-blue-700 dark:text-blue-400">
+                  不同线路在不同地区和网络下速度不同，请尝试切换其他播放线路。
+                </p>
+              </div>
+            )}
+
+            {problemType === 'loading' && (
+              <>
+                <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                    💡 温馨提示
+                  </p>
+                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                    可尝试切换其他线路进行播放。如果所有线路均不能播放，则是视频被浏览器劫持，请更换浏览器进行观影。
+                  </p>
+                </div>
+
+                {/* 验证码 */}
+                <div className="mb-4">
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    验证码 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-2 w-full">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      value={userAnswer}
+                      onChange={(e) => setUserAnswer(e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="请输入4位数字"
+                      className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                      style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={loadCaptcha}
+                      disabled={captchaLoading}
+                      className="flex items-center justify-center w-20 h-10 flex-shrink-0 rounded-md hover:opacity-80 transition-opacity cursor-pointer overflow-hidden border-0"
+                      title="点击换一个"
+                    >
+                      {captchaLoading ? (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">加载中</span>
+                      ) : captchaImage ? (
+                        <img
+                          src={captchaImage}
+                          alt="验证码"
+                          className="w-full h-full object-contain rounded-md"
+                        />
+                      ) : (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">点击获取</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {problemType === 'other' && (
+              <>
+                {/* 问题描述 */}
+                <div className="mb-3">
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    问题描述 <span className="text-red-500">*</span>
+                  </label>
+                  <textarea
+                    value={content}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      if (text.length <= 70) {
+                        setContent(text);
+                      }
+                    }}
+                    placeholder="请详细描述您遇到的问题..."
+                    rows={4}
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors resize-none"
+                    style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                  />
+                </div>
+
+                {/* 邮箱 */}
+                <div className="mb-3">
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    联系邮箱（选填）
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                    style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                  />
+                </div>
+
+                {/* 验证码 */}
+                <div className="mb-4">
+                  <label className="block text-sm text-gray-700 dark:text-gray-300 mb-2">
+                    验证码 <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center gap-2 w-full">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={4}
+                      value={userAnswer}
+                      onChange={(e) => setUserAnswer(e.target.value.replace(/[^0-9]/g, ''))}
+                      placeholder="请输入4位数字"
+                      className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                      style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={loadCaptcha}
+                      disabled={captchaLoading}
+                      className="flex items-center justify-center w-20 h-10 flex-shrink-0 rounded-md hover:opacity-80 transition-opacity cursor-pointer overflow-hidden border-0"
+                      title="点击换一个"
+                    >
+                      {captchaLoading ? (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">加载中</span>
+                      ) : captchaImage ? (
+                        <img
+                          src={captchaImage}
+                          alt="验证码"
+                          className="w-full h-full object-contain rounded-md"
+                        />
+                      ) : (
+                        <span className="text-xs text-gray-500 dark:text-gray-400">点击获取</span>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* 按钮 */}
+            {problemType === 'lag' ? (
+              <button
+                onClick={handleClose}
+                className="w-full px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+              >
+                知道了
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={
+                  (problemType === 'other' && !content.trim()) ||
+                  !userAnswer.trim() ||
+                  submitting
+                }
+                className="w-full px-4 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                {submitting ? '提交中...' : '提交'}
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PlayPageClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -61,6 +440,9 @@ function PlayPageClient() {
 
   // 收藏状态
   const [favorited, setFavorited] = useState(false);
+
+  // 报错弹窗状态
+  const [showErrorModal, setShowErrorModal] = useState(false);
 
   // 跳过片头片尾配置
   const [skipConfig, setSkipConfig] = useState<{
@@ -1854,7 +2236,7 @@ function PlayPageClient() {
       <div className='flex flex-col gap-3 py-4 px-5 lg:px-[3rem] 2xl:px-20'>
         {/* 第一行：影片标题 */}
         <div className='py-1'>
-          <h1 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>
+          <h1 className='text-xl font-semibold text-gray-900 dark:text-white'>
             {videoTitle || '影片标题'}
             {totalEpisodes > 1 && (
               <span className='text-gray-500 dark:text-gray-400'>
@@ -1981,6 +2363,7 @@ function PlayPageClient() {
                 sourceSearchLoading={sourceSearchLoading}
                 sourceSearchError={sourceSearchError}
                 precomputedVideoInfo={precomputedVideoInfo}
+                onReportError={() => setShowErrorModal(true)}
               />
             </div>
           </div>
@@ -2080,6 +2463,16 @@ function PlayPageClient() {
           </div>
         </div>
       </div>
+
+      {/* 报错弹窗 */}
+      <FeedbackModal
+        isOpen={showErrorModal}
+        onClose={() => setShowErrorModal(false)}
+        currentSource={currentSource || '未知线路'}
+        videoTitle={videoTitle || '未知影片'}
+        currentEpisode={currentEpisodeIndex + 1}
+        videoUrl={videoUrl || ''}
+      />
     </PageLayout>
   );
 }

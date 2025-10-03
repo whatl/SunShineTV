@@ -42,6 +42,8 @@ interface EpisodeSelectorProps {
   sourceSearchError?: string | null;
   /** 预计算的测速结果，避免重复测速 */
   precomputedVideoInfo?: Map<string, VideoInfo>;
+  /** 报错按钮点击回调 */
+  onReportError?: () => void;
 }
 
 /**
@@ -58,6 +60,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   currentId,
   videoTitle,
   availableSources = [],
+  onReportError,
   sourceSearchLoading = false,
   sourceSearchError = null,
   precomputedVideoInfo,
@@ -670,7 +673,17 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                     }}
                     className='w-full text-center text-xs text-gray-500 dark:text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors py-2'
                   >
-                    影片匹配有误？点击去搜索
+                    影片匹配有误？再次搜索
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (onReportError) {
+                        onReportError();
+                      }
+                    }}
+                    className='w-full text-center text-xs text-gray-500 dark:text-gray-400 hover:text-orange-500 dark:hover:text-orange-400 transition-colors py-2 border-t border-gray-300 dark:border-gray-700'
+                  >
+                    我要报错
                   </button>
                 </div>
               </div>
