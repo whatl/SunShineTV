@@ -256,10 +256,10 @@ function FeedbackModal({
             {/* 根据问题类型显示不同内容 */}
             {problemType === 'lag' && (
               <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                <p className="text-sm font-medium mb-2">
                   播放卡顿解决方案
                 </p>
-                <p className="text-sm text-blue-700 dark:text-blue-400">
+                <p className="text-sm">
                   不同线路在不同地区和网络下速度不同，请尝试切换其他播放线路。
                 </p>
               </div>
@@ -268,10 +268,10 @@ function FeedbackModal({
             {problemType === 'loading' && (
               <>
                 <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-300 mb-2">
+                  <p className="text-sm font-medium mb-2">
                     💡 温馨提示
                   </p>
-                  <p className="text-sm text-blue-700 dark:text-blue-400">
+                  <p className="text-sm">
                     可尝试切换其他线路进行播放。如果所有线路均不能播放，则是视频被浏览器劫持，请更换浏览器进行观影。
                   </p>
                 </div>
@@ -290,7 +290,7 @@ function FeedbackModal({
                       value={userAnswer}
                       onChange={(e) => setUserAnswer(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder="请输入4位数字"
-                      className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                      className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-900 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
                       style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                     />
                     <button
@@ -334,7 +334,7 @@ function FeedbackModal({
                     }}
                     placeholder="请详细描述您遇到的问题..."
                     rows={4}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors resize-none"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors resize-none"
                     style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                   />
                 </div>
@@ -349,7 +349,7 @@ function FeedbackModal({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
                     style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                   />
                 </div>
@@ -368,7 +368,7 @@ function FeedbackModal({
                       value={userAnswer}
                       onChange={(e) => setUserAnswer(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder="请输入4位数字"
-                      className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                      className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-900 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
                       style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                     />
                     <button
