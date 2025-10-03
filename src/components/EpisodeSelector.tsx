@@ -247,6 +247,27 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   // 添加鼠标悬停状态管理
   const [isCategoryHovered, setIsCategoryHovered] = useState(false);
 
+  // 添加换源列表的引用
+  const sourceListRef = useRef<HTMLDivElement>(null);
+
+  // 处理换源列表的滚动事件
+  const handleSourceListScroll = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    const element = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = element;
+    const isScrollingDown = e.deltaY > 0;
+    const isScrollingUp = e.deltaY < 0;
+
+    // 如果向下滚动且已经到底部，或向上滚动且已经到顶部，允许事件传播
+    if ((isScrollingDown && scrollTop + clientHeight >= scrollHeight - 1) ||
+        (isScrollingUp && scrollTop <= 1)) {
+      // 不阻止事件，让外层容器滚动
+      return;
+    }
+
+    // 否则阻止事件传播，只滚动当前列表
+    e.stopPropagation();
+  }, []);
+
   // 阻止页面竖向滚动
   const preventPageScroll = useCallback((e: WheelEvent) => {
     if (isCategoryHovered) {
@@ -520,7 +541,11 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
           {!sourceSearchLoading &&
             !sourceSearchError &&
             availableSources.length > 0 && (
-              <div className='flex-1 overflow-y-auto space-y-2 pb-20'>
+              <div
+                ref={sourceListRef}
+                onWheel={handleSourceListScroll}
+                className='flex-1 overflow-y-auto space-y-2 pb-20'
+              >
                 {availableSources
                   .sort((a, b) => {
                     const aIsCurrent =
