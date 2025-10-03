@@ -476,7 +476,7 @@ function RequestMovieSection() {
 
       <button
         onClick={() => setShowModal(true)}
-        className="mt-4 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+        className="mt-4 px-6 py-2.5 border-2 border-green-600 text-green-600 dark:text-green-400 dark:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors duration-200 flex items-center gap-2"
       >
         <Send className="w-4 h-4" />
         留言求片
@@ -512,7 +512,7 @@ function FeedbackSection() {
       <div className="flex gap-3">
         <button
           onClick={() => setShowModal(true)}
-          className="mt-2 px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 flex items-center gap-2"
+          className="mt-2 px-6 py-2.5 border-2 border-green-600 text-green-600 dark:text-green-400 dark:border-green-400 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg transition-colors duration-200 flex items-center gap-2"
         >
           <Send className="w-4 h-4" />
           提交反馈建议
