@@ -10,7 +10,7 @@ import FilterToolbar from '@/components/FilterToolbar';
 import PageLayout from '@/components/PageLayout';
 import VideoCard from '@/components/VideoCard';
 
-export function CategoryPageClient({ params, showFilter, activePath, noLayout }: { params: { type: string }, showFilter?: boolean, activePath?: string, noLayout?: boolean }) {
+export function CategoryPageClient({ params, showFilter, activePath }: { params: { type: string }, showFilter?: boolean, activePath?: string }) {
   const type = params.type;
   const [localPageSize, setLocalPageSize] = useState(10); // 一般分页默认最少十条
   const [data, setData] = useState<DoubanItem[]>([]);
@@ -43,7 +43,7 @@ export function CategoryPageClient({ params, showFilter, activePath, noLayout }:
         } else {
           setData(prev => [...prev, ...result.list]);
         }
-        console.log(`localPageSizeNum ${localPageSizeNum} ${result.list.length >= localPageSizeNum}`)
+        // console.log(`localPageSizeNum ${localPageSizeNum} ${result.list.length >= localPageSizeNum}`)
         setHasMore(result.list.length >= localPageSizeNum); // (By Faker)
         if (pageNum > page) {
           setPage(pageNum);
@@ -132,8 +132,9 @@ export function CategoryPageClient({ params, showFilter, activePath, noLayout }:
 
   // const cardFrom = (process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms' ? 'douban' : process.env.NEXT_PUBLIC_DATA_SOURCE) || 'douban';
 
-  const content = (
-    <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible'>
+  return (
+    <PageLayout activePath={activePath || `/main?type=${type}`}>
+      <div className='px-4 sm:px-10 py-4 sm:py-8 overflow-visible'>
         <div className='mb-6 sm:mb-8 space-y-4 sm:space-y-6'>
           <div>
             <h1 className='text-2xl sm:text-3xl font-bold text-gray-800 mb-1 sm:mb-2 dark:text-gray-200'>
@@ -206,15 +207,6 @@ export function CategoryPageClient({ params, showFilter, activePath, noLayout }:
           )}
         </div>
       </div>
-  );
-
-  if (noLayout) {
-    return content;
-  }
-
-  return (
-    <PageLayout activePath={activePath || `/main?type=${type}`}>
-      {content}
     </PageLayout>
   );
 }

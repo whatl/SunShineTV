@@ -24,7 +24,7 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
 
   const [navItems, setNavItems] = useState(() => {
     const items = [
-      { icon: Home, label: '首页', href: '/main?type=home' },
+      { icon: Home, label: '首页', href: '/' },
       {
         icon: Film,
         label: '电影',
@@ -78,9 +78,9 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
   }, []);
 
   const isActive = (href: string) => {
-    // For the homepage, check both old and new paths
-    if (href === '/main?type=home') {
-      return currentActive === '/' || currentActive === '/main?type=home' || currentActive.startsWith('/main?type=home');
+    // For the homepage, we need an exact match.
+    if (href === '/') {
+      return currentActive === '/';
     }
     // For other pages, a prefix match is sufficient.
     return currentActive.startsWith(href);
@@ -107,7 +107,6 @@ const MobileBottomNav = ({ activePath }: MobileBottomNavProps) => {
             >
               <Link
                 href={item.href}
-                prefetch={true}
                 className='flex flex-col items-center justify-center w-full h-14 gap-1 text-xs'
               >
                 <item.icon

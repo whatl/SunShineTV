@@ -193,10 +193,9 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
             {/* 首页和搜索导航 */}
             <nav className='px-2 mt-4 space-y-1'>
               <Link
-                href='/main?type=home'
-                onClick={() => setActive('/main?type=home')}
-                prefetch={true}
-                data-active={active === '/' || active === '/main?type=home'}
+                href='/'
+                onClick={() => setActive('/')}
+                data-active={active === '/'}
                 className='group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 mx-0 gap-3 justify-start'
               >
                 <div className='w-4 h-4 flex items-center justify-center'>
@@ -213,7 +212,6 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                   handleSearchClick();
                   setActive('/search');
                 }}
-                prefetch={true}
                 data-active={active === '/search'}
                 className='group flex items-center rounded-lg px-2 py-2 pl-4 text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 font-medium transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 mx-0 gap-3 justify-start'
               >
@@ -248,7 +246,6 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
                       key={item.label}
                       href={item.href}
                       onClick={() => setActive(item.href)}
-                      prefetch={true}
                       data-active={isActive}
                       className='group flex items-center rounded-lg px-2 py-2 pl-4 text-sm text-gray-700 hover:bg-gray-100/30 hover:text-green-600 data-[active=true]:bg-green-500/20 data-[active=true]:text-green-700 transition-colors duration-200 min-h-[40px] dark:text-gray-300 dark:hover:text-green-400 dark:data-[active=true]:bg-green-500/10 dark:data-[active=true]:text-green-400 mx-0 gap-3 justify-start'
                     >
