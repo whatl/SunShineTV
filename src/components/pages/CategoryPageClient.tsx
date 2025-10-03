@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { getCache, setCache } from '@/lib/tempcache';
 import { getList } from '@/lib/dataProvider';
 import { DoubanItem } from '@/lib/types';
 
@@ -12,7 +13,8 @@ import VideoCard from '@/components/VideoCard';
 
 export function CategoryPageClient({ params, showFilter, activePath }: { params: { type: string }, showFilter?: boolean, activePath?: string }) {
   const type = params.type;
-  const [localPageSize, setLocalPageSize] = useState(10); // 一般分页默认最少十条
+
+  const [localPageSize, setLocalPageSize] = useState(10);
   const [data, setData] = useState<DoubanItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -27,28 +29,54 @@ export function CategoryPageClient({ params, showFilter, activePath }: { params:
   const currentFilterExtra = useRef<Record<string, string>>({});
 
   const loadData = useCallback(async (path: string, extra: Record<string, string>, pageNum: number, localPageSizeNum: number) => {
+    const cacheKey = `category_${path}_${JSON.stringify(extra)}_page${pageNum}`;
+    // 读取缓存
+    const cached = getCache<DoubanItem[]>(cacheKey);
+    // 记录开始时间（用于保证最小 loading 时长）
+    const startTime = Date.now();
+    let shouldShowLoading = false;
+
     if (pageNum === 1) {
-      setLoading(true);
+      // 第一页：如果没有缓存才显示 loading
+      if (!cached) {
+        setLoading(true);
+        shouldShowLoading = true;
+      }
     } else {
       setIsLoadingMore(true);
     }
     setIsError(false);
 
     try {
-      const result = await getList(path, extra, pageNum);
+      const result = await getList(path, extra, pageNum); 
+      // 如果需要显示 loading，保证最少显示时间
+      if (shouldShowLoading) {
+        const elapsed = Date.now() - startTime;
+        const minLoadingTime = 250;
+        const remainingTime = Math.max(0, minLoadingTime - elapsed);
+        if (remainingTime > 0) {
+          await new Promise(resolve => setTimeout(resolve, remainingTime));
+        }
+      }
+
       if (result.code === 200) {
         if (pageNum === 1) {
-          setData(result.list);
-          setLocalPageSize(result.list.length);
+          // 缓存第一页数据
+          setCache(cacheKey, result.list);
+
+          // 对比缓存数据，如果不一致才更新
+          const needUpdate = !cached || JSON.stringify(cached) !== JSON.stringify(result.list);
+          if (needUpdate) {
+            setData(result.list);
+            setLocalPageSize(result.list.length);
+          }
         } else {
           setData(prev => [...prev, ...result.list]);
         }
-        // console.log(`localPageSizeNum ${localPageSizeNum} ${result.list.length >= localPageSizeNum}`)
-        setHasMore(result.list.length >= localPageSizeNum); // (By Faker)
+        setHasMore(result.list.length >= localPageSizeNum);
         if (pageNum > page) {
           setPage(pageNum);
         }
-        // 成功加载，清除错误状态
         setIsError(false);
       } else {
         throw new Error(result.message || 'Failed to fetch data');
@@ -84,19 +112,36 @@ export function CategoryPageClient({ params, showFilter, activePath }: { params:
 
   const showFilterResolved = showFilter ?? (process.env.NEXT_PUBLIC_SHOW_FILTER_TOOLBAR !== 'false');
 
+  // 监听 type 变化，立即从缓存加载数据,先恢复成默认值
   useEffect(() => {
-    // When the filter is hidden, we manually trigger the initial data load
-    // with a default path, as the toolbar is not present to do so.
+    // 读取该 type 的缓存（只读取一次）
+    const cacheKey = `category_${type}_{}_page1`;
+    const cached = getCache<DoubanItem[]>(cacheKey);
+    const hasCache = !!cached;
+    // 根据缓存状态一次性设置所有状态
+    if (hasCache) {
+      // 有缓存：立即显示，不显示 loading
+      setData(cached);
+      setLoading(false);
+    } else {
+      // 无缓存：清空数据，显示 loading
+      setData([]);
+      setLoading(true);
+    }
+    // 重置分页状态
+    setPage(1);
+    setHasMore(true);
+    setIsError(false);
+
+    // 触发数据加载（有缓存也加载，用于静默更新）
     if (showFilterResolved === false) {
       const defaultPath = `${type}`;
-      // Set the refs for pagination to work correctly
       currentFilterPath.current = defaultPath;
       currentFilterExtra.current = {};
       loadData(defaultPath, {}, 1, localPageSize);
     }
-    // This effect should only run once on mount when the filter is hidden.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showFilterResolved, type]);
+  }, [type]);
 
   useEffect(() => {
     if (loading || isLoadingMore || !hasMore) return;
