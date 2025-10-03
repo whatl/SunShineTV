@@ -165,11 +165,9 @@ function FeedbackModal({
                 }}
                 placeholder={placeholder}
                 rows={4}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 resize-none"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors resize-none"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
               />
-              <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 text-right">
-                {content.length}/70
-              </div>
             </div>
 
             {/* 邮箱输入 */}
@@ -182,7 +180,8 @@ function FeedbackModal({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
               />
             </div>
 
@@ -200,47 +199,40 @@ function FeedbackModal({
                   value={userAnswer}
                   onChange={(e) => setUserAnswer(e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="请输入4位数字"
-                  className="flex-1 min-w-0 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500"
+                  className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-800 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                  style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                 />
                 <button
                   type="button"
                   onClick={loadCaptcha}
                   disabled={captchaLoading}
-                  className="flex items-center justify-center min-w-[90px] h-[36px] flex-shrink-0 rounded-lg border border-gray-300 dark:border-gray-600 hover:opacity-80 transition-opacity cursor-pointer overflow-hidden bg-gray-100 dark:bg-gray-700"
+                  className="flex items-center justify-center w-20 h-10 flex-shrink-0 rounded-md hover:opacity-80 transition-opacity cursor-pointer overflow-hidden border-0"
                   title="点击换一个"
                 >
                   {captchaLoading ? (
-                    <span className="text-sm text-gray-500">加载中...</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">加载中</span>
                   ) : captchaImage ? (
                     <img
                       src={captchaImage}
                       alt="验证码"
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain rounded-md"
                     />
                   ) : (
-                    <span className="text-sm text-gray-500">点击获取</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">点击获取</span>
                   )}
                 </button>
               </div>
             </div>
 
             {/* 按钮 */}
-            <div className="flex gap-3">
-              <button
-                onClick={handleClose}
-                className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={!content.trim() || !userAnswer.trim() || submitting}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-              >
-                <Send className="w-4 h-4" />
-                {submitting ? '提交中...' : '提交'}
-              </button>
-            </div>
+            <button
+              onClick={handleSubmit}
+              disabled={!content.trim() || !userAnswer.trim() || submitting}
+              className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+            >
+              <Send className="w-4 h-4" />
+              {submitting ? '提交中...' : '提交'}
+            </button>
           </>
         )}
       </div>
