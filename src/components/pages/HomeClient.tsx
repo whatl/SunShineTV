@@ -401,29 +401,34 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
                           (item) => item.weekday?.en === 'CMS' || item.weekday?.en.toLowerCase() === currentWeekday.toLowerCase()
                         )?.items || [];
 
-                      return todayAnimes.map((anime, index) => (
-                        <div
-                          key={`${anime.id}-${index}`}
-                          className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
-                        >
-                          <VideoCard
-                            from='base'
-                            title={anime.name_cn || anime.name}
-                            poster={
-                              anime.images.large ||
-                              anime.images.common ||
-                              anime.images.medium ||
-                              anime.images.small ||
-                              anime.images.grid
-                            }
-                            id={anime.vodid}
-                            douban_id={anime.id}
-                            rate={anime.rating?.score?.toFixed(1) || ''}
-                            year={anime.air_date?.split('-')?.[0] || ''}
-                            isBangumi={true}
-                          />
-                        </div>
-                      ));
+                      return todayAnimes.map((anime, index) => {
+                        // 只有数据源是 douban 时才显示 Bangumi 详情
+                        const isDouban = process.env.NEXT_PUBLIC_DATA_SOURCE === 'douban';
+
+                        return (
+                          <div
+                            key={`${anime.id}-${index}`}
+                            className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
+                          >
+                            <VideoCard
+                              from='base'
+                              title={anime.name_cn || anime.name}
+                              poster={
+                                anime.images.large ||
+                                anime.images.common ||
+                                anime.images.medium ||
+                                anime.images.small ||
+                                anime.images.grid
+                              }
+                              id={anime.vodid}
+                              douban_id={anime.id}
+                              rate={anime.rating?.score?.toFixed(1) || ''}
+                              year={anime.air_date?.split('-')?.[0] || ''}
+                              isBangumi={isDouban}
+                            />
+                          </div>
+                        );
+                      });
                     })()}
                 </ScrollableRow>
               </section>
