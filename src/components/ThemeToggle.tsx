@@ -5,6 +5,7 @@
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useEffect } from 'react';
+import { flushSync } from 'react-dom';
 
 export function ThemeToggle() {
   const { setTheme, resolvedTheme } = useTheme();
@@ -37,7 +38,9 @@ export function ThemeToggle() {
     }
 
     (document as any).startViewTransition(() => {
-      setTheme(targetTheme);
+      flushSync(() => {
+        setTheme(targetTheme);
+      });
     });
   };
   // 同时渲染两个按钮（这样不用改变dom），用透明度来改变防止闪烁
