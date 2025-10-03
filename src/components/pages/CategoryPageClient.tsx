@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { getCache, setCache } from '@/lib/tempcache';
 import { getList } from '@/lib/dataProvider';
+import { getCache, setCache } from '@/lib/tempcache';
 import { DoubanItem } from '@/lib/types';
 
 import DoubanCardSkeleton from '@/components/DoubanCardSkeleton';
@@ -114,13 +114,19 @@ export function CategoryPageClient({ params, showFilter, activePath }: { params:
 
   // 监听 type 变化，立即从缓存加载数据,先恢复成默认值
   useEffect(() => {
-    // 读取该 type 的缓存（只读取一次）
+    // 读取该 type 的缓存
     const cacheKey = `category_${type}_{}_page1`;
     const cached = getCache<DoubanItem[]>(cacheKey);
     const hasCache = !!cached;
-    // 根据缓存状态一次性设置所有状态
+
+    // 先重置分页状态
+    setPage(1);
+    setHasMore(true);
+    setIsError(false);
+
+    // 根据缓存状态一次性设置数据和 loading 状态
     if (hasCache) {
-      // 有缓存：立即显示，不显示 loading
+      // 有缓存：立即显示缓存数据
       setData(cached);
       setLoading(false);
     } else {
@@ -128,10 +134,6 @@ export function CategoryPageClient({ params, showFilter, activePath }: { params:
       setData([]);
       setLoading(true);
     }
-    // 重置分页状态
-    setPage(1);
-    setHasMore(true);
-    setIsError(false);
 
     // 触发数据加载（有缓存也加载，用于静默更新）
     if (showFilterResolved === false) {
@@ -202,7 +204,7 @@ export function CategoryPageClient({ params, showFilter, activePath }: { params:
             {loading
               ? skeletonData.map((index) => <DoubanCardSkeleton key={index} />)
               : data.map((item, index) => (
-                  <div key={`${item.id}-${index}`} className='w-full'>
+                  <div key={item.vodid ? `${type}-${item.vodid}` : `${item.id}-${index}`} className='w-full'>
                     <VideoCard
                       from="base"
                       id={item.vodid}

@@ -558,14 +558,14 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             return false;
           }}
         >
-          {/* 骨架屏 */}
-          {!isLoading && <ImagePlaceholder aspectRatio='aspect-[2/3]' />}
-          {/* 图片 */}
+          {/* 骨架屏 - 始终显示作为背景 */}
+          <ImagePlaceholder aspectRatio='aspect-[2/3]' />
+          {/* 图片 - 淡入覆盖骨架屏 */}
           <Image
             src={processImageUrl(actualPoster)}
             alt={actualTitle}
             fill
-            className={origin === 'live' ? 'object-contain' : 'object-cover'}
+            className={`${origin === 'live' ? 'object-contain' : 'object-cover'} transition-opacity duration-150 ${isLoading ? 'opacity-100' : 'opacity-0'}`}
             referrerPolicy='no-referrer'
             loading='lazy'
             onLoadingComplete={() => setIsLoading(true)}
