@@ -15,6 +15,7 @@ import {
   getAllPlayRecords,
   subscribeToDataUpdates,
 } from '@/lib/db.client';
+import { getCache, setCache } from '@/lib/tempcache';
 import { DoubanItem } from '@/lib/types';
 
 import CapsuleSwitch from '@/components/CapsuleSwitch';
@@ -67,25 +68,66 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
   const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
 
   useEffect(() => {
+    // 读取缓存
+    const cacheKey = 'home';
+    const cached = getCache<{
+      movies: DoubanItem[];
+      tvShows: DoubanItem[];
+      varietyShows: DoubanItem[];
+      shortVideos: DoubanItem[];
+      animes: BangumiCalendarData[];
+    }>(cacheKey);
+    const hasCache = !!cached;
+
+    // 如果有缓存，立即显示
+    if (hasCache) {
+      setHotMovies(cached.movies);
+      setHotTvShows(cached.tvShows);
+      setHotVarietyShows(cached.varietyShows);
+      setHotShortVideos(cached.shortVideos);
+      setBangumiCalendarData(cached.animes);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
+    // 获取最新数据
     const fetchAllHomePageData = async () => {
+      const startTime = Date.now();
+
       try {
-        setLoading(true);
         const homeData = await getHomePageData();
+        const requestElapsed = Date.now() - startTime;
 
-        if (homeData.movies?.code === 200) {
-          setHotMovies(homeData.movies.list);
+        // 如果没有缓存，保证最少显示 loading 250ms
+        if (!hasCache) {
+          const minLoadingTime = 250;
+          const remainingTime = Math.max(0, minLoadingTime - requestElapsed);
+          if (remainingTime > 0) {
+            await new Promise(resolve => setTimeout(resolve, remainingTime));
+          }
         }
-        if (homeData.tvShows?.code === 200) {
-          setHotTvShows(homeData.tvShows.list);
-        }
-        if (homeData.varietyShows?.code === 200) {
-          setHotVarietyShows(homeData.varietyShows.list);
-        }
-        if (homeData.shortVideos?.code === 200) {
-          setHotShortVideos(homeData.shortVideos.list);
-        }
-        setBangumiCalendarData(homeData.animes);
 
+        const newData = {
+          movies: homeData.movies?.code === 200 ? homeData.movies.list : [],
+          tvShows: homeData.tvShows?.code === 200 ? homeData.tvShows.list : [],
+          varietyShows: homeData.varietyShows?.code === 200 ? homeData.varietyShows.list : [],
+          shortVideos: homeData.shortVideos?.code === 200 ? homeData.shortVideos.list : [],
+          animes: homeData.animes || [],
+        };
+
+        // 缓存数据
+        setCache(cacheKey, newData);
+
+        // 对比数据，如果不一致才更新
+        const needUpdate = !hasCache || JSON.stringify(cached) !== JSON.stringify(newData);
+        if (needUpdate) {
+          setHotMovies(newData.movies);
+          setHotTvShows(newData.tvShows);
+          setHotVarietyShows(newData.varietyShows);
+          setHotShortVideos(newData.shortVideos);
+          setBangumiCalendarData(newData.animes);
+        }
       } catch (error) {
         console.error('获取首页数据失败:', error);
       } finally {
