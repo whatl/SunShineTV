@@ -9,13 +9,14 @@ interface SearchSuggestionsProps {
   isVisible: boolean;
   onSelect: (suggestion: string) => void;
   onClose: () => void;
-  onEnterKey: () => void; // 新增：处理回车键的回调
+  onEnterKey: () => void;
+  hasContent?: boolean; // 搜索框是否有内容
 }
 
 interface SuggestionItem {
   text: string;
-  type: 'related';
-  icon?: React.ReactNode;
+  type: 'exact' | 'related' | 'suggestion';
+  score?: number;
 }
 
 export default function SearchSuggestions({
@@ -24,6 +25,7 @@ export default function SearchSuggestions({
   onSelect,
   onClose,
   onEnterKey,
+  hasContent = false,
 }: SearchSuggestionsProps) {
   const [suggestions, setSuggestions] = useState<SuggestionItem[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -44,18 +46,15 @@ export default function SearchSuggestions({
 
     try {
       // 使用 dataProvider 的 getSuggestions 方法
-      const suggestions = await getSuggestions(searchQuery);
+      // 传入搜索词获取建议，传入空字符串获取热搜
+      const results = await getSuggestions(searchQuery);
 
       // 检查是否被中止
       if (controller.signal.aborted) {
         return;
       }
 
-      const apiSuggestions = suggestions.map((item) => ({
-        text: item.text,
-        type: 'related' as const,
-      }));
-      setSuggestions(apiSuggestions);
+      setSuggestions(results);
     } catch (err: unknown) {
       // 类型保护判断 err 是否是 Error 类型
       if (err instanceof Error) {
@@ -76,23 +75,27 @@ export default function SearchSuggestions({
       if (debounceTimer.current) {
         clearTimeout(debounceTimer.current);
       }
+
+      // 如果有内容，防抖300ms
+      const delay = 300;
+
       debounceTimer.current = setTimeout(() => {
-        if (searchQuery.trim() && isVisible) {
+        if (isVisible) {
           fetchSuggestionsFromAPI(searchQuery);
-        } else {
-          setSuggestions([]);
         }
-      }, 300); //300ms
+      }, delay);
     },
     [isVisible, fetchSuggestionsFromAPI]
   );
 
   useEffect(() => {
-    if (!query.trim() || !isVisible) {
+    if (!isVisible) {
       setSuggestions([]);
       return;
     }
-    debouncedFetchSuggestions(query);
+
+    // 根据是否有查询内容来决定获取建议还是热搜
+    debouncedFetchSuggestions(query.trim());
 
     // 清理定时器
     return () => {
@@ -144,22 +147,35 @@ export default function SearchSuggestions({
     return null;
   }
 
+  // 判断是否显示热搜（query为空或只有空格）
+  const isHotSearch = !query.trim();
+
   return (
     <div
       ref={containerRef}
-      className='absolute top-full left-0 right-0 z-[600] mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-80 overflow-y-auto'
+      className='absolute left-0 right-0 z-[600] bg-gray-50 dark:bg-gray-800 shadow-lg rounded-3xl mt-2 pt-4 pb-4 px-4'
     >
-      {suggestions.map((suggestion) => (
-        <button
-          key={`related-${suggestion.text}`}
-          onClick={() => onSelect(suggestion.text)}
-          className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 flex items-center gap-3"
-        >
-          <span className='flex-1 text-sm text-gray-700 dark:text-gray-300 truncate'>
-            {suggestion.text}
-          </span>
-        </button>
-      ))}
+      {/* 两列网格布局 */}
+      <div className='grid grid-cols-2 gap-2'>
+        {suggestions.slice(0, 8).map((item, index) => (
+          <button
+            key={`suggestion-${index}-${item.text}`}
+            onClick={() => onSelect(item.text)}
+            className='flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700/50 transition-all duration-200 text-left'
+          >
+            {/* 显示序号，热搜前3个带颜色 */}
+            <span className={`text-xs font-bold w-5 text-center flex-shrink-0 ${
+              isHotSearch && index === 0 ? 'text-red-500' :
+              isHotSearch && index === 1 ? 'text-orange-500' :
+              isHotSearch && index === 2 ? 'text-yellow-500' :
+              'text-gray-400'
+            }`}>
+              {index + 1}
+            </span>
+            <span className='flex-1 truncate'>{item.text}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

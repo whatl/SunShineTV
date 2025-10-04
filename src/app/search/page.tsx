@@ -344,9 +344,6 @@ function SearchPageClient() {
   }, [aggregatedResults, filterAgg, searchQuery]);
 
   useEffect(() => {
-    // 无搜索参数时聚焦搜索框
-    !searchParams.get('q') && document.getElementById('searchInput')?.focus();
-
     // 初始加载搜索历史
     getSearchHistory().then(setSearchHistory);
 
@@ -630,19 +627,23 @@ function SearchPageClient() {
       const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         setSearchQuery(value);
-    
-        if (value.trim()) {
-          setShowSuggestions(true);
-        } else {
-          setShowSuggestions(false);
-        }
+
+        // 无论有无内容都显示建议框（有内容显示建议，无内容显示热搜）
+        setShowSuggestions(true);
       };
-    
-      // 搜索框聚焦时触发，显示搜索建议
+
+      // 搜索框聚焦时触发，显示搜索建议或热搜
       const handleInputFocus = () => {
-        if (searchQuery.trim()) {
-          setShowSuggestions(true);
-        }
+        // 聚焦时始终显示建议框
+        setShowSuggestions(true);
+      };
+
+      // 搜索框失焦时触发，关闭建议框（移动端键盘收起时会触发）
+      const handleInputBlur = () => {
+        // 延迟关闭，给点击建议项留出时间
+        setTimeout(() => {
+          setShowSuggestions(false);
+        }, 200);
       };
     
       // 搜索表单提交时触发，处理搜索逻辑
@@ -689,9 +690,15 @@ function SearchPageClient() {
                       value={searchQuery}
                       onChange={handleInputChange}
                       onFocus={handleInputFocus}
+                      onBlur={handleInputBlur}
                       placeholder='搜索电影、电视剧...'
                       autoComplete="off"
-                      className='w-full h-12 rounded-full bg-gray-50/80 py-3 pl-10 pr-12 text-base text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-400 focus:bg-white border border-gray-200/50 shadow-sm dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500 dark:focus:bg-gray-700 dark:border-gray-700'
+                      className='w-full h-12 py-3 pl-10 pr-12 text-base text-gray-700 placeholder-gray-400 bg-gray-50 dark:bg-gray-800 dark:text-gray-300 dark:placeholder-gray-500 rounded-3xl shadow-sm'
+                      style={{
+                        outline: 'none',
+                        border: 'none',
+                        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+                      }}
                     />
       
                     {/* 清除按钮 */}
@@ -710,23 +717,24 @@ function SearchPageClient() {
                       </button>
                     )}
       
-                    {/* 搜索建议 */}
+                    {/* 搜索建议/热搜 统一对话框 */}
                     <SearchSuggestions
                       query={searchQuery}
                       isVisible={showSuggestions}
+                      hasContent={!!searchQuery.trim()}
                       onSelect={handleSuggestionSelect}
                       onClose={() => setShowSuggestions(false)}
                       onEnterKey={() => {
                         // 当用户按回车键时，使用搜索框的实际内容进行搜索
                         const trimmed = searchQuery.trim().replace(/\s+/g, ' ');
                         if (!trimmed) return;
-      
+
                         // 回显搜索框
                         setSearchQuery(trimmed);
                         setIsLoading(true);
                         setShowResults(true);
                         setShowSuggestions(false);
-      
+
                         router.push(`/search?q=${encodeURIComponent(trimmed)}`);
                       }}
                     />
