@@ -548,7 +548,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
           {!sourceSearchLoading &&
             !sourceSearchError &&
             availableSources.length > 0 && (
-              <div className='flex-1 overflow-y-auto pb-20'>
+              <div className='flex-1 overflow-auto pb-20'>
                 {(sortedSources.length > 0 ? sortedSources : availableSources).map((source, index) => {
                     const isCurrentSource =
                       source.source?.toString() === currentSource?.toString() &&
@@ -559,7 +559,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                         onClick={() =>
                           !isCurrentSource && handleSourceClick(source)
                         }
-                        className={`flex items-start gap-3 p-3 rounded-lg transition-all select-none duration-200 relative ${index === 0 ? 'mt-4' : 'mt-2'} mx-4 ${index === availableSources.length - 1 ? 'mb-4' : ''} border
+                        className={`flex items-start gap-3 p-3 rounded-lg transition-all select-none duration-200 relative min-w-[240px] ${index === 0 ? 'mt-4' : 'mt-2'} mx-4 ${index === availableSources.length - 1 ? 'mb-4' : ''} border
                       ${isCurrentSource
                             ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/30'
                             : 'bg-gray-200/50 dark:bg-white/10 hover:scale-[1.02] cursor-pointer border-transparent'
