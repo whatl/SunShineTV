@@ -347,6 +347,7 @@ function FeedbackModal({
                   <input
                     type="email"
                     value={email}
+                    maxLength={30}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your@email.com"
                     className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
