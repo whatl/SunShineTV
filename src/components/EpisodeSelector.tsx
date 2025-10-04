@@ -102,6 +102,33 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   // 是否倒序显示
   const [descending, setDescending] = useState<boolean>(false);
 
+  // 保存初始排序后的列表
+  const [sortedSources, setSortedSources] = useState<SearchResult[]>([]);
+  const userHasInteractedRef = useRef(false);  // 追踪用户是否点击过
+
+  // 初始化时排序，但用户点击后不再排序
+  useEffect(() => {
+    if (availableSources && availableSources.length > 0 && !userHasInteractedRef.current) {
+      const sorted = [...availableSources].sort((a, b) => {
+        const aIsCurrent =
+          a.source?.toString() === currentSource?.toString() &&
+          a.id?.toString() === currentId?.toString();
+        const bIsCurrent =
+          b.source?.toString() === currentSource?.toString() &&
+          b.id?.toString() === currentId?.toString();
+        if (aIsCurrent && !bIsCurrent) return -1;
+        if (!aIsCurrent && bIsCurrent) return 1;
+        return 0;
+      });
+      setSortedSources(sorted);
+    }
+  }, [availableSources, currentSource, currentId]);
+
+  // 视频改变时重置用户交互标记
+  useEffect(() => {
+    userHasInteractedRef.current = false;
+  }, [currentId]);
+
   // 根据 descending 状态计算实际显示的分页索引
   const displayPage = useMemo(() => {
     if (descending) {
@@ -340,6 +367,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
 
   const handleSourceClick = useCallback(
     (source: SearchResult) => {
+      userHasInteractedRef.current = true;  // 标记用户已交互
       onSourceChange?.(source.source, source.id, source.title);
     },
     [onSourceChange]
@@ -521,19 +549,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
             !sourceSearchError &&
             availableSources.length > 0 && (
               <div className='flex-1 overflow-y-auto pb-20'>
-                {availableSources
-                  .sort((a, b) => {
-                    const aIsCurrent =
-                      a.source?.toString() === currentSource?.toString() &&
-                      a.id?.toString() === currentId?.toString();
-                    const bIsCurrent =
-                      b.source?.toString() === currentSource?.toString() &&
-                      b.id?.toString() === currentId?.toString();
-                    if (aIsCurrent && !bIsCurrent) return -1;
-                    if (!aIsCurrent && bIsCurrent) return 1;
-                    return 0;
-                  })
-                  .map((source, index) => {
+                {(sortedSources.length > 0 ? sortedSources : availableSources).map((source, index) => {
                     const isCurrentSource =
                       source.source?.toString() === currentSource?.toString() &&
                       source.id?.toString() === currentId?.toString();
@@ -543,10 +559,10 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                         onClick={() =>
                           !isCurrentSource && handleSourceClick(source)
                         }
-                        className={`flex items-start gap-3 p-3 rounded-lg transition-all select-none duration-200 relative ${index === 0 ? 'mt-4' : 'mt-2'} mx-4 ${index === availableSources.length - 1 ? 'mb-4' : ''}
+                        className={`flex items-start gap-3 p-3 rounded-lg transition-all select-none duration-200 relative ${index === 0 ? 'mt-4' : 'mt-2'} mx-4 ${index === availableSources.length - 1 ? 'mb-4' : ''} border
                       ${isCurrentSource
-                            ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/30 border'
-                            : 'bg-gray-200/50 dark:bg-white/10 hover:scale-[1.02] cursor-pointer'
+                            ? 'bg-green-500/10 dark:bg-green-500/20 border-green-500/30'
+                            : 'bg-gray-200/50 dark:bg-white/10 hover:scale-[1.02] cursor-pointer border-transparent'
                           }`.trim()}
                       >
                         {/* 封面 */}
