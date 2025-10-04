@@ -415,6 +415,30 @@ export async function submitFeedback(
   return response.json();
 }
 
+/**
+ * 获取搜索建议或热搜
+ * @param query 搜索查询，空字符串返回热搜
+ */
+async function getSuggestions(query: string): Promise<Array<{
+  text: string;
+  type: 'exact' | 'related' | 'suggestion';
+  score?: number;
+}>> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/cms/shine/search/suggestions?q=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      console.error('Failed to fetch suggestions');
+      return [];
+    }
+
+    const data = await response.json();
+    return data.suggestions || [];
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    return [];
+  }
+}
+
 export const maccmsProvider: DataProvider = {
   supportedCategories: ['movie', 'tv', 'show', 'anime', 'drama'],
 
@@ -424,6 +448,7 @@ export const maccmsProvider: DataProvider = {
   search,
   focusedSearch,
   detail,
+  getSuggestions,
 
   // Feedback methods
   getCaptcha,

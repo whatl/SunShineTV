@@ -108,6 +108,17 @@ export interface DataProvider {
    */
   detail: (params: { id: string; source: string; }) => Promise<SearchResult | null>;
 
+  /**
+   * Fetches search suggestions based on query string
+   * @param query The search query string, empty string returns hot searches
+   * @returns A promise that resolves to an array of suggestions
+   */
+  getSuggestions?: (query: string) => Promise<Array<{
+    text: string;
+    type: 'exact' | 'related' | 'suggestion';
+    score?: number;
+  }>>;
+
 
   // =================================================================================
   // DEPRECATED METHODS - Will be removed in a future version

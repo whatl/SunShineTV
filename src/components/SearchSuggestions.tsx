@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { getSuggestions } from '@/lib/dataProvider';
+
 interface SearchSuggestionsProps {
   query: string;
   isVisible: boolean;
@@ -41,22 +43,19 @@ export default function SearchSuggestions({
     abortControllerRef.current = controller;
 
     try {
-      const response = await fetch(
-        `/api/search/suggestions?q=${encodeURIComponent(searchQuery)}`,
-        {
-          signal: controller.signal,
-        }
-      );
-      if (response.ok) {
-        const data = await response.json();
-        const apiSuggestions = data.suggestions.map(
-          (item: { text: string }) => ({
-            text: item.text,
-            type: 'related' as const,
-          })
-        );
-        setSuggestions(apiSuggestions);
+      // 使用 dataProvider 的 getSuggestions 方法
+      const suggestions = await getSuggestions(searchQuery);
+
+      // 检查是否被中止
+      if (controller.signal.aborted) {
+        return;
       }
+
+      const apiSuggestions = suggestions.map((item) => ({
+        text: item.text,
+        type: 'related' as const,
+      }));
+      setSuggestions(apiSuggestions);
     } catch (err: unknown) {
       // 类型保护判断 err 是否是 Error 类型
       if (err instanceof Error) {

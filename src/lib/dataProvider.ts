@@ -21,6 +21,7 @@ export const search = provider.search;
 export const focusedSearch = provider.focusedSearch;
 export const detail = provider.detail;
 export const supportedCategories = provider.supportedCategories;
+export const getSuggestions = provider.getSuggestions || (async () => []);
 
 // Feedback methods (optional, may throw if not supported by provider)
 export const getCaptcha = provider.getCaptcha!;

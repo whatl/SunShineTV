@@ -239,6 +239,36 @@ async function submitFeedback(
   throw new Error('Feedback submission is not available for douban data source');
 }
 
+/**
+ * 获取搜索建议
+ * 对于豆瓣，直接调用 /api/search/suggestions 接口
+ * @param query 搜索查询，空字符串返回空数组（豆瓣不提供热搜）
+ */
+async function getSuggestions(query: string): Promise<Array<{
+  text: string;
+  type: 'exact' | 'related' | 'suggestion';
+  score?: number;
+}>> {
+  if (!query) {
+    // 豆瓣不提供热搜功能
+    return [];
+  }
+
+  try {
+    const response = await fetch(`/api/search/suggestions?q=${encodeURIComponent(query)}`);
+    if (!response.ok) {
+      console.error('Failed to fetch suggestions');
+      return [];
+    }
+
+    const data = await response.json();
+    return data.suggestions || [];
+  } catch (error) {
+    console.error('Error fetching suggestions:', error);
+    return [];
+  }
+}
+
 // --- Provider Export ---
 
 export const doubanProvider: DataProvider = {
@@ -249,6 +279,7 @@ export const doubanProvider: DataProvider = {
   search,
   focusedSearch,
   detail,
+  getSuggestions,
 
   // Feedback methods
   getCaptcha,
