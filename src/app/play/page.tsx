@@ -2236,7 +2236,13 @@ function PlayPageClient() {
     <PageLayout activePath='/play'>
       <div className='flex flex-col gap-3 py-4 px-5 lg:px-[3rem] 2xl:px-20'>
         {/* 第一行：影片标题 */}
-        <div className='py-1'>
+        {/*
+          响应式左边距处理：
+          - 移动端竖屏 (<768px): 无边距，返回按钮在MobileHeader中
+          - 平板/横屏 (768px-1024px): pl-12避免与PageLayout中的绝对定位返回按钮重叠
+          - 桌面端 (≥1024px): pl-0恢复无边距，因为屏幕足够宽不会重叠
+        */}
+        <div className='py-1 md:pl-12 lg:pl-0'>
           <h1 className='text-xl font-semibold text-gray-900 dark:text-white'>
             {videoTitle || '影片标题'}
             {totalEpisodes > 1 && (
