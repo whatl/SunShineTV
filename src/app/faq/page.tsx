@@ -165,7 +165,7 @@ function FeedbackModal({
                 }}
                 placeholder={placeholder}
                 rows={4}
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors resize-none"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors resize-none"
                 style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
               />
             </div>
@@ -180,7 +180,7 @@ function FeedbackModal({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
-                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-900 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
                 style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
               />
             </div>
@@ -199,7 +199,7 @@ function FeedbackModal({
                   value={userAnswer}
                   onChange={(e) => setUserAnswer(e.target.value.replace(/[^0-9]/g, ''))}
                   placeholder="请输入4位数字"
-                  className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-900 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
+                  className="flex-1 min-w-0 px-4 py-3 bg-gray-50 dark:bg-gray-700 border-0 rounded-xl text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 outline-none focus:outline-none focus:ring-0 focus:border-0 transition-colors"
                   style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                 />
                 <button
