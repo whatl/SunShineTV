@@ -29,11 +29,7 @@ export function Clarity() {
 
   // 如果没有配置 ID，不加载 Clarity 脚本
   if (!clarityId) {
-    return null;
-  }
-
-  // 只在生产环境加载，避免开发环境网络错误
-  if (process.env.NODE_ENV !== 'production') {
+    console.warn('the CLARITY_ID is empty')
     return null;
   }
 
