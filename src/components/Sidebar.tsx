@@ -35,7 +35,10 @@ const Logo = () => {
       href='/'
       className='flex items-center justify-center h-16 select-none hover:opacity-80 transition-opacity duration-200'
     >
-      <span className='text-2xl font-bold text-green-600 tracking-tight'>
+      <span
+        data-sidebar-text
+        className='text-2xl font-bold text-green-600 tracking-tight whitespace-nowrap'
+      >
         {siteName}
       </span>
     </Link>
@@ -173,13 +176,8 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
           <div className='flex h-full flex-col'>
             {/* 顶部 Logo 区域 */}
             <div className='relative h-16'>
-              <div
-                data-sidebar-text
-                className='absolute inset-0 flex items-center justify-center transition-opacity duration-200'
-              >
-                <div className='w-[calc(100%-4rem)] flex justify-center'>
-                  <Logo />
-                </div>
+              <div className='absolute inset-0 flex items-center justify-center'>
+                <Logo />
               </div>
               <button
                 onClick={handleToggle}
