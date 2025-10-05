@@ -9,6 +9,7 @@ import './globals.css';
 import { getConfig } from '@/lib/config';
 
 import { AuthProvider } from '@/components/AuthProvider';
+import { Clarity } from '@/components/Clarity';
 
 import { GlobalErrorIndicator } from '../components/GlobalErrorIndicator';
 import { SiteProvider } from '../components/SiteProvider';
@@ -143,6 +144,7 @@ export default async function RootLayout({
       <body
         className={`${inter.className} min-h-screen bg-white text-gray-900 dark:bg-black dark:text-gray-200`}
       >
+        <Clarity />
         <ThemeProvider
           attribute='class'
           defaultTheme='system'
