@@ -100,6 +100,8 @@ export interface SearchResult {
   desc?: string;
   type_name?: string;
   douban_id?: number; //真正的豆瓣id
+  director?: string; // 导演
+  actor?: string; // 主演
 }
 
 // 豆瓣数据结构

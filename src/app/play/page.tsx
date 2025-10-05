@@ -2539,6 +2539,25 @@ function PlayPageClient() {
                 )}
                 {detail?.type_name && <span>{detail.type_name}</span>}
               </div>
+
+              {/* 导演和主演 */}
+              {(detail?.director || detail?.actor) && (
+                <div className='text-sm text-gray-600 dark:text-gray-400 mb-4 space-y-1'>
+                  {detail?.director && (
+                    <div>
+                      <span className='font-semibold text-gray-700 dark:text-gray-300'>导演：</span>
+                      <span>{detail.director.replace(/,/g, ' / ')}</span>
+                    </div>
+                  )}
+                  {detail?.actor && (
+                    <div>
+                      <span className='font-semibold text-gray-700 dark:text-gray-300'>主演：</span>
+                      <span>{detail.actor.replace(/,/g, ' / ')}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {/* 简介 */}
               {detail?.desc && (
                 <SafeHtmlRenderer
