@@ -4,7 +4,7 @@
 
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
-import { Heart, Send, X } from 'lucide-react';
+import { Heart, Send, X, Share2 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
@@ -42,6 +42,120 @@ interface WakeLockSentinel {
   release(): Promise<void>;
   addEventListener(type: 'release', listener: () => void): void;
   removeEventListener(type: 'release', listener: () => void): void;
+}
+
+// 分享弹窗组件
+function ShareModal({
+  isOpen,
+  onClose,
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState(false);
+  const [shareUrl, setShareUrl] = useState('');
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setShareUrl(window.location.href);
+    }
+  }, []);
+
+  const handleCopyLink = async () => {
+    try {
+      // 尝试使用现代 clipboard API
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } else {
+        // 降级方案：创建临时 input 元素
+        const textArea = document.createElement('textarea');
+        textArea.value = shareUrl;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-999999px';
+        textArea.style.top = '-999999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+          const successful = document.execCommand('copy');
+          document.body.removeChild(textArea);
+
+          if (successful) {
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          } else {
+            throw new Error('execCommand failed');
+          }
+        } catch (execErr) {
+          document.body.removeChild(textArea);
+          throw execErr;
+        }
+      }
+    } catch (err) {
+      console.error('复制失败:', err);
+      alert('复制失败，请手动复制');
+    }
+  };
+
+  const qrCodeUrl = shareUrl
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareUrl)}`
+    : '';
+
+  if (!isOpen) return null;
+
+  return (
+    <div className='fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm'>
+      <div className='bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6'>
+        <div className='flex justify-between items-center mb-4'>
+          <h2 className='text-xl font-bold text-gray-800 dark:text-gray-200'>分享</h2>
+          <button
+            onClick={onClose}
+            className='text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+          >
+            <X className='h-6 w-6' />
+          </button>
+        </div>
+
+        <div className='flex flex-col items-center'>
+          {/* 二维码 */}
+          <div className='bg-white p-3 rounded-lg border-2 border-gray-200 dark:border-gray-600 mb-4'>
+            {qrCodeUrl ? (
+              <img
+                src={qrCodeUrl}
+                alt='分享二维码'
+                className='w-[200px] h-[200px] block'
+              />
+            ) : (
+              <div className='w-[200px] h-[200px] flex items-center justify-center bg-gray-100 dark:bg-gray-700'>
+                <span className='text-gray-400'>加载中...</span>
+              </div>
+            )}
+          </div>
+
+          {/* 链接显示 */}
+          <div className='w-full mb-4'>
+            <input
+              type='text'
+              value={shareUrl}
+              readOnly
+              className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-sm'
+            />
+          </div>
+
+          {/* 复制按钮 */}
+          <button
+            onClick={handleCopyLink}
+            className='w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200'
+          >
+            {copied ? '已复制' : '复制分享链接'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // 反馈弹窗组件
@@ -441,6 +555,9 @@ function PlayPageClient() {
 
   // 收藏状态
   const [favorited, setFavorited] = useState(false);
+
+  // 分享弹窗状态
+  const [showShareModal, setShowShareModal] = useState(false);
 
   // 报错弹窗状态
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -2393,6 +2510,16 @@ function PlayPageClient() {
                 >
                   <FavoriteIcon filled={favorited} />
                 </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowShareModal(true);
+                  }}
+                  className='ml-2 flex-shrink-0 hover:opacity-80 transition-opacity'
+                  title='分享'
+                >
+                  <Share2 className='h-7 w-7 stroke-[1] text-gray-600 dark:text-gray-300' />
+                </button>
               </h1>
 
               {/* 关键信息行 */}
@@ -2470,6 +2597,12 @@ function PlayPageClient() {
           </div>
         </div>
       </div>
+
+      {/* 分享弹窗 */}
+      <ShareModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+      />
 
       {/* 报错弹窗 */}
       <FeedbackModal
