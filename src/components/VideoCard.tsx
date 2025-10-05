@@ -575,12 +575,11 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             src={processImageUrl(actualPoster)}
             alt={actualTitle}
             fill
-            className={`${origin === 'live' ? 'object-contain' : 'object-cover'} transition-opacity duration-150 ${isLoading ? 'opacity-100' : 'opacity-0'}`}
+            className={`${origin === 'live' ? 'object-contain' : 'object-cover'} transition-opacity duration-[400ms] ${isLoading ? 'opacity-100' : 'opacity-0'}`}
             referrerPolicy='no-referrer'
             loading='lazy'
             onLoadingComplete={() => setIsLoading(true)}
             onError={(e) => {
-              // 图片加载失败时的重试机制
               const img = e.target as HTMLImageElement;
               if (!img.dataset.retried) {
                 img.dataset.retried = 'true';
