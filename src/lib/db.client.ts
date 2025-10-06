@@ -1749,8 +1749,21 @@ export async function saveSkipConfig(
       try {
         const raw = localStorage.getItem('ltv_skip_configs');
         const configs = raw ? (JSON.parse(raw) as Record<string, SkipConfig>) : {};
-        configs[key] = config;
-        localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
+
+        // 只保存有意义的配置（启用或有时间设置的配置）
+        if (config.enable || config.intro_time > 0 || config.outro_time > 0) {
+          configs[key] = config;
+          localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
+        } else {
+          // 无意义的配置直接删除
+          delete configs[key];
+          if (Object.keys(configs).length > 0) {
+            localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
+          } else {
+            // 如果没有任何配置了，删除整个key
+            localStorage.removeItem('ltv_skip_configs');
+          }
+        }
       } catch (err) {
         console.error('保存跳过片头片尾配置到 localStorage 失败:', err);
         triggerGlobalError('保存跳过片头片尾配置失败');
@@ -1768,8 +1781,22 @@ export async function saveSkipConfig(
   try {
     const raw = localStorage.getItem('ltv_skip_configs');
     const configs = raw ? (JSON.parse(raw) as Record<string, SkipConfig>) : {};
-    configs[key] = config;
-    localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
+
+    // 只保存有意义的配置（启用或有时间设置的配置）
+    if (config.enable || config.intro_time > 0 || config.outro_time > 0) {
+      configs[key] = config;
+      localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
+    } else {
+      // 无意义的配置直接删除
+      delete configs[key];
+      if (Object.keys(configs).length > 0) {
+        localStorage.setItem('ltv_skip_configs', JSON.stringify(configs));
+      } else {
+        // 如果没有任何配置了，删除整个key
+        localStorage.removeItem('ltv_skip_configs');
+      }
+    }
+
     window.dispatchEvent(
       new CustomEvent('skipConfigsUpdated', {
         detail: configs,
