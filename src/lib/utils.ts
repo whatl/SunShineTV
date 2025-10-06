@@ -61,8 +61,107 @@ export function processImageUrl(originalUrl: string): string {
   }
 }
 
+// 测评缓存接口
+interface VideoTestCache {
+  quality: string;
+  loadSpeed: string;
+  pingTime: number;
+  timestamp: number; // 缓存时间戳
+}
+
+// 从缓存获取测评结果
+function getTestCache(m3u8Url: string): VideoTestCache | null {
+  try {
+    const cacheKey = `video_test_${btoa(m3u8Url).slice(0, 50)}`; // 使用URL的base64作为key
+    const cached = localStorage.getItem(cacheKey);
+    if (!cached) return null;
+
+    const data: VideoTestCache = JSON.parse(cached);
+    const now = Date.now();
+    const cacheAge = now - data.timestamp;
+
+    // 缓存2小时有效
+    if (cacheAge < 2 * 60 * 60 * 1000) {
+      return data;
+    } else {
+      // 过期缓存删除
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+  } catch {
+    return null;
+  }
+}
+
+// 清理所有过期的测评缓存
+function cleanExpiredTestCache() {
+  try {
+    const now = Date.now();
+    const keysToRemove: string[] = [];
+
+    // 遍历 localStorage 找出所有测评缓存
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('video_test_')) {
+        try {
+          const cached = localStorage.getItem(key);
+          if (cached) {
+            const data: VideoTestCache = JSON.parse(cached);
+            const cacheAge = now - data.timestamp;
+
+            // 超过2小时的缓存标记为删除
+            if (cacheAge >= 2 * 60 * 60 * 1000) {
+              keysToRemove.push(key);
+            }
+          }
+        } catch {
+          // 解析失败的缓存也删除
+          keysToRemove.push(key);
+        }
+      }
+    }
+
+    // 删除过期缓存
+    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+    return keysToRemove.length;
+  } catch {
+    return 0;
+  }
+}
+
+// 保存测评结果到缓存
+function setTestCache(m3u8Url: string, result: { quality: string; loadSpeed: string; pingTime: number }) {
+  try {
+    const cacheKey = `video_test_${btoa(m3u8Url).slice(0, 50)}`;
+    const data: VideoTestCache = {
+      ...result,
+      timestamp: Date.now()
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(data));
+  } catch (error) {
+    // 如果是存储空间不足，清理过期缓存后重试
+    if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+      const cleaned = cleanExpiredTestCache();
+      console.log(`存储空间不足，已清理 ${cleaned} 条过期缓存`);
+
+      // 重试一次
+      try {
+        const cacheKey = `video_test_${btoa(m3u8Url).slice(0, 50)}`;
+        const data: VideoTestCache = {
+          ...result,
+          timestamp: Date.now()
+        };
+        localStorage.setItem(cacheKey, JSON.stringify(data));
+      } catch {
+        // 重试失败也不影响功能
+      }
+    }
+  }
+}
+
 /**
- * 从m3u8地址获取视频质量等级和网络信息
+ * 从m3u8地址获取视频质量等级和网络信息（带缓存）
  * @param m3u8Url m3u8播放列表的URL
  * @returns Promise<{quality: string, loadSpeed: string, pingTime: number}> 视频质量等级和网络信息
  */
@@ -71,6 +170,17 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
   loadSpeed: string; // 自动转换为KB/s或MB/s
   pingTime: number; // 网络延迟（毫秒）
 }> {
+  // 先检查缓存
+  const cached = getTestCache(m3u8Url);
+  if (cached) {
+    console.log('使用缓存的测评结果:', m3u8Url);
+    return {
+      quality: cached.quality,
+      loadSpeed: cached.loadSpeed,
+      pingTime: cached.pingTime
+    };
+  }
+
   try {
     // 直接使用m3u8 URL作为视频源，避免CORS问题
     return new Promise((resolve, reject) => {
@@ -140,18 +250,28 @@ export async function getVideoResolutionFromM3u8(m3u8Url: string): Promise<{
                         ? '480p'
                         : 'SD'; // 480p: 854x480
 
-            resolve({
+            const result = {
               quality,
               loadSpeed: actualLoadSpeed,
               pingTime: Math.round(pingTime),
-            });
+            };
+
+            // 保存到缓存
+            setTestCache(m3u8Url, result);
+
+            resolve(result);
           } else {
             // webkit 无法获取尺寸，直接返回
-            resolve({
+            const result = {
               quality: '未知',
               loadSpeed: actualLoadSpeed,
               pingTime: Math.round(pingTime),
-            });
+            };
+
+            // 保存到缓存
+            setTestCache(m3u8Url, result);
+
+            resolve(result);
           }
         }
       };
