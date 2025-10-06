@@ -4,7 +4,7 @@
 
 import Artplayer from 'artplayer';
 import Hls from 'hls.js';
-import { Heart, Send, X, Share2 } from 'lucide-react';
+import { Heart, Send, Share2,X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
@@ -1316,11 +1316,12 @@ function PlayPageClient() {
         detailData = await preferBestSource(sourcesInfo);
       }
 
-      console.log(detailData.source, detailData.id);
+      console.log(detailData.source, detailData.id,detailData.ekey);
 
       setNeedPrefer(false);
       setCurrentSource(detailData.source);
       setCurrentId(detailData.id || "");
+      setCurrentEkey(detailData.ekey || '');
       setVideoYear(detailData.year);
       setVideoTitle(detailData.title || videoTitleRef.current);
       setVideoCover(detailData.poster);
