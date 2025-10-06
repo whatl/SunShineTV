@@ -130,8 +130,49 @@ function cleanExpiredTestCache() {
   }
 }
 
+// 抽检清理过期缓存（1/3概率触发，检查前2条）
+function checkAndCleanCache() {
+  // 使用当前时间取模3，等于2时触发抽检
+  if (Date.now() % 3 !== 2) return;
+
+  try {
+    const now = Date.now();
+    let checkedCount = 0;
+
+    // 检查前2条测评缓存
+    for (let i = 0; i < localStorage.length && checkedCount < 2; i++) {
+      const key = localStorage.key(i);
+      if (!key || !key.startsWith('video_test_')) continue;
+
+      checkedCount++;
+      const cached = localStorage.getItem(key);
+      if (!cached) continue;
+
+      try {
+        const data: VideoTestCache = JSON.parse(cached);
+        const cacheAge = now - data.timestamp;
+
+        // 如果发现过期缓存，触发全量清理
+        if (cacheAge >= 2 * 60 * 60 * 1000) {
+          const cleaned = cleanExpiredTestCache();
+          console.log(`抽检发现过期缓存，已清理 ${cleaned} 条`);
+          return; // 清理后退出
+        }
+      } catch {
+        // 解析失败，删除这条缓存
+        localStorage.removeItem(key);
+      }
+    }
+  } catch {
+    // 抽检失败不影响功能
+  }
+}
+
 // 保存测评结果到缓存
 function setTestCache(m3u8Url: string, result: { quality: string; loadSpeed: string; pingTime: number }) {
+  // 保存前抽检
+  checkAndCleanCache();
+
   try {
     const cacheKey = `video_test_${btoa(m3u8Url).slice(0, 50)}`;
     const data: VideoTestCache = {
