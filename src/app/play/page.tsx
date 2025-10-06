@@ -608,6 +608,10 @@ function PlayPageClient() {
     searchParams.get('source') || ''
   );
   const [currentId, setCurrentId] = useState(searchParams.get('id') || '');
+  // ekey: 站外数据站标识，与id配对使用（ekey+id唯一标识一个站外视频）
+  const [currentEkey, setCurrentEkey] = useState(searchParams.get('ekey') || '');
+  // locid: 本站视频ID（当站外视频有本站locid时使用，优先于id进行搜索）
+  const locidParam = searchParams.get('locid') || '';
 
   // 搜索所需信息
   const [searchTitle] = useState(searchParams.get('stitle') || '');
@@ -626,15 +630,18 @@ function PlayPageClient() {
 
   const currentSourceRef = useRef(currentSource);
   const currentIdRef = useRef(currentId);
+  const currentEkeyRef = useRef(currentEkey);
   const videoTitleRef = useRef(videoTitle);
   const videoYearRef = useRef(videoYear);
   const detailRef = useRef<SearchResult | null>(detail);
   const currentEpisodeIndexRef = useRef(currentEpisodeIndex);
+  const availableSourcesRef = useRef<SearchResult[]>([]);
 
   // 同步最新值到 refs
   useEffect(() => {
     currentSourceRef.current = currentSource;
     currentIdRef.current = currentId;
+    currentEkeyRef.current = currentEkey;
     detailRef.current = detail;
     currentEpisodeIndexRef.current = currentEpisodeIndex;
     videoTitleRef.current = videoTitle;
@@ -642,6 +649,7 @@ function PlayPageClient() {
   }, [
     currentSource,
     currentId,
+    currentEkey,
     detail,
     currentEpisodeIndex,
     videoTitle,
@@ -667,6 +675,11 @@ function PlayPageClient() {
   const [sourceSearchError, setSourceSearchError] = useState<string | null>(
     null
   );
+
+  // 同步 availableSources 到 ref
+  useEffect(() => {
+    availableSourcesRef.current = availableSources;
+  }, [availableSources]);
 
   // 优选和测速开关
   const [optimizationEnabled] = useState<boolean>(() => {
@@ -1026,7 +1039,7 @@ function PlayPageClient() {
     try {
       setSkipConfig(newConfig);
       if (!newConfig.enable && !newConfig.intro_time && !newConfig.outro_time) {
-        await deleteSkipConfig(currentSourceRef.current, currentIdRef.current);
+        await deleteSkipConfig(currentSourceRef.current, currentIdRef.current, currentEkeyRef.current);
         artPlayerRef.current.setting.update({
           name: '跳过片头片尾',
           html: '跳过片头片尾',
@@ -1088,7 +1101,8 @@ function PlayPageClient() {
         await saveSkipConfig(
           currentSourceRef.current,
           currentIdRef.current,
-          newConfig
+          newConfig,
+          currentEkeyRef.current
         );
       }
       console.log('跳过片头片尾配置已保存:', newConfig);
@@ -1172,14 +1186,26 @@ function PlayPageClient() {
         setSourceSearchLoading(false);
       }
     };
+    /**
+     * 获取视频播放源数据
+     * @param query - 搜索关键词
+     * @param source - 播放源名称（本地视频）
+     * @param id - 视频ID（本地或站外）
+     * @param ekey - 站外数据站标识（与id配对使用，ekey+id唯一标识一个站外视频）
+     */
     const fetchSourcesData = async (
       query: string,
       source?: string,
-      id?: string
+      id?: string,
+      ekey?: string
     ): Promise<SearchResult[]> => {
-      // 根据搜索词获取全部源信息
+      // 优先使用locid参数（本站视频ID）搜索，不使用ekey
+      // 否则使用原有逻辑：本地视频source+id，站外视频ekey+id
+      const searchId = locidParam || id;
+      const searchEkey = locidParam ? undefined : ekey;
+
       try {
-        const data = await focusedSearch({ q: query.trim(), source, id });
+        const data = await focusedSearch({ q: query.trim(), source, id: searchId, ekey: searchEkey });
 
         const isDouban = process.env.NEXT_PUBLIC_DATA_SOURCE === 'douban';
         // 处理搜索结果，根据规则过滤,对豆瓣特殊处理
@@ -1223,7 +1249,8 @@ function PlayPageClient() {
       let sourcesInfo = await fetchSourcesData(
         searchTitle || videoTitle,
         currentSource,
-        currentId
+        currentId,
+        currentEkey
       );
       if (!Array.isArray(sourcesInfo)) {
         sourcesInfo = [sourcesInfo].filter(Boolean);
@@ -1239,6 +1266,7 @@ function PlayPageClient() {
       ) {
         sourcesInfo = await fetchSourceDetail(currentSource, currentId);
       }
+
       if (sourcesInfo.length === 0) {
         setError('未找到匹配结果');
         setLoading(false);
@@ -1308,6 +1336,12 @@ function PlayPageClient() {
       newUrl.searchParams.set('id', detailData.id || "");
       newUrl.searchParams.set('year', detailData.year);
       newUrl.searchParams.set('title', detailData.title);
+      // 处理ekey：站外视频有ekey，本地视频删除ekey
+      if (detailData.ekey) {
+        newUrl.searchParams.set('ekey', detailData.ekey);
+      } else {
+        newUrl.searchParams.delete('ekey');
+      }
       newUrl.searchParams.delete('prefer');
       window.history.replaceState({}, '', newUrl.toString());
 
@@ -1331,7 +1365,7 @@ function PlayPageClient() {
 
       try {
         const allRecords = await getAllPlayRecords();
-        const key = generateStorageKey(currentSource, currentId);
+        const key = generateStorageKey(currentSource, currentId, currentEkey);
         const record = allRecords[key];
 
         if (record) {
@@ -1393,7 +1427,8 @@ function PlayPageClient() {
         try {
           await deletePlayRecord(
             currentSourceRef.current,
-            currentIdRef.current
+            currentIdRef.current,
+            currentEkeyRef.current
           );
           console.log('已清除前一个播放记录');
         } catch (err) {
@@ -1406,8 +1441,10 @@ function PlayPageClient() {
         try {
           await deleteSkipConfig(
             currentSourceRef.current,
-            currentIdRef.current
+            currentIdRef.current,
+            currentEkeyRef.current
           );
+          // newSource 已经是正确的存储键（本地source或站外ekey+id+source）
           await saveSkipConfig(newSource, newId, skipConfigRef.current);
         } catch (err) {
           console.error('清除跳过片头片尾配置失败:', err);
@@ -1445,6 +1482,12 @@ function PlayPageClient() {
       newUrl.searchParams.set('source', newSource);
       newUrl.searchParams.set('id', newId);
       newUrl.searchParams.set('year', newDetail.year);
+      // 处理ekey：站外视频有ekey，本地视频删除ekey
+      if (newDetail.ekey) {
+        newUrl.searchParams.set('ekey', newDetail.ekey);
+      } else {
+        newUrl.searchParams.delete('ekey');
+      }
       window.history.replaceState({}, '', newUrl.toString());
 
       setVideoTitle(newDetail.title || newTitle);
@@ -1453,6 +1496,7 @@ function PlayPageClient() {
       setVideoDoubanId(newDetail.douban_id || 0);
       setCurrentSource(newSource);
       setCurrentId(newId);
+      setCurrentEkey(newDetail.ekey || '');  // 同时更新ekey状态
       setDetail(newDetail);
       setCurrentEpisodeIndex(targetIndex);
     } catch (err) {
@@ -1598,6 +1642,19 @@ function PlayPageClient() {
   // ---------------------------------------------------------------------------
   // 播放记录相关
   // ---------------------------------------------------------------------------
+  // 获取本站视频ID（从可用源列表中查找本地源）
+  const getLocalVodId = (): string | undefined => {
+    if (!currentEkeyRef.current) {
+      // 当前播放的就是本地视频，无需查找
+      return undefined;
+    }
+    // 当前播放的是站外视频，从可用源中查找本地源
+    const localSource = availableSourcesRef.current.find(
+      (source) => !source.ekey
+    );
+    return localSource?.id;
+  };
+
   // 保存播放进度
   const saveCurrentPlayProgress = async () => {
     if (
@@ -1630,7 +1687,9 @@ function PlayPageClient() {
         total_time: Math.floor(duration),
         save_time: Date.now(),
         search_title: searchTitle,
-      });
+        // 站外视频存储本站对应的vodId
+        locid: getLocalVodId(),
+      }, currentEkeyRef.current);
 
       lastSaveTimeRef.current = Date.now();
       console.log('播放进度已保存:', {
@@ -1693,13 +1752,13 @@ function PlayPageClient() {
     if (!currentSource || !currentId) return;
     (async () => {
       try {
-        const fav = await isFavorited(currentSource, currentId);
+        const fav = await isFavorited(currentSource, currentId, currentEkey);
         setFavorited(fav);
       } catch (err) {
         console.error('检查收藏状态失败:', err);
       }
     })();
-  }, [currentSource, currentId]);
+  }, [currentSource, currentId, currentEkey]);
 
   // 监听收藏数据更新事件
   useEffect(() => {
@@ -1708,14 +1767,14 @@ function PlayPageClient() {
     const unsubscribe = subscribeToDataUpdates(
       'favoritesUpdated',
       (favorites: Record<string, any>) => {
-        const key = generateStorageKey(currentSource, currentId);
+        const key = generateStorageKey(currentSource, currentId, currentEkey);
         const isFav = !!favorites[key];
         setFavorited(isFav);
       }
     );
 
     return unsubscribe;
-  }, [currentSource, currentId]);
+  }, [currentSource, currentId, currentEkey]);
 
   // 切换收藏
   const handleToggleFavorite = async () => {
@@ -1730,7 +1789,7 @@ function PlayPageClient() {
     try {
       if (favorited) {
         // 如果已收藏，删除收藏
-        await deleteFavorite(currentSourceRef.current, currentIdRef.current);
+        await deleteFavorite(currentSourceRef.current, currentIdRef.current, currentEkeyRef.current);
         setFavorited(false);
       } else {
         // 如果未收藏，添加收藏
@@ -1742,7 +1801,9 @@ function PlayPageClient() {
           total_episodes: detailRef.current?.episodes?.length || 1,
           save_time: Date.now(),
           search_title: searchTitle,
-        });
+          // 站外视频存储本站对应的vodId
+          locid: getLocalVodId(),
+        }, currentEkeyRef.current);
         setFavorited(true);
       }
     } catch (err) {

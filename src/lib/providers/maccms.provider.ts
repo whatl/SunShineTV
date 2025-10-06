@@ -227,17 +227,29 @@ async function search(extra: Record<string, string>, useStream = false, page = 1
 }
 
 
-async function focusedSearch(params: { q: string; source?: string; id?: string; }): Promise<SearchResult[]> {
-  const { q, source, id } = params;
+/**
+ * 聚焦搜索：根据查询词和上下文（source/id/ekey）查找视频播放源
+ * @param params.q - 搜索关键词
+ * @param params.source - 播放源名称（本地视频）
+ * @param params.id - 视频ID（本地或站外）
+ * @param params.ekey - 站外数据站标识（与id配对使用，ekey+id唯一标识一个站外视频）
+ */
+async function focusedSearch(params: { q: string; source?: string; id?: string; ekey?: string; }): Promise<SearchResult[]> {
+  const { q, source, id, ekey } = params;
   if (!q) {
     return Promise.resolve([]);
   }
   const apiParams: Record<string, string> = { q };
+  // 本地视频：使用 source + id
   if (source) {
     apiParams.source = source;
   }
   if (id) {
     apiParams.id = id;
+  }
+  // 站外视频：使用 ekey + id（ekey标识数据来源站点）
+  if (ekey) {
+    apiParams.ekey = ekey;
   }
   const response = await fetchFromCmsApi<SearchResult[] | { results: SearchResult[] }>('/api/cms/shine/search/focused', apiParams, 'maccms.SearchResultList');
 

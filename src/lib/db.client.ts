@@ -40,6 +40,7 @@ export interface PlayRecord {
   total_time: number; // 总进度（秒）
   save_time: number; // 记录保存时间（时间戳）
   search_title?: string; // 搜索时使用的标题
+  locid?: string; // 本站视频ID（站外视频存储本站对应的vodId）
 }
 
 // ---- 收藏类型 ----
@@ -52,6 +53,7 @@ export interface Favorite {
   save_time: number;
   search_title?: string;
   origin?: 'vod' | 'live';
+  locid?: string; // 本站视频ID（站外视频存储本站对应的vodId）
 }
 
 // ---- 缓存数据结构 ----
@@ -491,8 +493,16 @@ async function fetchFromApi<T>(path: string): Promise<T> {
 
 /**
  * 生成存储key
+ * 本地视频：source + id
+ * 站外视频：ekey + id + source
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
-export function generateStorageKey(source: string, id: string): string {
+export function generateStorageKey(source: string, id: string, ekey?: string): string {
+  if (ekey) {
+    return `${source}+${id}+${ekey}`;
+  }
   return `${source}+${id}`;
 }
 
@@ -583,13 +593,18 @@ export async function getAllPlayRecords(): Promise<Record<string, PlayRecord>> {
 /**
  * 保存播放记录。
  * 数据库存储模式下使用乐观更新：先更新缓存（立即生效），再异步同步到数据库。
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param record - 播放记录
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
 export async function savePlayRecord(
   source: string,
   id: string,
-  record: PlayRecord
+  record: PlayRecord,
+  ekey?: string
 ): Promise<void> {
-  const key = generateStorageKey(source, id);
+  const key = generateStorageKey(source, id, ekey);
 
   // 数据库存储模式：乐观更新策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
@@ -662,12 +677,16 @@ export async function savePlayRecord(
 /**
  * 删除播放记录。
  * 数据库存储模式下使用乐观更新：先更新缓存，再异步同步到数据库。
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
 export async function deletePlayRecord(
   source: string,
-  id: string
+  id: string,
+  ekey?: string
 ): Promise<void> {
-  const key = generateStorageKey(source, id);
+  const key = generateStorageKey(source, id, ekey);
 
   // 数据库存储模式：乐观更新策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
@@ -1097,13 +1116,18 @@ export async function getAllFavorites(): Promise<Record<string, Favorite>> {
 /**
  * 保存收藏。
  * 数据库存储模式下使用乐观更新：先更新缓存，再异步同步到数据库。
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param favorite - 收藏信息
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
 export async function saveFavorite(
   source: string,
   id: string,
-  favorite: Favorite
+  favorite: Favorite,
+  ekey?: string
 ): Promise<void> {
-  const key = generateStorageKey(source, id);
+  const key = generateStorageKey(source, id, ekey);
 
   // 数据库存储模式：乐观更新策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
@@ -1176,12 +1200,16 @@ export async function saveFavorite(
 /**
  * 删除收藏。
  * 数据库存储模式下使用乐观更新：先更新缓存，再异步同步到数据库。
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
 export async function deleteFavorite(
   source: string,
-  id: string
+  id: string,
+  ekey?: string
 ): Promise<void> {
-  const key = generateStorageKey(source, id);
+  const key = generateStorageKey(source, id, ekey);
 
   // 数据库存储模式：乐观更新策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
@@ -1251,12 +1279,16 @@ export async function deleteFavorite(
 /**
  * 判断是否已收藏。
  * 数据库存储模式下使用混合缓存策略：优先返回缓存数据，后台异步同步最新数据。
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
 export async function isFavorited(
   source: string,
-  id: string
+  id: string,
+  ekey?: string
 ): Promise<boolean> {
-  const key = generateStorageKey(source, id);
+  const key = generateStorageKey(source, id, ekey);
 
   // 检查登录状态
   const authInfo = getAuthInfoFromBrowserCookie();
@@ -1587,17 +1619,21 @@ export async function preloadUserData(): Promise<void> {
 /**
  * 获取跳过片头片尾配置。
  * 数据库存储模式下使用混合缓存策略：优先返回缓存数据，后台异步同步最新数据。
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
 export async function getSkipConfig(
   source: string,
-  id: string
+  id: string,
+  ekey?: string
 ): Promise<SkipConfig | null> {
   // 服务器端渲染阶段直接返回空
   if (typeof window === 'undefined') {
     return null;
   }
 
-  const key = generateStorageKey(source, id);
+  const key = generateStorageKey(source, id, ekey);
 
   // 数据库存储模式：使用混合缓存策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
@@ -1664,13 +1700,18 @@ export async function getSkipConfig(
 /**
  * 保存跳过片头片尾配置。
  * 数据库存储模式下使用乐观更新：先更新缓存，再异步同步到数据库。
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param config - 跳过配置
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
 export async function saveSkipConfig(
   source: string,
   id: string,
-  config: SkipConfig
+  config: SkipConfig,
+  ekey?: string
 ): Promise<void> {
-  const key = generateStorageKey(source, id);
+  const key = generateStorageKey(source, id, ekey);
 
   // 数据库存储模式：乐观更新策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {
@@ -1826,12 +1867,16 @@ export async function getAllSkipConfigs(): Promise<Record<string, SkipConfig>> {
 /**
  * 删除跳过片头片尾配置。
  * 数据库存储模式下使用乐观更新：先更新缓存，再异步同步到数据库。
+ * @param source - 播放源名称
+ * @param id - 视频ID
+ * @param ekey - 站外数据站标识（可选，仅站外视频使用）
  */
 export async function deleteSkipConfig(
   source: string,
-  id: string
+  id: string,
+  ekey?: string
 ): Promise<void> {
-  const key = generateStorageKey(source, id);
+  const key = generateStorageKey(source, id, ekey);
 
   // 数据库存储模式：乐观更新策略（包括 redis 和 upstash）
   if (STORAGE_TYPE !== 'localstorage') {

@@ -19,16 +19,16 @@ interface ContinueWatchingProps {
 
 export default function ContinueWatching({ className }: ContinueWatchingProps) {
   const [playRecords, setPlayRecords] = useState<
-    (PlayRecord & { key: string })[]
+    (PlayRecord & { storageKey: string })[]
   >([]);
   const [loading, setLoading] = useState(true);
 
   // 处理播放记录数据更新的函数
   const updatePlayRecords = (allRecords: Record<string, PlayRecord>) => {
     // 将记录转换为数组并根据 save_time 由近到远排序
-    const recordsArray = Object.entries(allRecords).map(([key, record]) => ({
+    const recordsArray = Object.entries(allRecords).map(([storageKey, record]) => ({
       ...record,
-      key,
+      storageKey,
     }));
 
     // 按 save_time 降序排序（最新的在前面）
@@ -79,10 +79,18 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
     return (record.play_time / record.total_time) * 100;
   };
 
-  // 从 key 中解析 source 和 id
+  // 从 key 中解析 source、id 和 ekey
   const parseKey = (key: string) => {
-    const [source, id] = key.split('+');
-    return { source, id };
+    const parts = key.split('+');
+    if (parts.length === 2) {
+      // 本地视频: source+id
+      return { source: parts[0], id: parts[1], ekey: undefined };
+    } else if (parts.length === 3) {
+      // 站外视频: source+id+ekey
+      return { source: parts[0], id: parts[1], ekey: parts[2] };
+    }
+    // 兜底
+    return { source: parts[0], id: parts.slice(1).join('+'), ekey: undefined };
   };
 
   return (
@@ -120,10 +128,13 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
             ))
           : // 显示真实数据
             playRecords.map((record) => {
-              const { source, id } = parseKey(record.key);
+              const { source, id, ekey } = parseKey(record.storageKey);
+              // record.locid 是 PlayRecord 接口中的 locid 字段（本站视频ID）
+              // record.storageKey 是存储键（source+id 或 source+id+ekey）
+              const localVodId = record.locid;
               return (
                 <div
-                  key={record.key}
+                  key={record.storageKey}
                   className='min-w-[96px] w-24 sm:min-w-[180px] sm:w-44'
                 >
                   <VideoCard
@@ -132,15 +143,17 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
                     poster={record.cover}
                     year={record.year}
                     source={source}
+                    ekey={ekey}
                     source_name={record.source_name || ''}
                     progress={getProgress(record)}
                     episodes={record.total_episodes}
                     currentEpisode={record.index}
                     query={record.search_title}
                     from='playrecord'
+                    localVodId={localVodId}
                     onDelete={() =>
                       setPlayRecords((prev) =>
-                        prev.filter((r) => r.key !== record.key)
+                        prev.filter((r) => r.storageKey !== record.storageKey)
                       )
                     }
                     type={record.total_episodes > 1 ? 'tv' : ''}

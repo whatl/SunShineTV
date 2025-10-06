@@ -97,9 +97,13 @@ export interface DataProvider {
   /**
    * Performs a broad search for a resource, potentially using context like source and id to refine.
    * @param params An object containing the search query and optional context.
+   * @param params.q - Search query string
+   * @param params.source - Play source name (for local videos)
+   * @param params.id - Video ID (for both local and external videos)
+   * @param params.ekey - External site key (站外数据站标识，与id配对使用，ekey+id唯一标识一个站外视频)
    * @returns A promise that resolves to a list of search results.
    */
-  focusedSearch: (params: { q: string; source?: string; id?: string; }) => Promise<SearchResult[]>;
+  focusedSearch: (params: { q: string; source?: string; id?: string; ekey?: string; }) => Promise<SearchResult[]>;
 
   /**
    * Fetches a single, specific resource by its source and ID.

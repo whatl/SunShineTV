@@ -63,6 +63,9 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
     currentEpisode?: number;
     search_title?: string;
     origin?: 'vod' | 'live';
+    localVodId?: string; // 本站视频ID
+    year?: string;
+    ekey?: string; // 站外数据站标识
   };
 
   const [favoriteItems, setFavoriteItems] = useState<FavoriteItem[]>([]);
@@ -146,9 +149,26 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
     const sorted = Object.entries(allFavorites)
       .sort(([, a], [, b]) => b.save_time - a.save_time)
       .map(([key, fav]) => {
-        const plusIndex = key.indexOf('+');
-        const source = key.slice(0, plusIndex);
-        const id = key.slice(plusIndex + 1);
+        // 解析 key: source+id 或 source+id+ekey
+        const parts = key.split('+');
+        let source: string, id: string, ekey: string | undefined;
+
+        if (parts.length === 2) {
+          // 本地视频: source+id
+          source = parts[0];
+          id = parts[1];
+          ekey = undefined;
+        } else if (parts.length === 3) {
+          // 站外视频: source+id+ekey
+          source = parts[0];
+          id = parts[1];
+          ekey = parts[2];
+        } else {
+          // 兜底
+          source = parts[0];
+          id = parts.slice(1).join('+');
+          ekey = undefined;
+        }
 
         // 查找对应的播放记录，获取当前集数
         const playRecord = allPlayRecords[key];
@@ -157,6 +177,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
         return {
           id,
           source,
+          ekey,
           title: fav.title,
           year: fav.year,
           poster: fav.cover,
@@ -165,6 +186,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
           currentEpisode,
           search_title: fav?.search_title,
           origin: fav?.origin,
+          localVodId: fav?.locid, // 本站视频ID（从 Favorite.locid 字段获取）
         } as FavoriteItem;
       });
     setFavoriteItems(sorted);

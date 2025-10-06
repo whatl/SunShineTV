@@ -102,32 +102,42 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
   // 是否倒序显示
   const [descending, setDescending] = useState<boolean>(false);
 
-  // 保存初始排序后的列表
-  const [sortedSources, setSortedSources] = useState<SearchResult[]>([]);
   const userHasInteractedRef = useRef(false);  // 追踪用户是否点击过
+  const sortedSourcesRef = useRef<SearchResult[]>([]);  // 缓存排序结果
 
-  // 初始化时排序，但用户点击后不再排序
-  useEffect(() => {
-    if (availableSources && availableSources.length > 0 && !userHasInteractedRef.current) {
-      const sorted = [...availableSources].sort((a, b) => {
-        const aIsCurrent =
-          a.source?.toString() === currentSource?.toString() &&
-          a.id?.toString() === currentId?.toString();
-        const bIsCurrent =
-          b.source?.toString() === currentSource?.toString() &&
-          b.id?.toString() === currentId?.toString();
-        if (aIsCurrent && !bIsCurrent) return -1;
-        if (!aIsCurrent && bIsCurrent) return 1;
-        return 0;
-      });
-      setSortedSources(sorted);
+  // 使用 useMemo 同步计算排序，避免初始渲染闪烁
+  const sortedSources = useMemo(() => {
+    if (!availableSources || availableSources.length === 0) {
+      return [];
     }
-  }, [availableSources, currentSource, currentId]);
 
-  // 视频改变时重置用户交互标记
+    // 如果用户已交互，直接返回缓存的排序结果
+    if (userHasInteractedRef.current && sortedSourcesRef.current.length > 0) {
+      return sortedSourcesRef.current;
+    }
+
+    // 执行排序（只在初次加载时依据currentSource和currentId排序）
+    const sorted = [...availableSources].sort((a, b) => {
+      const aIsCurrent =
+        a.source?.toString() === currentSource?.toString() &&
+        a.id?.toString() === currentId?.toString();
+      const bIsCurrent =
+        b.source?.toString() === currentSource?.toString() &&
+        b.id?.toString() === currentId?.toString();
+      if (aIsCurrent && !bIsCurrent) return -1;
+      if (!aIsCurrent && bIsCurrent) return 1;
+      return 0;
+    });
+
+    // 缓存排序结果
+    sortedSourcesRef.current = sorted;
+    return sorted;
+  }, [availableSources]); // 只依赖availableSources，避免换源时重新排序
+
+  // 视频标题改变时重置用户交互标记（换视频而非换源）
   useEffect(() => {
     userHasInteractedRef.current = false;
-  }, [currentId]);
+  }, [videoTitle]);
 
   // 根据 descending 状态计算实际显示的分页索引
   const displayPage = useMemo(() => {
@@ -549,7 +559,7 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
             !sourceSearchError &&
             availableSources.length > 0 && (
               <div className='flex-1 overflow-auto pb-20'>
-                {(sortedSources.length > 0 ? sortedSources : availableSources).map((source, index) => {
+                {sortedSources.map((source, index) => {
                     const isCurrentSource =
                       source.source?.toString() === currentSource?.toString() &&
                       source.id?.toString() === currentId?.toString();

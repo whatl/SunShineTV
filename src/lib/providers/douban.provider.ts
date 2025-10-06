@@ -163,8 +163,13 @@ async function search(extra: Record<string, string>, useStream = false, page?: n
   }
 }
 
-async function focusedSearch(params: { q: string; source?: string; id?: string; }): Promise<SearchResult[]> {
+/**
+ * 聚焦搜索：根据查询词查找视频
+ * 注意：豆瓣数据源不支持站外搜索，ekey参数会被忽略
+ */
+async function focusedSearch(params: { q: string; source?: string; id?: string; ekey?: string; }): Promise<SearchResult[]> {
   const { q } = params;
+  // ekey 参数在豆瓣数据源中不使用（豆瓣不支持站外搜索）
   if (!q) {
     return Promise.resolve([]);
   }

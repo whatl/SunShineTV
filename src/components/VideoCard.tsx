@@ -30,7 +30,10 @@ import MobileActionSheet from '@/components/MobileActionSheet';
 export interface VideoCardProps {
   id?: string; // 对应的是vodid，如果有这个值肯定能从后台服务器找到
   source?: string; // 对应的数据源资源提供者，比如如意，电影天堂 豆瓣 Maccms
+  ekey?: string; // 站外数据站标识（与id配对使用，ekey+id唯一标识一个站外视频）
   ids?: string[]; //vodid [] 数组， 聚合时使用
+  ekeys?: string[]; // 站外数据站标识数组，聚合时使用（与ids一一对应）
+  localVodId?: string; // 本站视频ID（从播放记录/收藏的key字段获取，用于站外视频跳转到本站源）
   title?: string;
   query?: string;
   poster?: string;
@@ -60,11 +63,14 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   {
     id,
     ids,
+    ekeys,
+    localVodId,
     title = '',
     query = '',
     poster = '',
     episodes,
     source,
+    ekey,
     source_name,
     source_names,
     progress = 0,
@@ -120,10 +126,12 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   const actualPoster = poster;
   const actualSource = source;
   const actualId = id;
+  const actualEkey = ekey; // 站外数据站标识
   const actualDoubanId = dynamicDoubanId;
   const actualEpisodes = dynamicEpisodes;
   const actualYear = year;
   const actualIds = ids;
+  const actualEkeys = ekeys; // 站外数据站标识数组（聚合时使用）
   const actualSources = source_names;
   const actualQuery = query || '';
   const actualSearchType = isAggregate
@@ -136,7 +144,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
     const fetchFavoriteStatus = async () => {
       try {
-        const fav = await isFavorited(actualSource, actualId);
+        const fav = await isFavorited(actualSource, actualId, actualEkey);
         setFavorited(fav);
       } catch (err) {
         throw new Error('检查收藏状态失败');
@@ -146,7 +154,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     fetchFavoriteStatus();
 
     // 监听收藏状态更新事件
-    const storageKey = generateStorageKey(actualSource, actualId);
+    const storageKey = generateStorageKey(actualSource, actualId, actualEkey);
     const unsubscribe = subscribeToDataUpdates(
       'favoritesUpdated',
       (newFavorites: Record<string, any>) => {
@@ -157,7 +165,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     );
 
     return unsubscribe;
-  }, [from, actualSource, actualId]);
+  }, [from, actualSource, actualId, actualEkey]);
 
   const handleToggleFavorite = useCallback(
     async (e: React.MouseEvent) => {
@@ -171,7 +179,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
 
         if (currentFavorited) {
           // 如果已收藏，删除收藏
-          await deleteFavorite(actualSource, actualId);
+          await deleteFavorite(actualSource, actualId, actualEkey);
           if (from === 'search') {
             setSearchFavorited(false);
           } else {
@@ -186,7 +194,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             cover: actualPoster,
             total_episodes: actualEpisodes ?? 1,
             save_time: Date.now(),
-          });
+            // 注意：VideoCard 从搜索结果保存收藏时，无法获取本站vodId
+            // 只有在播放页面保存时才能通过可用源列表获取本站id
+          }, actualEkey);
           if (from === 'search') {
             setSearchFavorited(true);
           } else {
@@ -201,6 +211,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       from,
       actualSource,
       actualId,
+      actualEkey,
       actualTitle,
       source_name,
       actualYear,
@@ -217,13 +228,13 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       e.stopPropagation();
       if (from !== 'playrecord' || !actualSource || !actualId) return;
       try {
-        await deletePlayRecord(actualSource, actualId);
+        await deletePlayRecord(actualSource, actualId, actualEkey);
         onDelete?.();
       } catch (err) {
         throw new Error('删除播放记录失败');
       }
     },
-    [from, actualSource, actualId, onDelete]
+    [from, actualSource, actualId, actualEkey, onDelete]
   );
 
   const handleClick = useCallback(() => {
@@ -237,20 +248,28 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       // 豆瓣这里不需要传递actualId，其他系统支持用id查询效率更快
       let mTempId  = !isDouban ? actualId : "";
       let mTempSource = !isDouban ? actualSource : "";
+      let mTempEkey = !isDouban ? actualEkey : "";
       if (!mTempId && isAggregate && !isDouban && actualIds && actualSources) { // 聚合尝试使用第一个做为id，后续有需求可以修改这里
           mTempId = actualIds[0];
           mTempSource = actualSources[0];
+          mTempEkey = actualEkeys?.[0] || "";
       }
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
         }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}
-        ${mTempId ? `&id=${mTempId}` : ''}${mTempSource && mTempId ? `&source=${mTempSource}` : ''}`;
+        ${mTempId ? `&id=${mTempId}` : ''}${mTempSource && mTempId ? `&source=${mTempSource}` : ''}${mTempEkey ? `&ekey=${mTempEkey}` : ''}`;
       router.push(url);
-    } else if (actualSource && actualId) { // 有数据源和有id
-      const url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
+    } else if (actualSource && actualId) {
+      let url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
         actualTitle
       )}${actualYear ? `&year=${actualYear}` : ''}${isAggregate ? '&prefer=true' : ''
         }${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''
-        }${actualSearchType ? `&stype=${actualSearchType}` : ''}`;
+        }${actualSearchType ? `&stype=${actualSearchType}` : ''}${actualEkey ? `&ekey=${actualEkey}` : ''}`;
+
+      // 站外视频且有本站locid时添加locid参数
+      if (localVodId && actualEkey) {
+        url += `&locid=${localVodId}`;
+      }
+
       router.push(url);
     }
   }, [
@@ -258,12 +277,14 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     from,
     actualSource,
     actualId,
+    localVodId,
     router,
     actualTitle,
     actualYear,
     isAggregate,
     actualQuery,
     actualSearchType,
+    actualEkey,
   ]);
 
   // 新标签页播放处理函数
@@ -277,20 +298,28 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       // 豆瓣这里不需要传递actualId，其他系统支持用id查询效率更快
       let mTempId  = !isDouban ? actualId : "";
       let mTempSource = !isDouban ? actualSource : "";
+      let mTempEkey = !isDouban ? actualEkey : "";
       if (!mTempId && isAggregate && !isDouban && actualIds && actualSources) { // 聚合尝试使用第一个做为id，后续有需求可以修改这里
           mTempId = actualIds[0];
           mTempSource = actualSources[0];
+          mTempEkey = actualEkeys?.[0] || "";
       }
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
         }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}
-        ${mTempId ? `&id=${mTempId}` : ''}${mTempSource && mTempId ? `&source=${mTempSource}` : ''}`;
+        ${mTempId ? `&id=${mTempId}` : ''}${mTempSource && mTempId ? `&source=${mTempSource}` : ''}${mTempEkey ? `&ekey=${mTempEkey}` : ''}`;
       window.open(url, '_blank');
     } else if (actualSource && actualId) {
-      const url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
+      let url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
         actualTitle
       )}${actualYear ? `&year=${actualYear}` : ''}${isAggregate ? '&prefer=true' : ''
         }${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''
-        }${actualSearchType ? `&stype=${actualSearchType}` : ''}`;
+        }${actualSearchType ? `&stype=${actualSearchType}` : ''}${actualEkey ? `&ekey=${actualEkey}` : ''}`;
+
+      // 站外视频且有本站locid时添加locid参数
+      if (localVodId && actualEkey) {
+        url += `&locid=${localVodId}`;
+      }
+
       window.open(url, '_blank');
     }
   }, [
@@ -298,24 +327,26 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     from,
     actualSource,
     actualId,
+    localVodId,
     actualTitle,
     actualYear,
     isAggregate,
     actualQuery,
     actualSearchType,
+    actualEkey,
   ]);
 
   // 检查搜索结果的收藏状态
   const checkSearchFavoriteStatus = useCallback(async () => {
     if (from === 'search' && !isAggregate && actualSource && actualId && searchFavorited === null) {
       try {
-        const fav = await isFavorited(actualSource, actualId);
+        const fav = await isFavorited(actualSource, actualId, actualEkey);
         setSearchFavorited(fav);
       } catch (err) {
         setSearchFavorited(false);
       }
     }
-  }, [from, isAggregate, actualSource, actualId, searchFavorited]);
+  }, [from, isAggregate, actualSource, actualId, actualEkey, searchFavorited]);
 
   // 长按操作
   const handleLongPress = useCallback(() => {

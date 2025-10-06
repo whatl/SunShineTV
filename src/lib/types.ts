@@ -102,6 +102,7 @@ export interface SearchResult {
   douban_id?: number; //真正的豆瓣id
   director?: string; // 导演
   actor?: string; // 主演
+  ekey?: string; // 站外主键：标识数据来源的站点ID，仅站外搜索结果有值，本地数据为undefined
 }
 
 // 豆瓣数据结构
