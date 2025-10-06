@@ -817,7 +817,7 @@ function SearchPageClient() {
                             const { episodes, source_names, douban_id } = computeGroupStats(group);
                             // 仅传递ids，不传递id
                             const ids = Array.from(new Set(group.map((g) => g.id).filter(Boolean))) as string[]; // 返回聚合后的vodid （By Faker）
-                            // 提取ekeys数组（与ids一一对应，站外视频有值，本地视频为undefined）
+                            // 提取ekeys数组（与ids一一对应，站外视频有值，本地视频为空字符串）
                             const seenIds = new Set<string>();
                             const ekeys = group
                               .filter((g) => {
@@ -826,7 +826,7 @@ function SearchPageClient() {
                                 seenIds.add(g.id);
                                 return true;
                               })
-                              .map((g) => g.ekey);
+                              .map((g) => g.ekey || '');
                             const type = episodes === 1 ? 'movie' : 'tv';
       
                             // 如果该聚合第一次出现，写入初始统计
