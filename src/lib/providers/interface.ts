@@ -46,13 +46,13 @@ export interface DataProvider {
    */
   supportedCategories: string[];
 
-  // Feedback and Captcha (optional, not all providers support these)
+  // Feedback and Captcha (all providers must implement these, even if just throwing errors)
   /**
    * Get captcha image for feedback submission
    * @param oldSessionId Optional old session ID to invalidate
    * @returns Promise with session ID and base64 encoded image
    */
-  getCaptcha?: (oldSessionId?: string) => Promise<{ sessionId: string; imageBase64: string }>;
+  getCaptcha: (oldSessionId?: string) => Promise<{ sessionId: string; imageBase64: string }>;
 
   /**
    * Submit user feedback
@@ -63,7 +63,7 @@ export interface DataProvider {
    * @param email Optional user email
    * @returns Promise with response code and message
    */
-  submitFeedback?: (
+  submitFeedback: (
     type: number,
     content: string,
     sessionId: string,
