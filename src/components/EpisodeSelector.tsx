@@ -635,6 +635,25 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
                                 }
                               }
 
+                              // 如果没有测速数据，但有配置的清晰度，显示配置的清晰度作为兜底
+                              if (source.quality) {
+                                const isUltraHigh = ['4K', '2K'].includes(source.quality);
+                                const isHigh = ['1080p', '720p'].includes(source.quality);
+                                const textColorClasses = isUltraHigh
+                                  ? 'text-purple-600 dark:text-purple-400'
+                                  : isHigh
+                                    ? 'text-green-600 dark:text-green-400'
+                                    : 'text-yellow-600 dark:text-yellow-400';
+
+                                return (
+                                  <div
+                                    className={`bg-gray-500/10 dark:bg-gray-400/20 ${textColorClasses} px-1.5 py-0 rounded text-xs flex-shrink-0 min-w-[50px] text-center`}
+                                  >
+                                    {source.quality}
+                                  </div>
+                                );
+                              }
+
                               return null;
                             })()}
                           </div>

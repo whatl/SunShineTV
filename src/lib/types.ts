@@ -104,6 +104,7 @@ export interface SearchResult {
   actor?: string; // 主演
   ekey?: string; // 站外主键：标识数据来源的站点ID，仅站外搜索结果有值，本地数据为undefined
   need_decode?: boolean; // 是否需要解码才能播放：true表示需要通过解码接口解码URL后才能播放，false表示可以直接播放
+  quality?: string; // 配置的清晰度（如"4K"、"1080p"等），仅当在配置文件中为该数据源配置了清晰度时才有值，用于直接显示无需测速
 }
 
 // 豆瓣数据结构
