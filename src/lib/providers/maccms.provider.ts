@@ -100,7 +100,7 @@ async function getProtoRoot(): Promise<protobuf.Root> {
 }
 
 
-async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, string>, protoTypeName?: string): Promise<T> {
+async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, string>, protoTypeName?: string, signal?: AbortSignal): Promise<T> {
   let url = `${API_BASE_URL}${endpoint}`;
   if (params) {
     const searchParams = new URLSearchParams();
@@ -115,7 +115,7 @@ async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, stri
     }
   }
 
-  const response = await fetch(url);
+  const response = await fetch(url, { signal });
 
   if (!response.ok) {
     throw new Error(`Failed to fetch from CMS API: ${response.statusText}`);
@@ -459,13 +459,17 @@ async function getSuggestions(query: string): Promise<Array<{
   }
 }
 
-async function decodeUrl(url: string, vodFrom: string): Promise<DecodeResponse | null> {
+async function decodeUrl(url: string, vodFrom: string, signal?: AbortSignal): Promise<DecodeResponse | null> {
   if (!url || !vodFrom) {
     return Promise.resolve(null);
   }
   try {
-    return await fetchFromCmsApi<DecodeResponse>(`/api/cms/shine/decode_url`, { url:url, vodFrom:vodFrom }, 'maccms.DecodeResponse');
+    return await fetchFromCmsApi<DecodeResponse>(`/api/cms/shine/decode_url`, { url:url, vodFrom:vodFrom }, 'maccms.DecodeResponse', signal);
   } catch (error) {
+    // 如果是取消请求，不打印错误
+    if (error instanceof Error && error.name === 'AbortError') {
+      return null;
+    }
     console.error('Error decodeUrl :', error);
     // 404 等错误会在这里被捕获，返回 null 是符合预期的
     return null;

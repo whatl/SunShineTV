@@ -38,7 +38,7 @@ export interface HomePageData {
 export interface DataProvider {
 
   // ur再次解密
-  decodeUrl: (url: string, vodFrom: string) => Promise<DecodeResponse | null>;
+  decodeUrl: (url: string, vodFrom: string, signal?: AbortSignal) => Promise<DecodeResponse | null>;
 
   /**
    * A list of top-level category keys that this provider supports.

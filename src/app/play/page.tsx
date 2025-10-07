@@ -636,6 +636,7 @@ function PlayPageClient() {
   const detailRef = useRef<SearchResult | null>(detail);
   const currentEpisodeIndexRef = useRef(currentEpisodeIndex);
   const availableSourcesRef = useRef<SearchResult[]>([]);
+  const decodeAbortControllerRef = useRef<AbortController | null>(null);
 
   // 同步最新值到 refs
   useEffect(() => {
@@ -944,13 +945,42 @@ function PlayPageClient() {
       setVideoUrl('');
       return;
     }
+
+    // 取消之前的解码请求
+    if (decodeAbortControllerRef.current) {
+      decodeAbortControllerRef.current.abort();
+      decodeAbortControllerRef.current = null;
+    }
+
     let newUrl = detailData?.episodes[episodeIndex] || '';
     if(detailData?.need_decode){
-      // 需要优化decodeUrl可能存在竞态竞争，需要考虑
-      const data = await decodeUrl(newUrl,detailData?.source);
-      newUrl = data?.data || newUrl
-      if (data?.data) {
-        console.log(`数据解码成功`)
+      // 创建新的 AbortController
+      const abortController = new AbortController();
+      decodeAbortControllerRef.current = abortController;
+
+      try {
+        const data = await decodeUrl(newUrl, detailData?.source, abortController.signal);
+
+        // 检查请求是否已被取消
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        newUrl = data?.data || newUrl;
+        if (data?.data) {
+          console.log(`数据解码成功`);
+        }
+      } catch (error) {
+        // 如果是取消请求，直接返回
+        if (error instanceof Error && error.name === 'AbortError') {
+          return;
+        }
+        console.error('解码失败:', error);
+      } finally {
+        // 清理 AbortController
+        if (decodeAbortControllerRef.current === abortController) {
+          decodeAbortControllerRef.current = null;
+        }
       }
     }
     if (newUrl !== videoUrl) {
