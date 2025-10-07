@@ -63,6 +63,7 @@ async function getProtoRoot(): Promise<protobuf.Root> {
   string desc = 11;
   string type_name = 12;
   int32 douban_id = 13;
+  bool need_decode = 14; // 是否需要解码才能播放
 }
 
   message SearchResultList {
