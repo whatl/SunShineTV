@@ -244,6 +244,11 @@ async function submitFeedback(
   throw new Error('Feedback submission is not available for douban data source');
 }
 
+async function decodeUrl(_url: string, _vodFrom: string, _signal?: AbortSignal): Promise<{ data: string } | null> {
+  // Douban provider doesn't need URL decoding
+  return null;
+}
+
 /**
  * 获取搜索建议
  * 对于豆瓣，直接调用 /api/search/suggestions 接口
@@ -289,6 +294,7 @@ export const doubanProvider: DataProvider = {
   // Feedback methods
   getCaptcha,
   submitFeedback,
+  decodeUrl,
 
   // Legacy methods for homepage and direct calls
   getMovies,
