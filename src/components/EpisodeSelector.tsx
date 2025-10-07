@@ -238,10 +238,11 @@ const EpisodeSelector: React.FC<EpisodeSelectorProps> = ({
       )
         return;
 
-      // 筛选出尚未测速的播放源
+      // 筛选出尚未测速的播放源，并过滤掉需要解码的源
       const pendingSources = availableSources.filter((source) => {
         const sourceKey = `${source.source}-${source.id}`;
-        return !attemptedSourcesRef.current.has(sourceKey);
+        // 跳过需要解码的源和已经测速的源
+        return !source.need_decode && !attemptedSourcesRef.current.has(sourceKey);
       });
 
       if (pendingSources.length === 0) return;

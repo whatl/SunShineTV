@@ -731,15 +731,24 @@ function PlayPageClient() {
   ): Promise<SearchResult> => {
     if (sources.length === 1) return sources[0];
 
+    // 过滤掉需要解码的数据源，这些源无法直接测速
+    const testableSources = sources.filter(source => !source.need_decode);
+
+    // 如果所有源都需要解码，返回第一个
+    if (testableSources.length === 0) {
+      console.warn('所有播放源都需要解码，无法进行优选测速');
+      return sources[0];
+    }
+
     // 将播放源均分为两批，并发测速各批，避免一次性过多请求
-    const batchSize = Math.ceil(sources.length / 2);
+    const batchSize = Math.ceil(testableSources.length / 2);
     const allResults: Array<{
       source: SearchResult;
       testResult: { quality: string; loadSpeed: string; pingTime: number };
     } | null> = [];
 
-    for (let start = 0; start < sources.length; start += batchSize) {
-      const batchSources = sources.slice(start, start + batchSize);
+    for (let start = 0; start < testableSources.length; start += batchSize) {
+      const batchSources = testableSources.slice(start, start + batchSize);
       const batchResults = await Promise.all(
         batchSources.map(async (source) => {
           try {
@@ -779,7 +788,7 @@ function PlayPageClient() {
       }
     >();
     allResults.forEach((result, index) => {
-      const source = sources[index];
+      const source = testableSources[index]; // 使用 testableSources 而不是 sources
       const sourceKey = `${source.source}-${source.id}`;
 
       if (result) {
