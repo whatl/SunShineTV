@@ -1387,8 +1387,18 @@ function PlayPageClient() {
       // 处理ekey：站外视频有ekey，本地视频删除ekey
       if (detailData.ekey) {
         newUrl.searchParams.set('ekey', detailData.ekey);
+        // 站外视频需要添加locid（本站视频ID）
+        // 从sourcesInfo中查找本站源
+        const localSource = sourcesInfo.find(
+          (source) => !source.ekey
+        );
+        if (localSource?.id) {
+          newUrl.searchParams.set('locid', localSource.id);
+        }
       } else {
         newUrl.searchParams.delete('ekey');
+        // 本站视频删除locid
+        newUrl.searchParams.delete('locid');
       }
       newUrl.searchParams.delete('prefer');
       window.history.replaceState({}, '', newUrl.toString());
@@ -1533,8 +1543,18 @@ function PlayPageClient() {
       // 处理ekey：站外视频有ekey，本地视频删除ekey
       if (newDetail.ekey) {
         newUrl.searchParams.set('ekey', newDetail.ekey);
+        // 站外视频需要添加locid（本站视频ID）
+        // 从可用源中查找本站源
+        const localSource = availableSourcesRef.current.find(
+          (source) => !source.ekey
+        );
+        if (localSource?.id) {
+          newUrl.searchParams.set('locid', localSource.id);
+        }
       } else {
         newUrl.searchParams.delete('ekey');
+        // 本站视频删除locid
+        newUrl.searchParams.delete('locid');
       }
       window.history.replaceState({}, '', newUrl.toString());
 
