@@ -152,11 +152,9 @@ function checkAndCleanCache() {
         const data: VideoTestCache = JSON.parse(cached);
         const cacheAge = now - data.timestamp;
 
-        // 如果发现过期缓存，触发全量清理
+        // 如果这条缓存过期，删除这条
         if (cacheAge >= 2 * 60 * 60 * 1000) {
-          const cleaned = cleanExpiredTestCache();
-          console.log(`抽检发现过期缓存，已清理 ${cleaned} 条`);
-          return; // 清理后退出
+          localStorage.removeItem(key);
         }
       } catch {
         // 解析失败，删除这条缓存
