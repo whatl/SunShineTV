@@ -637,6 +637,7 @@ function PlayPageClient() {
   const currentEpisodeIndexRef = useRef(currentEpisodeIndex);
   const availableSourcesRef = useRef<SearchResult[]>([]);
   const decodeAbortControllerRef = useRef<AbortController | null>(null);
+  const lastErrorTimeRef = useRef<number>(0); // 防止 error 和 video:error 重复触发
 
   // 同步最新值到 refs
   useEffect(() => {
@@ -722,9 +723,58 @@ function PlayPageClient() {
   // Wake Lock 相关
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
 
+  // 视频加载重试计数
+  const videoLoadRetryCountRef = useRef<number>(0);
+  const MAX_VIDEO_LOAD_RETRY = 2; // 最多重试2次
+
   // -----------------------------------------------------------------------------
   // 工具函数（Utils）
   // -----------------------------------------------------------------------------
+
+  // 处理视频加载失败
+  const handleVideoLoadFailure = (errorMessage: string) => {
+    // 暂时注释重试逻辑，简化调试
+    console.log('视频加载失败:', errorMessage);
+    setIsVideoLoading(false);
+    if (artPlayerRef.current) {
+      artPlayerRef.current.notice.show = `${errorMessage}，请尝试换源`;
+    }
+
+    /* 重试逻辑已注释
+    videoLoadRetryCountRef.current++;
+
+    if (videoLoadRetryCountRef.current <= MAX_VIDEO_LOAD_RETRY) {
+      console.log(`视频加载失败，尝试重试... (${videoLoadRetryCountRef.current}/${MAX_VIDEO_LOAD_RETRY})`);
+      if (artPlayerRef.current) {
+        artPlayerRef.current.notice.show = `加载失败，正在重试 (${videoLoadRetryCountRef.current}/${MAX_VIDEO_LOAD_RETRY})...`;
+      }
+
+      const currentRetrySource = currentSource;
+      const currentRetryId = currentId;
+      const currentRetryEpisode = currentEpisodeIndex;
+
+      setTimeout(() => {
+        if (
+          currentRetrySource === currentSource &&
+          currentRetryId === currentId &&
+          currentRetryEpisode === currentEpisodeIndex &&
+          detailRef.current &&
+          currentEpisodeIndex !== null
+        ) {
+          updateVideoUrl(detailRef.current, currentEpisodeIndex, true);
+        } else {
+          console.log('源或集数已切换，取消重试');
+        }
+      }, 2000);
+    } else {
+      console.error('视频加载失败，重试次数已达上限');
+      setIsVideoLoading(false);
+      if (artPlayerRef.current) {
+        artPlayerRef.current.notice.show = `${errorMessage}，请尝试换源`;
+      }
+    }
+    */
+  };
 
   // 播放源优选函数
   const preferBestSource = async (
@@ -935,7 +985,8 @@ function PlayPageClient() {
   // 更新视频地址
   const updateVideoUrl = async (
     detailData: SearchResult | null,
-    episodeIndex: number
+    episodeIndex: number,
+    isRetry = false
   ) => {
     if (
       !detailData ||
@@ -944,6 +995,11 @@ function PlayPageClient() {
     ) {
       setVideoUrl('');
       return;
+    }
+
+    // 如果不是重试，重置重试计数
+    if (!isRetry) {
+      videoLoadRetryCountRef.current = 0;
     }
 
     // 取消之前的解码请求
@@ -1409,7 +1465,7 @@ function PlayPageClient() {
       // 短暂延迟让用户看到完成状态
       setTimeout(() => {
         setLoading(false);
-      }, 1000);
+      }, 500);
     };
 
     initAll();
@@ -1915,15 +1971,25 @@ function PlayPageClient() {
 
     // 非WebKit浏览器且播放器已存在，使用switch方法切换
     if (!isWebkit && artPlayerRef.current) {
+      const video = artPlayerRef.current.video as HTMLVideoElement;
+
+      // 先暂停当前播放，避免新视频加载失败时继续播放旧视频
+      artPlayerRef.current.pause();
+
+      // 销毁旧的 HLS 实例，确保不会继续播放旧视频
+      if (video?.hls) {
+        video.hls.destroy();
+        video.hls = null;
+      }
+
+      // 切换到新视频
       artPlayerRef.current.switch = videoUrl;
       artPlayerRef.current.title = `${videoTitle} - 第${currentEpisodeIndex + 1
         }集`;
       artPlayerRef.current.poster = videoCover;
-      if (artPlayerRef.current?.video) {
-        ensureVideoSource(
-          artPlayerRef.current.video as HTMLVideoElement,
-          videoUrl
-        );
+
+      if (video) {
+        ensureVideoSource(video, videoUrl);
       }
       return;
     }
@@ -2259,10 +2325,61 @@ function PlayPageClient() {
         }
       });
 
-      artPlayerRef.current.on('error', (err: any) => {
-        console.error('播放器错误:', err);
-        if (!artPlayerRef.current || artPlayerRef.current.currentTime > 0) {
+      // 错误处理函数（带防抖）
+      const processError = (errorSource: MediaError | null, eventType: string) => {
+        const now = Date.now();
+        // 100ms 内的重复错误事件忽略
+        if (now - lastErrorTimeRef.current < 100) {
+          console.log(`=== ${eventType} 事件被防抖忽略 ===`);
           return;
+        }
+        lastErrorTimeRef.current = now;
+
+        let errorMessage = '视频加载失败';
+        if (errorSource) {
+          switch (errorSource.code) {
+            case 2: // MEDIA_ERR_NETWORK
+              errorMessage = '视频加载失败：网络错误';
+              break;
+            case 3: // MEDIA_ERR_DECODE
+              errorMessage = '视频解码失败';
+              break;
+            case 4: // MEDIA_ERR_SRC_NOT_SUPPORTED
+              errorMessage = '视频格式不支持或资源不可用';
+              break;
+          }
+        }
+        handleVideoLoadFailure(errorMessage);
+      };
+
+      artPlayerRef.current.on('error', (err: any) => {
+        console.error('=== ArtPlayer error 事件触发 ===', err);
+        if (!artPlayerRef.current) {
+          return;
+        }
+
+        // 先尝试直接读取 video.error
+        const video = artPlayerRef.current?.video as HTMLVideoElement;
+        if (video?.error) {
+          processError(video.error, 'error');
+        } else {
+          // 如果没有 error，延迟读取（可能还未设置）
+          setTimeout(() => {
+            const videoDelayed = artPlayerRef.current?.video as HTMLVideoElement;
+            processError(videoDelayed?.error || null, 'error');
+          }, 0);
+        }
+      });
+
+      // 监听原生视频元素的错误事件（在使用 switch 方法时此事件会触发）
+      artPlayerRef.current.on('video:error', () => {
+        console.error('=== video:error 事件触发 ===');
+        if (!artPlayerRef.current) {
+          return;
+        }
+        const video = artPlayerRef.current?.video as HTMLVideoElement;
+        if (video?.error) {
+          processError(video.error, 'video:error');
         }
       });
 
