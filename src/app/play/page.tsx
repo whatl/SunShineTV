@@ -946,6 +946,7 @@ function PlayPageClient() {
     }
     let newUrl = detailData?.episodes[episodeIndex] || '';
     if(detailData?.need_decode){
+      // 需要优化decodeUrl可能存在竞态竞争，需要考虑
       const data = await decodeUrl(newUrl,detailData?.source);
       newUrl = data?.data || newUrl
       if (data?.data) {
