@@ -8,7 +8,7 @@ import protobuf from 'protobufjs';
 import { CategoriesParams, DataProvider, HomePageData, ListByTagParams, RecommendationsParams } from './interface';
 import { BangumiCalendarData } from '../bangumi.client';
 import { API_BASE_URL } from '../maccms.config';
-import { DoubanItem, DoubanResult, SearchResult } from '../types';
+import {DecodeResponse,DoubanItem, DoubanResult, SearchResult } from '../types';
 
 const NOT_IMPLEMENTED_ERROR = 'Maccms provider API endpoint is not yet implemented for this method.';
 
@@ -87,6 +87,12 @@ async function getProtoRoot(): Promise<protobuf.Root> {
   message CaptchaResponse {
     string sessionId = 1;
     string imageBase64 = 2;
+  }
+
+  message DecodeResponse {
+    int32 code = 1;
+    string msg = 2;
+    string data = 3;
   }
   `;
   protoRoot = protobuf.parse(protoDefinition).root;
@@ -453,6 +459,19 @@ async function getSuggestions(query: string): Promise<Array<{
   }
 }
 
+async function decodeUrl(url: string, vodFrom: string): Promise<DecodeResponse | null> {
+  if (!url || !vodFrom) {
+    return Promise.resolve(null);
+  }
+  try {
+    return await fetchFromCmsApi<DecodeResponse>(`/api/cms/shine/decode_url`, { url:url, vodFrom:vodFrom }, 'maccms.DecodeResponse');
+  } catch (error) {
+    console.error('Error decodeUrl :', error);
+    // 404 等错误会在这里被捕获，返回 null 是符合预期的
+    return null;
+  }
+}
+
 export const maccmsProvider: DataProvider = {
   supportedCategories: ['movie', 'tv', 'show', 'anime', 'drama'],
 
@@ -463,6 +482,8 @@ export const maccmsProvider: DataProvider = {
   focusedSearch,
   detail,
   getSuggestions,
+  // decode methods
+  decodeUrl,
 
   // Feedback methods
   getCaptcha,

@@ -8,7 +8,7 @@ import { Heart, Send, Share2,X } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useRef, useState } from 'react';
 
-import { detail as fetchDetail, focusedSearch, getCaptcha,submitFeedback } from '@/lib/dataProvider';
+import { decodeUrl, detail as fetchDetail, focusedSearch, getCaptcha,submitFeedback } from '@/lib/dataProvider';
 import {
   deleteFavorite,
   deletePlayRecord,
@@ -932,7 +932,7 @@ function PlayPageClient() {
   };
 
   // 更新视频地址
-  const updateVideoUrl = (
+  const updateVideoUrl = async (
     detailData: SearchResult | null,
     episodeIndex: number
   ) => {
@@ -944,7 +944,14 @@ function PlayPageClient() {
       setVideoUrl('');
       return;
     }
-    const newUrl = detailData?.episodes[episodeIndex] || '';
+    let newUrl = detailData?.episodes[episodeIndex] || '';
+    if(detailData?.need_decode){
+      const data = await decodeUrl(newUrl,detailData?.source);
+      newUrl = data?.data || newUrl
+      if (data?.data) {
+        console.log(`数据解码成功`)
+      }
+    }
     if (newUrl !== videoUrl) {
       setVideoUrl(newUrl);
     }

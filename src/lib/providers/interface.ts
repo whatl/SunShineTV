@@ -7,7 +7,7 @@
  */
 
 import { BangumiCalendarData } from '../bangumi.client';
-import { DoubanResult, SearchResult } from '../types';
+import { DecodeResponse, DoubanResult, SearchResult } from '../types';
 
 // =================================================================================
 // DEPRECATED AND EXISTING TYPES
@@ -36,6 +36,10 @@ export interface HomePageData {
  * To add a new data source, one must create an object that implements this interface.
  */
 export interface DataProvider {
+
+  // ur再次解密
+  decodeUrl: (url: string, vodFrom: string) => Promise<DecodeResponse | null>;
+
   /**
    * A list of top-level category keys that this provider supports.
    * E.g., ['movie', 'tv', 'anime', 'show']

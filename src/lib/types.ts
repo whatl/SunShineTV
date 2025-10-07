@@ -129,3 +129,10 @@ export interface SkipConfig {
   intro_time: number; // 片头时间（秒）
   outro_time: number; // 片尾时间（秒）
 }
+
+// 加密数据解码
+export interface DecodeResponse {
+  code?: number; // 响应值0或者200都是正确的
+  data?: string; // 返回的可播放url
+  message?: string; // 报错数据
+}

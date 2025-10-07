@@ -24,8 +24,9 @@ export const supportedCategories = provider.supportedCategories;
 export const getSuggestions = provider.getSuggestions || (async () => []);
 
 // Feedback methods (optional, may throw if not supported by provider)
-export const getCaptcha = provider.getCaptcha!;
-export const submitFeedback = provider.submitFeedback!;
+export const getCaptcha = provider.getCaptcha;
+export const submitFeedback = provider.submitFeedback;
+export const decodeUrl = provider.decodeUrl;
 
 // Legacy methods (for homepage, etc.)
 export const getMovies = provider.getMovies;
