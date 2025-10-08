@@ -52,6 +52,14 @@ body {
   color: rgb(var(--foreground-rgb));
 }
 
+/* 禁用移动端（触摸设备）的 hover 效果，防止点击后背景残留 */
+@media (hover: none) {
+  button:hover,
+  a:hover {
+    background-color: transparent !important;
+  }
+}
+
 html:not(.dark) body {
   background: linear-gradient(
     180deg,
