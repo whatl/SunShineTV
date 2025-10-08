@@ -45,3 +45,4 @@ src/lib/runtime.ts
 public/manifest.json
 
 server/
+public/sw.js
