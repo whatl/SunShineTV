@@ -11,27 +11,53 @@ const nextConfig = {
     dirs: ['src'],
   },
 
-  reactStrictMode: false,
-  swcMinify: true, // Enabled SWC for minification （By AI）
+  // ============================================
+  // 优化1: 启用 React 严格模式（仅开发环境）
+  // ============================================
+  // 作用：帮助发现潜在问题（副作用、废弃 API 等）
+  // 注意：仅在开发时运行额外检查，不影响生产性能
+  reactStrictMode: process.env.NODE_ENV === 'development',
+
+  // 使用 SWC 进行代码压缩（比 Terser 更快）
+  swcMinify: true,
 
   experimental: {
     instrumentationHook: process.env.NODE_ENV === 'production',
-    // 启用路由缓存，延长客户端缓存时间以减少页面重新渲染
-  //   staleTimes: {
-  //     dynamic: 30, // 动态页面缓存 30 秒
-  //     static: 180, // 静态页面缓存 180 秒
-  //   },
+    // ============================================
+    // 优化3: 启用路由缓存（解决性能问题）
+    // ============================================
+    // 作用：缓存客户端路由，减少重新渲染
+    // dynamic: 动态路由缓存时间（秒）
+    // static: 静态路由缓存时间（秒）
+    staleTimes: {
+      dynamic: 30,  // 动态页面缓存 30 秒
+      static: 180,  // 静态页面缓存 180 秒
+    },
   },
 
-  // 自定义 HTTP 响应头，启用 bfcache
+  // 自定义 HTTP 响应头
   async headers() {
     return [
       {
         source: '/:path*',
         headers: [
           {
+            // 允许浏览器缓存但需要重新验证（支持 bfcache）
             key: 'Cache-Control',
             value: 'public, max-age=0, must-revalidate',
+          },
+          // 安全相关头部
+          {
+            key: 'X-DNS-Prefetch-Control',
+            value: 'on'
+          },
+          {
+            key: 'X-Frame-Options',
+            value: 'SAMEORIGIN'
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff'
           },
         ],
       },

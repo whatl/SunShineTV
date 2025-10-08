@@ -16,7 +16,20 @@ import { SiteProvider } from '../components/SiteProvider';
 import { ThemeProvider } from '../components/ThemeProvider';
 
 const inter = Inter({ subsets: ['latin'] });
-export const dynamic = 'force-dynamic';
+
+// ============================================
+// 优化3 已移除: export const dynamic = 'force-dynamic'
+// ============================================
+// 原配置会强制所有页面动态渲染，禁用所有缓存，导致：
+// ❌ 每次访问都重新生成页面
+// ❌ 无法使用 ISR（增量静态再生成）
+// ❌ 阻止浏览器 bfcache
+// ❌ 性能严重下降
+//
+// 解决方案：
+// 1. 需要动态的页面单独设置（在页面级别而非全局）
+// 2. 使用 revalidate 控制缓存策略
+// 3. 使用 next.config.js 的 staleTimes 配置路由缓存
 
 // 动态生成 metadata，支持配置更新后的标题变化
 export async function generateMetadata(): Promise<Metadata> {
