@@ -46,3 +46,4 @@ public/manifest.json
 
 server/
 public/sw.js
+output/
