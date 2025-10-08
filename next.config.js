@@ -16,6 +16,26 @@ const nextConfig = {
 
   experimental: {
     instrumentationHook: process.env.NODE_ENV === 'production',
+    // 启用路由缓存，延长客户端缓存时间以减少页面重新渲染
+  //   staleTimes: {
+  //     dynamic: 30, // 动态页面缓存 30 秒
+  //     static: 180, // 静态页面缓存 180 秒
+  //   },
+  },
+
+  // 自定义 HTTP 响应头，启用 bfcache
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=0, must-revalidate',
+          },
+        ],
+      },
+    ];
   },
 
   // Uncoment to add domain whitelist
