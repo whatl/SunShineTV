@@ -80,8 +80,8 @@ function getTestCache(m3u8Url: string): VideoTestCache | null {
     const now = Date.now();
     const cacheAge = now - data.timestamp;
 
-    // 缓存2小时有效
-    if (cacheAge < 2 * 60 * 60 * 1000) {
+    // 缓存6小时有效
+    if (cacheAge < 6 * 60 * 60 * 1000) {
       return data;
     } else {
       // 过期缓存删除
@@ -109,8 +109,8 @@ function cleanExpiredTestCache() {
             const data: VideoTestCache = JSON.parse(cached);
             const cacheAge = now - data.timestamp;
 
-            // 超过2小时的缓存标记为删除
-            if (cacheAge >= 2 * 60 * 60 * 1000) {
+            // 超过6小时的缓存标记为删除
+            if (cacheAge >= 6 * 60 * 60 * 1000) {
               keysToRemove.push(key);
             }
           }
@@ -153,7 +153,7 @@ function checkAndCleanCache() {
         const cacheAge = now - data.timestamp;
 
         // 如果这条缓存过期，删除这条
-        if (cacheAge >= 2 * 60 * 60 * 1000) {
+        if (cacheAge >= 6 * 60 * 60 * 1000) {
           localStorage.removeItem(key);
         }
       } catch {
