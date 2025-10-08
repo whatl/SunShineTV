@@ -1,0 +1,33 @@
+services:
+  # ResourceTv 主应用
+  app:
+    image: resourcetv:latest
+    container_name: resourcetv
+    ports:
+      - '80:3000'
+    env_file:
+      - .env
+    environment:
+      - KVROCKS_URL=redis://resourcetv-kvrocks:6666
+    depends_on:
+      - kvrocks
+    restart: unless-stopped
+    networks:
+      - resourcetv-network
+
+  # Kvrocks 存储
+  kvrocks:
+    image: apache/kvrocks
+    container_name: resourcetv-kvrocks
+    volumes:
+      - kvrocks-data:/var/lib/kvrocks
+    networks:
+      - resourcetv-network
+    restart: unless-stopped
+
+networks:
+  resourcetv-network:
+    driver: bridge
+
+volumes:
+  kvrocks-data:
