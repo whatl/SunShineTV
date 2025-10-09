@@ -160,14 +160,18 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
     echo ""
 fi
 
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}🔨 构建镜像: ${IMAGE_FULL}${NC}"
-echo -e "${BLUE}   平台: ${TARGET_PLATFORM}${NC}"
+echo -e "${BLUE}   目标平台: ${TARGET_PLATFORM}${NC}"
+echo -e "${BLUE}   平台后缀: ${PLATFORM_SUFFIX}${NC}"
 echo -e "${BLUE}   Dockerfile: scripts/deploy/Dockerfile${NC}"
+echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo ""
 
 # 使用 scripts/deploy/Dockerfile 进行构建，指定目标平台
 # 添加 --no-cache 避免使用缓存的错误架构镜像
-docker build --platform "${TARGET_PLATFORM}" --no-cache -f "$SCRIPT_DIR/Dockerfile" "${BUILD_ARGS[@]}" -t "${IMAGE_FULL}" .
+# 启用 BuildKit 以确保 --platform 参数正确工作
+DOCKER_BUILDKIT=1 docker build --platform "${TARGET_PLATFORM}" --no-cache -f "$SCRIPT_DIR/Dockerfile" "${BUILD_ARGS[@]}" -t "${IMAGE_FULL}" .
 
 if [ $? -ne 0 ]; then
     echo -e "${RED}❌ 构建失败${NC}"
@@ -176,6 +180,21 @@ fi
 
 echo ""
 echo -e "${GREEN}✅ 构建成功${NC}"
+echo ""
+
+# 验证镜像架构
+echo -e "${BLUE}🔍 验证镜像架构...${NC}"
+BUILT_ARCH=$(docker inspect "${IMAGE_FULL}" --format='{{.Architecture}}')
+echo -e "${BLUE}   构建的架构: ${GREEN}${BUILT_ARCH}${NC}"
+echo -e "${BLUE}   期望的架构: ${GREEN}${PLATFORM_SUFFIX}${NC}"
+
+if [ "$BUILT_ARCH" != "$PLATFORM_SUFFIX" ]; then
+    echo -e "${RED}❌ 警告: 构建的架构与期望不符！${NC}"
+    echo -e "${YELLOW}   这可能导致在目标服务器上无法运行${NC}"
+else
+    echo -e "${GREEN}✓${NC} 架构验证通过"
+fi
+echo ""
 
 # 导出镜像
 echo -e "${BLUE}📦 导出镜像...${NC}"

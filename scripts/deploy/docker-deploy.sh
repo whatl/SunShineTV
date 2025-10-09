@@ -33,28 +33,45 @@ fi
 
 # 检查并加载镜像
 check_and_load_image() {
-    # 检查镜像是否存在
-    if docker images | grep -q "^resourcetv.*latest"; then
-        echo -e "${GREEN}✓${NC} 镜像 resourcetv:latest 已存在"
-        return 0
-    fi
-
-    echo -e "${YELLOW}⚠️  未找到 resourcetv:latest 镜像${NC}"
-
     # 查找镜像文件
     IMAGE_FILE=$(ls resourcetv-*.tar.gz 2>/dev/null | head -1)
 
     if [ -z "$IMAGE_FILE" ]; then
-        echo -e "${RED}❌ 未找到镜像文件 (resourcetv-*.tar.gz)${NC}"
-        echo -e "${YELLOW}请确保镜像文件在当前目录${NC}"
-        exit 1
+        # 没有镜像文件，检查镜像是否已加载
+        if docker images | grep -q "^resourcetv.*latest"; then
+            echo -e "${GREEN}✓${NC} 镜像 resourcetv:latest 已存在"
+
+            # 显示镜像架构
+            ARCH=$(docker inspect resourcetv:latest --format='{{.Architecture}}' 2>/dev/null)
+            if [ -n "$ARCH" ]; then
+                echo -e "${BLUE}   架构: ${GREEN}${ARCH}${NC}"
+            fi
+            return 0
+        else
+            echo -e "${RED}❌ 未找到镜像文件 (resourcetv-*.tar.gz)${NC}"
+            echo -e "${YELLOW}请确保镜像文件在当前目录${NC}"
+            exit 1
+        fi
+    fi
+
+    # 有镜像文件，检查是否需要重新加载
+    if docker images | grep -q "^resourcetv.*latest"; then
+        CURRENT_ARCH=$(docker inspect resourcetv:latest --format='{{.Architecture}}' 2>/dev/null)
+        echo -e "${YELLOW}⚠️  镜像 resourcetv:latest 已存在 (架构: ${CURRENT_ARCH})${NC}"
+        echo -e "${BLUE}📦 发现新的镜像文件: ${IMAGE_FILE}${NC}"
+        echo -e "${YELLOW}将删除旧镜像并加载新镜像...${NC}"
+        docker rmi resourcetv:latest 2>/dev/null || true
+    else
+        echo -e "${YELLOW}⚠️  未找到 resourcetv:latest 镜像${NC}"
     fi
 
     echo -e "${BLUE}📦 正在加载镜像: ${IMAGE_FILE}${NC}"
     docker load -i "$IMAGE_FILE"
 
     if [ $? -eq 0 ]; then
+        NEW_ARCH=$(docker inspect resourcetv:latest --format='{{.Architecture}}' 2>/dev/null)
         echo -e "${GREEN}✅ 镜像加载成功${NC}"
+        echo -e "${BLUE}   新镜像架构: ${GREEN}${NEW_ARCH}${NC}"
     else
         echo -e "${RED}❌ 镜像加载失败${NC}"
         exit 1
