@@ -257,7 +257,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
         }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}
         ${mTempId ? `&id=${mTempId}` : ''}${mTempSource && mTempId ? `&source=${mTempSource}` : ''}${mTempEkey ? `&ekey=${mTempEkey}` : ''}`;
-      router.push(url);
+      // router.push(url);
+       window.location.href = url;
     } else if (actualSource && actualId) {
       let url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
         actualTitle
@@ -269,8 +270,9 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       if (localVodId && actualEkey) {
         url += `&locid=${localVodId}`;
       }
-
-      router.push(url);
+      // 导致bfcache不能用
+      // router.push(url);
+       window.location.href = url;
     }
   }, [
     origin,
