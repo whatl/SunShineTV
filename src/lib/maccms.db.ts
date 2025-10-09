@@ -11,11 +11,13 @@ function initializePool() {
 
     // 检查所有必要的环境变量是否都已提供
     if (!MAC_DB_HOST || !MAC_DB_USER || !MAC_DB_PASSWORD || !MAC_DB_DATABASE) {
-      console.error('❌ Maccms is selected as the data source, but the required database environment variables (MAC_DB_HOST, MAC_DB_USER, MAC_DB_PASSWORD, MAC_DB_DATABASE) are not fully configured. Please check your .env file or Docker environment variables.');
-      return; // 不创建连接池，防止崩溃
+      // MacCMS 现在通过 API 获取数据，不再需要直连数据库
+      // 如果未配置数据库，不创建连接池（正常情况）
+      console.log('ℹ️  MacCMS database config not provided, will use API mode');
+      return;
     }
 
-    
+
     pool = mysql.createPool({
       host: MAC_DB_HOST,
       port: MAC_DB_PORT ? parseInt(MAC_DB_PORT, 10) : 3306,
