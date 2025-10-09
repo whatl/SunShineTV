@@ -291,7 +291,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     if (origin === 'live' && actualSource && actualId) {
       // 直播内容跳转到直播页面
       const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
-      window.open(url, '_blank');
+      window.open(addBaseParam(url), '_blank');
     } else if (from === 'base' || (isAggregate && !actualSource && !actualId)) {
       const isDouban = process.env.NEXT_PUBLIC_DATA_SOURCE === 'douban'
       // 豆瓣这里不需要传递actualId，其他系统支持用id查询效率更快
@@ -306,7 +306,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
         }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}
         ${mTempId ? `&id=${mTempId}` : ''}${mTempSource && mTempId ? `&source=${mTempSource}` : ''}${mTempEkey ? `&ekey=${mTempEkey}` : ''}`;
-      window.open(url, '_blank');
+      window.open(addBaseParam(url), '_blank');
     } else if (actualSource && actualId) {
       let url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
         actualTitle
@@ -319,7 +319,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
         url += `&locid=${localVodId}`;
       }
 
-      window.open(url, '_blank');
+      window.open(addBaseParam(url), '_blank');
     }
   }, [
     origin,

@@ -1,5 +1,7 @@
 'use client';
 
+import { addBaseParam } from '@/lib/baseParamHelper';
+
 import { useSite } from './SiteProvider';
 
 export function Footer() {
@@ -26,7 +28,7 @@ export function Footer() {
               return (
                 <a
                   key={index}
-                  href={hasUrl ? link.url : '#'}
+                  href={hasUrl ? addBaseParam(link.url) : '#'}
                   target={hasUrl && !isInternalLink ? '_blank' : undefined}
                   rel={hasUrl && !isInternalLink ? 'noopener noreferrer' : undefined}
                   onClick={(e) => {

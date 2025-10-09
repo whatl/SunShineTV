@@ -30,16 +30,26 @@ export function getSidebarId(): number | null {
 }
 
 /**
- * 给 URL 添加 as 参数
+ * 给 URL 添加 as 参数（放在最前面）
  * @param url 原始 URL
- * @returns 添加了 as 参数的 URL
+ * @returns 添加了 as 参数的 URL（as 参数在最前面）
  */
 export function addBaseParam(url: string): string {
   const sidebarId = getSidebarId();
   if (!sidebarId) return url;
 
-  const separator = url.includes('?') ? '&' : '?';
-  return `${url}${separator}as=${sidebarId}`;
+  // 找到第一个 ? 的位置
+  const queryIndex = url.indexOf('?');
+
+  // 如果 URL 没有查询参数，直接添加
+  if (queryIndex === -1) {
+    return `${url}?as=${sidebarId}`;
+  }
+
+  // 如果有查询参数，将 as 放在最前面（只在第一个 ? 处分割）
+  const path = url.substring(0, queryIndex);
+  const query = url.substring(queryIndex + 1);
+  return `${path}?as=${sidebarId}&${query}`;
 }
 
 /**
