@@ -73,19 +73,51 @@ const Sidebar = ({ onToggle, activePath = '/' }: SidebarProps) => {
     }
   }, [isCollapsed]);
 
-  const [active, setActive] = useState(activePath);
+  // ============================================
+  // 侧边栏激活状态的优先级（从高到低）
+  // ============================================
+  // 1. URL 参数 as（简化的数字 ID，如 as=1 表示首页）
+  // 2. activePath prop（PageLayout 传入）
+  // 3. 当前 URL 路径（默认行为）
+
+  // ID 到路径的映射
+  const SIDEBAR_MAP: Record<string, string> = {
+    '1': '/',
+    '2': '/search',
+    '3': '/main?type=movie',
+    '4': '/main?type=tv',
+    '5': '/main?type=anime',
+    '6': '/main?type=show',
+    '7': '/main?type=drama',
+    '8': '/douban?type=custom',
+    '9': '/live',
+  };
+
+  // 初始化时就计算正确的激活状态，避免闪烁
+  const getInitialActive = () => {
+    const sidebarId = searchParams.get('as');
+    if (sidebarId && SIDEBAR_MAP[sidebarId]) {
+      return SIDEBAR_MAP[sidebarId];
+    }
+    if (activePath) {
+      return activePath;
+    }
+    const queryString = searchParams.toString();
+    return queryString ? `${pathname}?${queryString}` : pathname;
+  };
+
+  const [active, setActive] = useState(getInitialActive);
 
   useEffect(() => {
-    // 优先使用传入的 activePath
-    if (activePath) {
+    const sidebarId = searchParams.get('as');
+
+    if (sidebarId && SIDEBAR_MAP[sidebarId]) {
+      setActive(SIDEBAR_MAP[sidebarId]);
+    } else if (activePath) {
       setActive(activePath);
     } else {
-      // 否则使用当前路径
-      const getCurrentFullPath = () => {
-        const queryString = searchParams.toString();
-        return queryString ? `${pathname}?${queryString}` : pathname;
-      };
-      const fullPath = getCurrentFullPath();
+      const queryString = searchParams.toString();
+      const fullPath = queryString ? `${pathname}?${queryString}` : pathname;
       setActive(fullPath);
     }
   }, [activePath, pathname, searchParams]);

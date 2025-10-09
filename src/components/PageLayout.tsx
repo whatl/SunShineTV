@@ -11,6 +11,7 @@ interface PageLayoutProps {
 }
 
 const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
+  const shouldHideMobileBottom = ['/play', '/live'].includes(activePath);
   return (
     <div className='w-full min-h-screen'>
       {/* 移动端头部 */}
@@ -42,7 +43,9 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
           <main
             className='flex-1 md:min-h-0 mb-14 md:mb-0 md:mt-0 mt-12'
             style={{
-              paddingBottom: 'calc(3.5rem + env(safe-area-inset-bottom))',
+              paddingBottom: shouldHideMobileBottom
+                ? '0'
+                : 'calc(3.5rem + env(safe-area-inset-bottom))',
             }}
           >
             {children}
@@ -51,9 +54,11 @@ const PageLayout = ({ children, activePath = '/' }: PageLayoutProps) => {
       </div>
 
       {/* 移动端底部导航 */}
-      <div className='md:hidden'>
-        <MobileBottomNav activePath={activePath} />
-      </div>
+      {!shouldHideMobileBottom && (
+        <div className='md:hidden'>
+          <MobileBottomNav activePath={activePath} />
+        </div>
+      )}
     </div>
   );
 };

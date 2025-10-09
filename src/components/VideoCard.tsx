@@ -13,6 +13,7 @@ import React, {
   useState,
 } from 'react';
 
+import { addBaseParam } from '@/lib/baseParamHelper';
 import {
   deleteFavorite,
   deletePlayRecord,
@@ -238,11 +239,10 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
   );
 
   const handleClick = useCallback(() => {
-
     if (origin === 'live' && actualSource && actualId) {
       // 直播内容跳转到直播页面
       const url = `/live?source=${actualSource.replace('live_', '')}&id=${actualId.replace('live_', '')}`;
-      router.push(url);
+      window.location.href = addBaseParam(url);
     } else if (from === 'base' || (isAggregate && !actualSource && !actualId)) { // 豆瓣 或者 聚合（没id 没源，因为没放这里）就用模糊搜索
       const isDouban = process.env.NEXT_PUBLIC_DATA_SOURCE === 'douban'
       // 豆瓣这里不需要传递actualId，其他系统支持用id查询效率更快
@@ -257,8 +257,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       const url = `/play?title=${encodeURIComponent(actualTitle.trim())}${actualYear ? `&year=${actualYear}` : ''
         }${actualSearchType ? `&stype=${actualSearchType}` : ''}${isAggregate ? '&prefer=true' : ''}${actualQuery ? `&stitle=${encodeURIComponent(actualQuery.trim())}` : ''}
         ${mTempId ? `&id=${mTempId}` : ''}${mTempSource && mTempId ? `&source=${mTempSource}` : ''}${mTempEkey ? `&ekey=${mTempEkey}` : ''}`;
-      // router.push(url);
-       window.location.href = url;
+      window.location.href = addBaseParam(url);
     } else if (actualSource && actualId) {
       let url = `/play?source=${actualSource}&id=${actualId}&title=${encodeURIComponent(
         actualTitle
@@ -270,9 +269,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
       if (localVodId && actualEkey) {
         url += `&locid=${localVodId}`;
       }
-      // 导致bfcache不能用
-      // router.push(url);
-       window.location.href = url;
+      window.location.href = addBaseParam(url);
     }
   }, [
     origin,
