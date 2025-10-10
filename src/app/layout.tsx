@@ -163,6 +163,7 @@ export default async function RootLayout({
           content='width=device-width, initial-scale=1.0, viewport-fit=cover'
         />
         <meta name='apple-mobile-web-app-capable' content='yes' />
+        <meta name='mobile-web-app-capable' content='yes' />
         {/* 状态栏颜色匹配 MobileHeader 背景色 */}
         <meta name='theme-color' content={statusBarColor} />
         <link rel='apple-touch-icon' href='/icons/icon-192x192.png' />
