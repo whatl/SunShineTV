@@ -608,7 +608,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             className={`${origin === 'live' ? 'object-contain' : 'object-cover'} transition-opacity duration-[400ms] ${isLoading ? 'opacity-100' : 'opacity-0'}`}
             referrerPolicy='no-referrer'
             loading='lazy'
-            onLoadingComplete={() => setIsLoading(true)}
+            onLoad={() => setIsLoading(true)}
             onError={(e) => {
               const img = e.target as HTMLImageElement;
               if (!img.dataset.retried) {
