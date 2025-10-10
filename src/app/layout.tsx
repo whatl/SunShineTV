@@ -135,16 +135,36 @@ export default async function RootLayout({
   }
 
   // 读取侧边栏折叠状态 (sc = sidebar collapsed)
-  const sidebarCollapsedCookie = cookies().get('sc');
+  const cookieStore = cookies();
+  const sidebarCollapsedCookie = cookieStore.get('sc');
   const sidebarCollapsed = sidebarCollapsedCookie?.value === '1';
 
+  // 读取主题 Cookie，在 SSR 时就确定背景色
+  // Cookie 简写：thm=d (dark) | l (light) | s (system)
+  const themeCookie = cookieStore.get('thm');
+  const savedThemeShort = themeCookie?.value; // 'd' | 'l' | 's' | undefined
+
+  // 状态栏颜色应匹配 MobileHeader 的背景色
+  // MobileHeader: bg-white/70 (浅色) | dark:bg-gray-900/70 (深色)
+  // 使用原来的颜色值（已经过调校）
+  const statusBarColor = savedThemeShort === 'd' ? '#0c111c' : '#f9fbfe'; // d=dark, l=light, s=system
+  const themeClass = savedThemeShort === 'd' ? 'dark' : '';
+
   return (
-    <html lang='zh-CN' suppressHydrationWarning data-sidebar-collapsed={sidebarCollapsed ? 'true' : 'false'}>
+    <html
+      lang='zh-CN'
+      suppressHydrationWarning
+      data-sidebar-collapsed={sidebarCollapsed ? 'true' : 'false'}
+      className={themeClass}
+    >
       <head>
         <meta
           name='viewport'
           content='width=device-width, initial-scale=1.0, viewport-fit=cover'
         />
+        <meta name='apple-mobile-web-app-capable' content='yes' />
+        {/* 状态栏颜色匹配 MobileHeader 背景色 */}
+        <meta name='theme-color' content={statusBarColor} />
         <link rel='apple-touch-icon' href='/icons/icon-192x192.png' />
         {/* 将配置序列化后直接写入脚本，浏览器端可通过 window.RUNTIME_CONFIG 获取 */}
         {/* eslint-disable-next-line @next/next/no-sync-scripts */}

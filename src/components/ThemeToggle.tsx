@@ -12,19 +12,25 @@ export function ThemeToggle() {
 
   const setThemeColor = (theme?: string) => {
     const meta = document.querySelector('meta[name="theme-color"]');
+    // 状态栏颜色匹配 MobileHeader 的半透明毛玻璃效果的近似实色
+    const themeColor = theme === 'dark' ? '#0c111c' : '#f9fbfe';
     if (!meta) {
       const meta = document.createElement('meta');
       meta.name = 'theme-color';
-      meta.content = theme === 'dark' ? '#0c111c' : '#f9fbfe';
+      meta.content = themeColor;
       document.head.appendChild(meta);
     } else {
-      meta.setAttribute('content', theme === 'dark' ? '#0c111c' : '#f9fbfe');
+      meta.setAttribute('content', themeColor);
     }
   };
 
   useEffect(() => {
     if (resolvedTheme) {
       setThemeColor(resolvedTheme);
+      // 同步主题到 cookie（简写版本），确保 SSR 时能读取正确的主题
+      // dark → d, light → l, system → s
+      const shortTheme = resolvedTheme === 'dark' ? 'd' : resolvedTheme === 'light' ? 'l' : 's';
+      document.cookie = `thm=${shortTheme}; path=/; max-age=31536000; SameSite=Lax`;
     }
   }, [resolvedTheme]);
 
