@@ -254,13 +254,14 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
                 )}
               </div>
               <div className='justify-start grid grid-cols-3 gap-x-2 gap-y-14 sm:gap-y-20 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,_minmax(11rem,_1fr))] sm:gap-x-8'>
-                {favoriteItems.map((item) => (
+                {favoriteItems.map((item, index) => (
                   <div key={item.id + item.source} className='w-full'>
                     <VideoCard
                       query={item.search_title}
                       {...item}
                       from='favorite'
                       type={item.episodes > 1 ? 'tv' : ''}
+                      priority={index < 1}
                     />
                   </div>
                 ))}
@@ -320,6 +321,7 @@ export function HomeClient({ noLayout }: { noLayout?: boolean } = {}) {
                           rate={movie.rate}
                           year={movie.year}
                           type='movie'
+                          priority={index < 1}
                         />
                       </div>
                     ))}

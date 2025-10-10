@@ -214,6 +214,7 @@ export function CategoryPageClient({ params, showFilter, activePath }: { params:
                       rate={item.rate}
                       year={item.year}
                       type={type === 'movie' ? 'movie' : ''}
+                      priority={index < 1}
                     />
                   </div>
                 ))}

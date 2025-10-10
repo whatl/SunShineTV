@@ -127,7 +127,7 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
               </div>
             ))
           : // 显示真实数据
-            playRecords.map((record) => {
+            playRecords.map((record, index) => {
               const { source, id, ekey } = parseKey(record.storageKey);
               // record.locid 是 PlayRecord 接口中的 locid 字段（本站视频ID）
               // record.storageKey 是存储键（source+id 或 source+id+ekey）
@@ -157,6 +157,7 @@ export default function ContinueWatching({ className }: ContinueWatchingProps) {
                       )
                     }
                     type={record.total_episodes > 1 ? 'tv' : ''}
+                    priority={index < 1}
                   />
                 </div>
               );

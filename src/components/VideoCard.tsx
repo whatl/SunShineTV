@@ -52,6 +52,7 @@ export interface VideoCardProps {
   isBangumi?: boolean; // 是否是来自于特定网站的动漫
   isAggregate?: boolean; // 是否是聚合
   origin?: 'vod' | 'live'; // 大的分类
+  priority?: boolean; // 是否优先加载图片（用于首屏前n张卡片）
 }
 
 export type VideoCardHandle = {
@@ -85,6 +86,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
     isBangumi = false,
     isAggregate = false,
     origin = 'vod',
+    priority = false,
   }: VideoCardProps,
   ref
 ) {
@@ -607,7 +609,8 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
             fill
             className={`${origin === 'live' ? 'object-contain' : 'object-cover'} transition-opacity duration-[400ms] ${isLoading ? 'opacity-100' : 'opacity-0'}`}
             referrerPolicy='no-referrer'
-            loading='lazy'
+            priority={priority}
+            loading={priority ? undefined : 'lazy'}
             onLoad={() => setIsLoading(true)}
             onError={(e) => {
               const img = e.target as HTMLImageElement;

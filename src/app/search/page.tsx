@@ -810,7 +810,7 @@ function SearchPageClient() {
                         className='justify-start grid grid-cols-3 gap-x-2 gap-y-14 sm:gap-y-20 px-0 sm:px-2 sm:grid-cols-[repeat(auto-fill,_minmax(11rem,_1fr))] sm:gap-x-8'
                       >
                         {viewMode === 'agg'
-                          ? filteredAggResults.map(([mapKey, group]) => {
+                          ? filteredAggResults.map(([mapKey, group], index) => {
                             const title = group[0]?.title || '';
                             const poster = group[0]?.poster || '';
                             const year = group[0]?.year || 'unknown';
@@ -828,12 +828,12 @@ function SearchPageClient() {
                               })
                               .map((g) => g.ekey || '');
                             const type = episodes === 1 ? 'movie' : 'tv';
-      
+
                             // 如果该聚合第一次出现，写入初始统计
                             if (!groupStatsRef.current.has(mapKey)) {
                               groupStatsRef.current.set(mapKey, { episodes, source_names, douban_id });
                             }
-      
+
                             return (
                               <div key={`agg-${mapKey}`} className='w-full'>
                                 <VideoCard
@@ -854,11 +854,12 @@ function SearchPageClient() {
                                       : ''
                                   }
                                   type={type}
+                                  priority={index < 1}
                                 />
                               </div>
                             );
                           })
-                          : filteredAllResults.map((item) => (
+                          : filteredAllResults.map((item, index) => (
                             <div
                               key={`all-${item.source}-${item.id}`}
                               className='w-full'
@@ -880,6 +881,7 @@ function SearchPageClient() {
                                 year={item.year}
                                 from='search'
                                 type={(item.episodes_count||0) > 1 ? 'tv' : 'movie'}
+                                priority={index < 1}
                               />
                             </div>
                           ))}
