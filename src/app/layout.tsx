@@ -153,6 +153,7 @@ export default async function RootLayout({
   return (
     <html
       lang='zh-CN'
+      translate='no'
       suppressHydrationWarning
       data-sidebar-collapsed={sidebarCollapsed ? 'true' : 'false'}
       className={themeClass}
@@ -162,6 +163,7 @@ export default async function RootLayout({
           name='viewport'
           content='width=device-width, initial-scale=1.0, viewport-fit=cover'
         />
+        <meta name='google' content='notranslate' />
         <meta name='apple-mobile-web-app-capable' content='yes' />
         <meta name='mobile-web-app-capable' content='yes' />
         {/* 状态栏颜色匹配 MobileHeader 背景色 */}
