@@ -79,7 +79,25 @@ check_and_load_image() {
 }
 
 # 命令处理
-COMMAND=${1:-start}
+COMMAND=$1
+
+# 如果没有提供命令，显示帮助信息
+if [ -z "$COMMAND" ]; then
+    echo -e "${YELLOW}用法: $0 [start|stop|restart|logs|reload|status]${NC}"
+    echo ""
+    echo -e "${BLUE}命令说明:${NC}"
+    echo -e "  ${GREEN}start${NC}    - 启动服务（自动加载镜像）"
+    echo -e "  ${GREEN}stop${NC}     - 停止服务"
+    echo -e "  ${GREEN}restart${NC}  - 重启服务"
+    echo -e "  ${GREEN}logs${NC}     - 查看日志"
+    echo -e "  ${GREEN}reload${NC}   - 重新加载镜像并启动"
+    echo -e "  ${GREEN}status${NC}   - 查看状态"
+    echo ""
+    echo -e "${BLUE}示例:${NC}"
+    echo -e "  ${GREEN}./docker-deploy.sh start${NC}   # 启动服务"
+    echo -e "  ${GREEN}./docker-deploy.sh logs${NC}    # 查看日志"
+    exit 0
+fi
 
 case $COMMAND in
     start)
@@ -129,15 +147,10 @@ case $COMMAND in
         ;;
 
     *)
-        echo -e "${YELLOW}用法: $0 [start|stop|restart|logs|reload|status]${NC}"
+        echo -e "${RED}❌ 未知命令: $COMMAND${NC}"
         echo ""
-        echo -e "${BLUE}命令说明:${NC}"
-        echo -e "  ${GREEN}start${NC}    - 启动服务（自动加载镜像）"
-        echo -e "  ${GREEN}stop${NC}     - 停止服务"
-        echo -e "  ${GREEN}restart${NC}  - 重启服务"
-        echo -e "  ${GREEN}logs${NC}     - 查看日志"
-        echo -e "  ${GREEN}reload${NC}   - 重新加载镜像并启动"
-        echo -e "  ${GREEN}status${NC}   - 查看状态"
+        echo -e "${YELLOW}可用命令: start, stop, restart, logs, reload, status${NC}"
+        echo -e "${YELLOW}运行 './docker-deploy.sh' 查看详细帮助${NC}"
         exit 1
         ;;
 esac
