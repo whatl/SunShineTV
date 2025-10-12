@@ -18,11 +18,12 @@ const nextConfig = {
   // 注意：仅在开发时运行额外检查，不影响生产性能
   reactStrictMode: process.env.NODE_ENV === 'development',
 
-  // 使用 SWC 进行代码压缩（比 Terser 更快）
-  swcMinify: true,
+  // Next.js 15 默认启用 SWC 压缩，无需手动配置
+  // swcMinify: true,
 
   experimental: {
-    instrumentationHook: process.env.NODE_ENV === 'production',
+    // Next.js 15 默认支持 instrumentation.js，无需手动启用
+    // instrumentationHook: process.env.NODE_ENV === 'production',
     // ============================================
     // 优化3: 启用路由缓存（解决性能问题）
     // ============================================
@@ -32,6 +33,17 @@ const nextConfig = {
     staleTimes: {
       dynamic: 30,  // 动态页面缓存 30 秒
       static: 180,  // 静态页面缓存 180 秒
+    },
+  },
+
+  // Turbopack 配置 (Next.js 15+)
+  turbopack: {
+    rules: {
+      // SVG 处理规则
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
     },
   },
 
