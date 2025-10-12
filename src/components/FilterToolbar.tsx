@@ -83,7 +83,7 @@ const FilterToolbar: React.FC<FilterToolbarProps> = ({ onFilterChange }) => {
   }, [type]);
 
 
-  const updateIndicatorPosition = useCallback(( activeIndex: number, containerRef: React.RefObject<HTMLDivElement>, buttonRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>, setIndicatorStyle: React.Dispatch<React.SetStateAction<{ left: number; width: number }>> ) => {
+  const updateIndicatorPosition = useCallback(( activeIndex: number, containerRef: React.RefObject<HTMLDivElement | null>, buttonRefs: React.MutableRefObject<(HTMLButtonElement | null)[]>, setIndicatorStyle: React.Dispatch<React.SetStateAction<{ left: number; width: number }>> ) => {
     if ( activeIndex >= 0 && buttonRefs.current[activeIndex] && containerRef.current ) {
       const timeoutId = setTimeout(() => {
         const button = buttonRefs.current[activeIndex];

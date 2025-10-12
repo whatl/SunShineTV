@@ -47,7 +47,7 @@ function SearchPageClient() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
   // 聚合卡片 refs 与聚合统计缓存
-  const groupRefs = useRef<Map<string, React.RefObject<VideoCardHandle>>>(new Map());
+  const groupRefs = useRef<Map<string, React.RefObject<VideoCardHandle | null>>>(new Map());
   const groupStatsRef = useRef<Map<string, { douban_id?: number; episodes?: number; source_names: string[] }>>(new Map());
 
   const getGroupRef = (key: string) => {

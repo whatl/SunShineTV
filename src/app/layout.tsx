@@ -123,7 +123,7 @@ export default async function RootLayout({
 
   // 在服务端获取认证信息
   let authInfo = null;
-  const authCookie = cookies().get('auth');
+  const authCookie = (await cookies()).get('auth');
   if (authCookie) {
     try {
       const decoded = decodeURIComponent(authCookie.value);
@@ -135,7 +135,7 @@ export default async function RootLayout({
   }
 
   // 读取侧边栏折叠状态 (sc = sidebar collapsed)
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const sidebarCollapsedCookie = cookieStore.get('sc');
   const sidebarCollapsed = sidebarCollapsedCookie?.value === '1';
 
