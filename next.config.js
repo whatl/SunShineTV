@@ -19,7 +19,7 @@ const nextConfig = {
   reactStrictMode: process.env.NODE_ENV === 'development',
 
   // Next.js 15 默认启用 SWC 压缩，无需手动配置
-  // swcMinify: true,
+  swcMinify: true,
 
   experimental: {
     // Next.js 15 默认支持 instrumentation.js，无需手动启用
