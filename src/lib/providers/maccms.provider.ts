@@ -68,6 +68,7 @@ async function getProtoRoot(): Promise<protobuf.Root> {
   string ekey = 16;  // 新增：站外数据站标识
   string director = 17;  // 新增：导演
   string actor = 18;  // 新增：演员
+  string remark = 19;  // 新增：更新备注
 }
 
   message SearchResultList {
