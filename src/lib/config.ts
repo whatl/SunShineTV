@@ -321,7 +321,10 @@ export async function getConfig(): Promise<AdminConfig> {
   }
   adminConfig = configSelfCheck(adminConfig);
   cachedConfig = adminConfig;
-  db.saveAdminConfig(cachedConfig);
+  // 保存配置（非阻塞，捕获错误避免 unhandledRejection）
+  db.saveAdminConfig(cachedConfig).catch((e) => {
+    console.error('保存管理员配置失败:', e);
+  });
   return cachedConfig;
 }
 
