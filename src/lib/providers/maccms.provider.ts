@@ -65,6 +65,9 @@ async function getProtoRoot(): Promise<protobuf.Root> {
   int32 douban_id = 13;
   bool need_decode = 14; // 是否需要解码才能播放
   string quality = 15; // 配置的清晰度
+  string ekey = 16;  // 新增：站外数据站标识
+  string director = 17;  // 新增：导演
+  string actor = 18;  // 新增：演员
 }
 
   message SearchResultList {
