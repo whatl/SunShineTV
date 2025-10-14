@@ -21,6 +21,25 @@ interface CmsHomePageApiResponse {
   shortVideos: DoubanResult;
 }
 
+// 将对象的 camelCase 字段名转换为 snake_case
+function camelToSnake(obj: any): any {
+  if (obj === null || typeof obj !== 'object') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    return obj.map(camelToSnake);
+  }
+  const result: any = {};
+  for (const key in obj) {
+    if (obj.hasOwnProperty(key)) {
+      // 将 camelCase 转换为 snake_case
+      const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+      result[snakeKey] = camelToSnake(obj[key]);
+    }
+  }
+  return result;
+}
+
 // For client-side execution, the proto definition must be a string literal.
 // It cannot be read from the filesystem.
 let protoRoot: protobuf.Root | null = null;
@@ -131,12 +150,14 @@ async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, stri
     const root = await getProtoRoot();
     const MessageType = root.lookupType(protoTypeName);
     const decodedMessage = MessageType.decode(new Uint8Array(buffer));
-    return MessageType.toObject(decodedMessage, {
+    const obj = MessageType.toObject(decodedMessage, {
       longs: String,
       enums: String,
       bytes: String,
       defaults: true,
-    }) as T;
+    });
+    // protobuf.js 会将字段名转换为 camelCase，需要转回 snake_case 以匹配前端类型定义
+    return camelToSnake(obj) as T;
   }
 
   return response.json() as Promise<T>;
@@ -380,12 +401,14 @@ export async function getCaptcha(oldSessionId?: string): Promise<{ sessionId: st
     const root = await getProtoRoot();
     const MessageType = root.lookupType('maccms.CaptchaResponse');
     const decodedMessage = MessageType.decode(new Uint8Array(buffer));
-    return MessageType.toObject(decodedMessage, {
+    const obj = MessageType.toObject(decodedMessage, {
       longs: String,
       enums: String,
       bytes: String,
       defaults: true,
-    }) as { sessionId: string; imageBase64: string };
+    });
+    // protobuf.js 会将字段名转换为 camelCase，需要转回 snake_case 以匹配前端类型定义
+    return camelToSnake(obj) as { sessionId: string; imageBase64: string };
   }
 
   return response.json();
@@ -428,12 +451,14 @@ export async function submitFeedback(
     const root = await getProtoRoot();
     const MessageType = root.lookupType('maccms.CommonResponse');
     const decodedMessage = MessageType.decode(new Uint8Array(buffer));
-    return MessageType.toObject(decodedMessage, {
+    const obj = MessageType.toObject(decodedMessage, {
       longs: String,
       enums: String,
       bytes: String,
       defaults: true,
-    }) as { code: number; message: string };
+    });
+    // protobuf.js 会将字段名转换为 camelCase，需要转回 snake_case 以匹配前端类型定义
+    return camelToSnake(obj) as { code: number; message: string };
   }
 
   return response.json();
