@@ -63,7 +63,7 @@ function SearchPageClient() {
     const episodes = (() => {
       const countMap = new Map<number, number>();
       group.forEach((g) => {
-        const count = g.episodes_count || 0;
+        const count = g.episodes_num || 0;
         const len = count>0?count : g.episodes?.length || 0;
         if (len > 0) countMap.set(len, (countMap.get(len) || 0) + 1);
       });
@@ -532,10 +532,10 @@ function SearchPageClient() {
       
                 if (results && Array.isArray(results)) {
                 results.forEach(item=>{
-                  if((item.episodes_count||0) < 1 && ((item.episodes?.length ||0) > 0)){
-                      item.episodes_count=item.episodes?.length || 0;
+                  if((item.episodes_num||0) < 1 && ((item.episodes?.length ||0) > 0)){
+                      item.episodes_num=item.episodes?.length || 0;
                   }
-                  if((item.episodes_count || 0) < 0)item.episodes_count = 0;
+                  if((item.episodes_num || 0) < 0)item.episodes_num = 0;
                 });
 
                   const activeYearOrder = viewMode === 'agg' ? filterAgg.yearOrder : filterAll.yearOrder;
@@ -868,7 +868,7 @@ function SearchPageClient() {
                                 id={item.id}
                                 title={item.title}
                                 poster={item.poster}
-                                episodes={item.episodes_count}
+                                episodes={item.episodes_num}
                                 source={item.source}
                                 ekey={item.ekey}
                                 source_name={item.source_name}
@@ -880,7 +880,7 @@ function SearchPageClient() {
                                 }
                                 year={item.year}
                                 from='search'
-                                type={(item.episodes_count||0) > 1 ? 'tv' : 'movie'}
+                                type={(item.episodes_num||0) > 1 ? 'tv' : 'movie'}
                                 priority={index < 1}
                               />
                             </div>

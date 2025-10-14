@@ -55,7 +55,7 @@ async function getProtoRoot(): Promise<protobuf.Root> {
   string poster = 3;
   repeated string episodes = 4;
   repeated string episodes_titles = 5;
-  int32 episodes_count=6;
+  int32 episodes_num = 6;
   string source = 7;
   string source_name = 8;
   string class = 9;

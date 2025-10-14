@@ -92,7 +92,7 @@ export interface SearchResult {
   poster: string;
   episodes?: string[];
   episodes_titles?: string[];
-  episodes_count?:number;
+  episodes_num?: number;
   source: string;
   source_name?: string;
   class?: string;
