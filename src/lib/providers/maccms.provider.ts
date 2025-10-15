@@ -22,19 +22,19 @@ interface CmsHomePageApiResponse {
 }
 
 // 将对象的 camelCase 字段名转换为 snake_case
-function camelToSnake(obj: any): any {
+function camelToSnake(obj: unknown): unknown {
   if (obj === null || typeof obj !== 'object') {
     return obj;
   }
   if (Array.isArray(obj)) {
     return obj.map(camelToSnake);
   }
-  const result: any = {};
+  const result: Record<string, unknown> = {};
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       // 将 camelCase 转换为 snake_case
       const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
-      result[snakeKey] = camelToSnake(obj[key]);
+      result[snakeKey] = camelToSnake((obj as Record<string, unknown>)[key]);
     }
   }
   return result;

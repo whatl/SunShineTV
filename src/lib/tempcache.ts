@@ -4,7 +4,7 @@
  */
 
 // 内存缓存对象
-const memoryCache = new Map<string, any>();
+const memoryCache = new Map<string, unknown>();
 
 /**
  * 设置缓存
@@ -17,7 +17,8 @@ export function setCache<T>(key: string, data: T): void {
  * 获取缓存
  */
 export function getCache<T>(key: string): T | null {
-  return memoryCache.get(key) || null;
+  const value = memoryCache.get(key);
+  return value !== undefined ? (value as T) : null;
 }
 
 /**
