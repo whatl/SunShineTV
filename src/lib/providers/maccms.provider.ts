@@ -255,7 +255,15 @@ async function search(extra: Record<string, string>, useStream = false, page = 1
     return Promise.resolve([]);
   }
   await optmisePerformance(page);
-  const response = await fetchFromCmsApi<SearchResponse>('/api/cms/shine/search', { q: query, page:page.toString() }, 'maccms.SearchResponse');
+
+  // 构建 API 参数
+  const apiParams: Record<string, string> = { q: query, page: page.toString() };
+  // 如果有 scope 参数，也传递给 API
+  if (extra.scope) {
+    apiParams.scope = extra.scope;
+  }
+
+  const response = await fetchFromCmsApi<SearchResponse>('/api/cms/shine/search', apiParams, 'maccms.SearchResponse');
 
   // 检查响应code
   // code=0: 成功

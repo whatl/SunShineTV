@@ -20,6 +20,9 @@ import SearchResultFilter, { SearchFilterCategory } from '@/components/SearchRes
 import SearchSuggestions from '@/components/SearchSuggestions';
 import VideoCard, { VideoCardHandle } from '@/components/VideoCard';
 
+// 站外搜索功能开关：仅 maccms 数据源支持
+const ENABLE_EXTERNAL_SEARCH = process.env.NEXT_PUBLIC_DATA_SOURCE === 'maccms';
+
 function SearchPageClient() {
   // 搜索历史
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
@@ -46,6 +49,11 @@ function SearchPageClient() {
   const [useFluidSearch, setUseFluidSearch] = useState(false); // 默认关闭流搜索
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadingRef = useRef<HTMLDivElement>(null);
+  // 站外搜索相关状态
+  const [isExternalSearching, setIsExternalSearching] = useState(false); // 站外搜索加载对话框
+  const [isExternalMode, setIsExternalMode] = useState(false); // 当前是否为站外搜索结果
+  // 记录上一次的搜索查询，用于避免重复加载
+  const prevSearchQueryRef = useRef<string>('');
   // 聚合卡片 refs 与聚合统计缓存
   const groupRefs = useRef<Map<string, React.RefObject<VideoCardHandle | null>>>(new Map());
   const groupStatsRef = useRef<Map<string, { douban_id?: number; episodes?: number; source_names: string[] }>>(new Map());
@@ -409,6 +417,55 @@ function SearchPageClient() {
     };
   }, []);
 
+        // 站外搜索函数
+        const handleExternalSearch = useCallback(async () => {
+          const query = currentQueryRef.current;
+          if (!query) return;
+
+          const startTime = Date.now();
+          setIsExternalSearching(true);
+          setIsError(false);
+
+          try {
+            const results = (await search({ search: query, scope: 'outer' }, false, 1)) as SearchResult[];
+
+            // 处理 episodes_num
+            if (results && Array.isArray(results)) {
+              results.forEach(item => {
+                if ((item.episodes_num || 0) < 1 && ((item.episodes?.length || 0) > 0)) {
+                  item.episodes_num = item.episodes?.length || 0;
+                }
+                if ((item.episodes_num || 0) < 0) item.episodes_num = 0;
+              });
+
+              const activeYearOrder = viewMode === 'agg' ? filterAgg.yearOrder : filterAll.yearOrder;
+              const sortedResults: SearchResult[] =
+                activeYearOrder === 'none' ? sortBatchForNoOrder(results) : results;
+
+              setSearchResults(sortedResults);
+              setIsExternalMode(true);
+              setHasMore(false); // 站外搜索不支持分页
+              setPage(1);
+            } else {
+              setSearchResults([]);
+              setIsExternalMode(true);
+              setHasMore(false);
+            }
+          } catch (error) {
+            console.error('Error in external search:', error);
+            setIsError(true);
+            setSearchResults([]);
+          } finally {
+            // 确保对话框至少显示1.5秒
+            const elapsed = Date.now() - startTime;
+            const minDisplayTime = 1500;
+            if (elapsed < minDisplayTime) {
+              await new Promise(resolve => setTimeout(resolve, minDisplayTime - elapsed));
+            }
+            setIsExternalSearching(false);
+          }
+        }, [viewMode, filterAgg.yearOrder, filterAll.yearOrder]);
+
         const loadData = useCallback(
           async (query: string, pageNum: number, localPageSizeNum: number) => {
             if (pageNum === 1) {
@@ -572,20 +629,30 @@ function SearchPageClient() {
       
         useEffect(() => {
           const query = searchParams.get('q') || '';
-          currentQueryRef.current = query.trim();
-      
+          const trimmedQuery = query.trim();
+
+          // 只有查询真正变化时才重新加载数据（避免切换聚合时触发重新搜索）
+          if (trimmedQuery === prevSearchQueryRef.current) {
+            return;
+          }
+
+          prevSearchQueryRef.current = trimmedQuery;
+          currentQueryRef.current = trimmedQuery;
+
           if (query) {
             setSearchQuery(query);
             setShowResults(true);
             setPage(1);
             setHasMore(true);
-            loadData(query.trim(), 1, localPageSize);
+            setIsExternalMode(false); // 重置为站内搜索模式
+            loadData(trimmedQuery, 1, localPageSize);
             addSearchHistory(query);
           } else {
             setShowResults(false);
             setShowSuggestions(false);
+            setIsExternalMode(false);
           }
-        }, [searchParams, loadData]);
+        }, [searchParams, loadData, localPageSize]);
       
         useEffect(() => {
           if (isLoading || isLoadingMore || !hasMore) return;
@@ -802,6 +869,17 @@ function SearchPageClient() {
                       ) : (
                         <div className='text-center text-gray-500 py-8 dark:text-gray-400'>
                           未找到相关结果
+                          {ENABLE_EXTERNAL_SEARCH && (
+                            <>
+                              ，
+                              <button
+                                onClick={handleExternalSearch}
+                                className='text-green-600 hover:text-green-500 dark:text-green-500 dark:hover:text-green-400 transition-colors duration-200'
+                              >
+                                点击尝试扩大搜索范围
+                              </button>
+                            </>
+                          )}
                         </div>
                       )
                     ) : (
@@ -887,7 +965,22 @@ function SearchPageClient() {
                           ))}
                       </div>
                     )}
-      
+
+                    {/* 站外搜索提示（有结果时在底部显示） */}
+                    {ENABLE_EXTERNAL_SEARCH && searchResults.length > 0 && (page <= 2 || !hasMore) && !isLoading && (
+                      <div className='flex justify-center mt-6 py-4'>
+                        <p className='text-gray-500 dark:text-gray-400 text-sm'>
+                          没有找到想要的资源，尝试
+                          <button
+                            onClick={handleExternalSearch}
+                            className='ml-1 text-green-600 hover:text-green-500 dark:text-green-500 dark:hover:text-green-400 transition-colors duration-200'
+                          >
+                            扩大搜索范围
+                          </button>
+                        </p>
+                      </div>
+                    )}
+
                     {hasMore && !isLoading && (
                       <div ref={loadingRef} className='flex justify-center mt-12 py-8'>
                         {isLoadingMore && (
@@ -897,10 +990,6 @@ function SearchPageClient() {
                           </div>
                         )}
                       </div>
-                    )}
-      
-                    {false && !hasMore && searchResults.length > 0 && (
-                      <div className='text-center text-gray-500 py-8'>已加载全部内容</div>
                     )}
                   </section>
                 ) : searchHistory.length > 0 ? (
@@ -964,6 +1053,18 @@ function SearchPageClient() {
             >
               <ChevronUp className='w-6 h-6 transition-transform group-hover:scale-110' />
             </button>
+
+            {/* 站外搜索加载对话框 */}
+            {isExternalSearching && (
+              <div className='fixed inset-0 z-[600] flex items-center justify-center bg-black/50 backdrop-blur-sm'>
+                <div className='bg-white dark:bg-gray-800 rounded-lg p-8 shadow-2xl flex flex-col items-center gap-4'>
+                  <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-green-500'></div>
+                  <p className='text-gray-700 dark:text-gray-300 font-medium'>
+                    正在从更多来源搜索"{currentQueryRef.current}"
+                  </p>
+                </div>
+              </div>
+            )}
           </PageLayout>
         );
       }export default function SearchPage() {
