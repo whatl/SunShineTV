@@ -262,7 +262,10 @@ async function search(extra: Record<string, string>, useStream = false, page = 1
   // code=1001: 未找到结果（正常情况）
   // code>=1002: 系统错误
   if (response.code === 0 || response.code === 1001) {
-    return response.results || [];
+    const results = response.results || [];
+    // 按 episodes_num 从大到小排序
+    const sortedResults = results.sort((a, b) => (b.episodes_num || 0) - (a.episodes_num || 0));
+    return sortedResults;
   } else {
     console.warn(`Search failed: ${response.message} (code: ${response.code})`);
     return [];
