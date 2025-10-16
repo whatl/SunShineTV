@@ -8,7 +8,7 @@ import protobuf from 'protobufjs';
 import { CategoriesParams, DataProvider, HomePageData, ListByTagParams, RecommendationsParams } from './interface';
 import { BangumiCalendarData } from '../bangumi.client';
 import { API_BASE_URL } from '../maccms.config';
-import {DecodeResponse,DoubanItem, DoubanResult, SearchResult } from '../types';
+import {DecodeResponse,DoubanItem, DoubanResult, SearchResponse, SearchResult } from '../types';
 
 const NOT_IMPLEMENTED_ERROR = 'Maccms provider API endpoint is not yet implemented for this method.';
 
@@ -92,6 +92,12 @@ async function getProtoRoot(): Promise<protobuf.Root> {
 
   message SearchResultList {
       repeated SearchResult results = 1;
+  }
+
+  message SearchResponse {
+    int32 code = 1;
+    string message = 2;
+    repeated SearchResult results = 3;
   }
 
   message CmsHomePageApiResponse {
@@ -249,14 +255,19 @@ async function search(extra: Record<string, string>, useStream = false, page = 1
     return Promise.resolve([]);
   }
   await optmisePerformance(page);
-  const response = await fetchFromCmsApi<SearchResult[] | { results: SearchResult[] }>('/api/cms/shine/search', { q: query,page:page.toString() }, 'maccms.SearchResultList');
+  const response = await fetchFromCmsApi<SearchResponse>('/api/cms/shine/search', { q: query, page:page.toString() }, 'maccms.SearchResponse');
 
-  if (Array.isArray(response)) {
-    return response;
-  } else if (response && Array.isArray(response.results)) {
-    return response.results;
+  // 检查响应code
+  // code=0: 成功
+  // code=1001: 未找到结果（正常情况）
+  // code>=1002: 系统错误
+  if (response.code === 0 || response.code === 1001) {
+    return response.results || [];
+  } else {
+    console.warn(`Search failed: ${response.message} (code: ${response.code})`);
+    return [];
   }
-  return [];
+
 }
 
 

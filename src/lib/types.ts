@@ -108,6 +108,13 @@ export interface SearchResult {
   remark?: string; // 更新备注（如"已完结"、"更新至第10集"等）
 }
 
+// 搜索响应包装
+export interface SearchResponse {
+  code: number; // 状态码：0=成功，其他见错误码定义
+  message: string; // 消息
+  results: SearchResult[]; // 搜索结果列表
+}
+
 // 豆瓣数据结构
 export interface DoubanItem {
   id: string; // 声明有，但豆瓣id可允许为空
