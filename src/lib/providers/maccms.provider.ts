@@ -162,13 +162,20 @@ async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, stri
       bytes: String,
       defaults: true,
     });
-    // CmsHomePageApiResponse 的顶层字段已经是 camelCase，不需要转换
-    // 其他类型（SearchResponse, DoubanResult 等）需要转换嵌套字段
-    if (protoTypeName === 'maccms.CmsHomePageApiResponse') {
-      return obj as T;
+    // 只有 SearchResult 相关的类型需要转换为 snake_case
+    const needConvertTypes = [
+      'maccms.SearchResponse',
+      'maccms.SearchResultList',
+      'maccms.SearchResult'
+    ];
+
+    if (needConvertTypes.includes(protoTypeName)) {
+      // protobuf.js 会将字段名转换为 camelCase，需要转回 snake_case 以匹配前端 SearchResult 类型定义
+      return camelToSnake(obj) as T;
     }
-    // protobuf.js 会将字段名转换为 camelCase，需要转回 snake_case 以匹配前端类型定义
-    return camelToSnake(obj) as T;
+
+    // 其他类型保持 camelCase，直接返回
+    return obj as T;
   }
 
   return response.json() as Promise<T>;
@@ -434,8 +441,8 @@ export async function getCaptcha(oldSessionId?: string): Promise<{ sessionId: st
       bytes: String,
       defaults: true,
     });
-    // protobuf.js 会将字段名转换为 camelCase，需要转回 snake_case 以匹配前端类型定义
-    return camelToSnake(obj) as { sessionId: string; imageBase64: string };
+    // CaptchaResponse 字段已经是 camelCase，直接返回
+    return obj as { sessionId: string; imageBase64: string };
   }
 
   return response.json();
@@ -484,8 +491,8 @@ export async function submitFeedback(
       bytes: String,
       defaults: true,
     });
-    // protobuf.js 会将字段名转换为 camelCase，需要转回 snake_case 以匹配前端类型定义
-    return camelToSnake(obj) as { code: number; message: string };
+    // CommonResponse 字段已经是 camelCase，直接返回
+    return obj as { code: number; message: string };
   }
 
   return response.json();
