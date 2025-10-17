@@ -162,6 +162,11 @@ async function fetchFromCmsApi<T>(endpoint: string, params?: Record<string, stri
       bytes: String,
       defaults: true,
     });
+    // CmsHomePageApiResponse 的顶层字段已经是 camelCase，不需要转换
+    // 其他类型（SearchResponse, DoubanResult 等）需要转换嵌套字段
+    if (protoTypeName === 'maccms.CmsHomePageApiResponse') {
+      return obj as T;
+    }
     // protobuf.js 会将字段名转换为 camelCase，需要转回 snake_case 以匹配前端类型定义
     return camelToSnake(obj) as T;
   }
